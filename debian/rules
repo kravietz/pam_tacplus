@@ -12,8 +12,8 @@ export DH_VERBOSE=1
 # Debhelper compatibility
 export DH_COMPAT=5
 
-# Do not include CVS/svn source directories
-export DH_ALWAYS_EXCLUDE=CVS:.svn
+# Do not include git source directories
+export DH_ALWAYS_EXCLUDE=.git
 
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
@@ -25,33 +25,42 @@ ifeq ($(DEB_HOST_ARCH),i386)
 	DEBFLAGS = -m32
 endif
 
+configure: configure-stamp
+
+configure-stamp:
+	dh_testdir
+
+	# Add here commands to configure the package.
+	dh_auto_configure -- --libdir=/lib --docdir=/usr/share/doc/libpam-tacplus
+	touch configure-stamp
+
+
 build: build-stamp
-build-stamp:
+
+build-stamp: configure-stamp
 	dh_testdir
 
 	# Add here commands to compile the package.
 	DEBFLAGS=$(DEBFLAGS) $(MAKE)
-
 	touch build-stamp
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp 
+	rm -f build-stamp configure-stamp
 
 	# Add here commands to clean up after the build process.
 	$(MAKE) clean
-
 	dh_clean 
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean 
+	dh_clean
 	dh_installdirs
 
 	# Add here commands to install the package into debian/libpam-tacplus
-	cp pam_tacplus.so $(CURDIR)/debian/libpam-tacplus/lib/security/
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/libpam-tacplus/
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -61,7 +70,7 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs CHANGES
+	dh_installchangelogs
 	dh_installdocs
 #	dh_installexamples
 #	dh_install
@@ -90,4 +99,4 @@ binary-arch: build install
 	dh_builddeb
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install 
+.PHONY: build clean binary-indep binary-arch binary install configure
