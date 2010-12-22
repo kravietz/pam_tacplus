@@ -1,0 +1,18 @@
+
+pam_tacplus consists of the module code and `libtac' simple TACPLUS+ library.
+
+Simple `make' should compile both TACACS+ library and pam_tacplus module.
+If not, you could try to edit the following files:
+
+./Makefile
+./libtac/lib/Makefile
+
+You should get a `pam_tacplus.so' module, which should be placed in
+/lib/security. Modify `sample.pam' and install it in /etc/pam.d under
+name of the proper service.
+
+This code is known to work on Linux, Solaris and AIX for now.
+
+Jan 02 2000
+Pawel Krawczyk <kravietz@ceti.pl>
+http://ceti.pl/~kravietz/prog.html

@@ -1,0 +1,99 @@
+1.3.2
+* Added autotool configuration files, thanks to Benoit Donneaux <benoit.donneaux@gmail.com>.
+* Added pam_tacplus.spec file, thanks to Benoit Donneaux <benoit.donneaux@gmail.com>.
+* Added license information to all files and the license itself.
+* All AV pairs are now available to the PAM environment. So you can use pam_exec.so or whatever
+  to do something with these. Only available for PAM account.
+* Rewritten attribute loop in function pam_sm_acct_mgmt() for debug and future use
+  of AV pairs.
+* Fixed attribute buffer in author_r.c, this bug cause program stuck when you get
+  AV pairs from the server, reported by Oz Shitrit.
+
+1.3.1
+* Added custom password prompt option
+* Removed password logging when in debug mode
+
+1.3.0
+* Released version 1.3.0 based on 1.2.13.
+  This release finally includes support for TACACS+ chap and login authentication. The
+  default is still pap for backward compatibility.
+
+1.2.13
+* Changed spaces into tabs for pam_tacplus.c so make it more readable
+* Did some minor cleanup
+* Added login option so you can choose which TACACS+ authentication you want to
+  use. You can use pap, chap or login (ascii) at the moment. The default login option is pap.
+* Added cont_s.c needed for TACACS+ login authentication.
+
+1.2.12
+* Missing network byte order convertion to host byte order in function's
+  tac_account_read, tac_authen_pap_read and tac_author_read, reported and
+  patch by Sven van den Steene, thanks!
+* Fixed potential memory leak, when tac_account_read and tac_authen_pap_read are
+  successful msg isn't freed, reported by Sven van den Steene
+
+1.2.11
+* Added NO_STATIC_MODULES to CFLAGS for linking with openpam on netbsd, tested by
+  Fredrik Pettai <pettai@nordu.net>
+* Removed libdl for compiling causing failure on netbsd, reported by
+  Fredrik Pettai <pettai@nordu.net>
+* hdr_check.c: forgot to include stdlib, reported by
+  Fredrik Pettai <pettai@nordu.net>
+* Changed defines to add support for netbsd, fixed by
+  Jeroen Nijhof <jeroen@nijhofnet.nl>
+* magic.c: read() can have a return value, fixed by
+  Jeroen Nijhof <jeroen@nijhofnet.nl>
+* support.c: _pam_log() va_list converted to string with vsnprintf() to support
+  syslog(), we have human readable error's in syslog again, fixed by
+  Jeroen Nijhof <jeroen@nijhofnet.nl>
+
+1.2.10
+  The following changes where made by Jeroen Nijhof <jeroen@nijhofnet.nl>
+* Changed default compile flags to be more compatible
+* Fixed serveral bugs including casts and cleanup's, the code can now compile
+  without any warnings
+* Changed some Makefile definitions to be more compatible with other versions of make
+* Support added for solaris and aix, tested on aix 5.3, solaris 9 and 10. Including
+  standalone version of cdefs.h 
+
+1.2.9
+* Fixed bug with passing username and password, reported by
+  Mark Volpe <volpe.mark@epamail.epa.gov>
+* Fixed bug in passing the remote address, reported by
+  Jason Lambert <jlambert@lambert-comm.net> and
+  Yury Trembach <yt@sns.net.ua>
+* Fixed bug in reception of authorization packet, reported by
+  <svg@disney.surnet.ru>
+
+1.2.8
+* Another bugfix in tty handling - some daemons don't use any terminal, in
+  which case we send "unknown" terminal name to the TACACS+ server
+
+1.2.7
+* Fixed bug in tty determination
+
+1.2.6
+* Better protection against disconnection signals 
+
+1.2.5
+* Fixed bug in task_id initialisation
+
+1.2.4
+* Fixed small bug in accounting
+
+1.2.3
+* upgraded to new libtac version, now pam_tacplus returns the attributes
+  received from server (currently only 'addr' attribute in PAM_RHOST)
+* minor fixes
+
+1.2.2
+* more fixes
+
+1.2.1
+* pam_sm_acct_mgmt() added
+* pam_sm_open_session() added
+* pam_sm_close_session() added
+* minor fixes
+
+1.0.1
+* first working version with pam_sm_authenticate()

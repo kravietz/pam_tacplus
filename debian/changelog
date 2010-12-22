@@ -1,0 +1,6 @@
+libpam-tacplus (1.3.1-1) unstable; urgency=low
+
+  * First version of pam_tacplus debian package
+
+ -- Jeroen Nijhof <jeroen@nijhofnet.nl>  Sun, 14 Feb 2010 23:07:00 +0100
+

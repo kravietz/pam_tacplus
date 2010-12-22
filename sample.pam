@@ -1,0 +1,4 @@
+#%PAM-1.0
+auth      required  /lib/security/pam_tacplus.so debug server=tac1.foo.net server=tac2.baz.net timeout=5 secret=SECRET-1234 encrypt login=pap prompt=Enter_password: first_hit
+account	  required	/lib/security/pam_tacplus.so debug server=tac1.foo.net timeout=5 secret=SECRET-1234 encrypt service=ppp protocol=lcp
+session   required	/lib/security/pam_tacplus.so debug server=tac1.foo.net timeout=5 secret=SECRET-1234 encrypt service=ppp protocol=lcp
