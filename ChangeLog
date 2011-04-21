@@ -1,3 +1,10 @@
+1.3.3
+* pam_tacplus.h: changed bitflags to hex, thanks Jason!
+* Added gitignore for build stuff
+* connect.c: removed ifdef for sys/socket.h, it will be included anyway for other platforms,
+  thanks to Obata Akio for pointing that out.
+* connect.c: improved connection error handling, patch from Martin Volf, thanks!
+
 1.3.2
 * Added autotool configuration files, thanks to Benoit Donneaux <benoit.donneaux@gmail.com>.
 * Added pam_tacplus.spec file, thanks to Benoit Donneaux <benoit.donneaux@gmail.com>.
