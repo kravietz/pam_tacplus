@@ -57,8 +57,8 @@ extern char *tac_login;
 
 /* connect.c */
 extern int tac_timeout;
-extern int tac_connect(struct addrinfo **server, int servers);
-extern int tac_connect_single(struct addrinfo *server);
+extern int tac_connect(struct addrinfo **server, char **key, int servers);
+extern int tac_connect_single(struct addrinfo *server, char *key);
 extern char *tac_ntop(const struct sockaddr *sa, size_t ai_addrlen);
 
 extern int tac_authen_send(int fd, const char *user, char *pass, char *tty);

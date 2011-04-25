@@ -21,9 +21,7 @@
 
 /* pam_tacplus command line options */
 #define PAM_TAC_DEBUG		0x01
-#define PAM_TAC_ENCRYPT		0x02
-#define PAM_TAC_FIRSTHIT	0x04
-#define PAM_TAC_ACCT		0x08 /* account on all specified servers */
+#define PAM_TAC_ACCT		0x02 /* account on all specified servers */
 
 /* how many TACPLUS+ servers can be defined */
 #define TAC_MAX_SERVERS		4

@@ -1,6 +1,6 @@
 
-pam_tacplus v1.3.3
-Apr 21 2011
+pam_tacplus v1.3.4
+Apr 25 2011
 
 This PAM module support the following functions:
 
@@ -26,10 +26,8 @@ debug           ALL                     output debugging information via
                                         syslog(3); note, that the debugging
                                         is heavy, including passwords!
 					
-encrypt         ALL                     encrypt TACACS+ packets; you should
-                                        use this always in normal operations
-
-secret=STRING   ALL                     secret key used to encrypt/decrypt
+secret=STRING   ALL                     can be specified more than once;
+                                        secret key used to encrypt/decrypt
                                         packets sent/received from the server
 
 server=HOSTNAME auth, session           can be specified more than once;
@@ -38,11 +36,6 @@ server=IP_ADDR                          adds a TACACS+ server to the servers
 
 timeout=INT     ALL                     connection timeout in seconds
                                         default is 5 seconds
-
-first_hit       auth                    if multiple servers are supplied,
-                                        pam_tacplus will try to authenticate
-                                        the user on all servers until it
-                                        succeds or all servers are queried
 
 login=STRING    auth                    TACACS+ authentication service,
                                         this can be "pap", "chap" or "login"
@@ -73,14 +66,13 @@ Example configuration:
 ~~~~~~~~~~~~~~~~~~~~~~
 
 #%PAM-1.0
-auth       required     /lib/security/pam_tacplus.so debug server=123.123.123.123 secret=SECRET-123 encrypt
-account	   required	/lib/security/pam_tacplus.so debug secret=SECRET-123 encrypt service=ppp protocol=lcp
+auth       required     /lib/security/pam_tacplus.so debug server=1.1.1.1 secret=SECRET-1
+account	   required	/lib/security/pam_tacplus.so debug secret=SECRET-1 service=ppp protocol=lcp
 account    sufficient	/lib/security/pam_exec.so /usr/local/bin/showenv.sh
 password   required	/lib/security/pam_cracklib.so
 password   required	/lib/security/pam_pwdb.so shadow use_authtok
-session    required	/lib/security/pam_tacplus.so debug server=123.123.123.123 server=124.124.124.124 secret=SECRET-124 encrypt service=ppp protocol=lcp
+session    required	/lib/security/pam_tacplus.so debug server=1.1.1.1 server=2.2.2.2 secret=SECRET-1 secret=SECRET-2 service=ppp protocol=lcp
 
-(note that above are five long lines)
 
 More on server lists:
 ~~~~~~~~~~~~~~~~~~~~~
@@ -88,28 +80,11 @@ More on server lists:
 1. Having more that one TACACS+ server defined for given management group
 has following effects on authentication:
 
- 	* always, if the first server on the list is unreachable or failing
-	  pam_tacplus will try to authenticate user on the another one
+ 	* if the first server on the list is unreachable or failing
+	  pam_tacplus will try to authenticate the user against the other
+	  servers until it succeeds
 
-	  in case, where there are no modifiers like `first_hit', you
-	  could think the of the first server on list as primary one,
-	  and the others as backup/secondary servers
-
-	* if the `first_hit' option is specified, if the first server
-	  on the list will return negative authentication reply, pam_tacplus
-	  will try to ask another server; this will continue until it
-	  will get positive reply from one of the servers, or all servers
-	  are probed with negative replies; then pam_tacplus will return
-	  with authentication failure
-
-	  this is useful if you have e.g. dialup server authenticating
-	  users who have accounts on multiple servers in your network;
-	  in this case, from host B won't be authenticated by TACACS+ server
-	  on host A (which is first on the list), but it will be authenticated
-	  when pam_tacplus will query the server on host B next
-
-	  in this case all the servers can be considered as having equal
-	  authority in authenticating users
+	* the `first_hit' option has been deprecated
 
 	* when the authentication function gets a positive reply from
 	  a server, it saves its address for future use by account
@@ -184,10 +159,8 @@ Limitations:
 
 Many of them for now :)
 
-	* it's still in beta
 	* only subset of TACACS+ protocol is supported; it's enough for
 	  most need, though
-	* only one, common `secret' can be specified
 	* utilize PAM_SERVICE item obtained from PAM for TACACS+ services
 	* clean options and configuration code
 		

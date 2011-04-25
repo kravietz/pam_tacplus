@@ -39,11 +39,13 @@ int tac_timeout = 5;
    to the first available server from list passed
    in server table.
 */
-int tac_connect(struct addrinfo **server, int servers) {
+int tac_connect(struct addrinfo **server, char **key, int servers) {
 	int tries = 0;
 	int fd, flags, retval;
 	fd_set readfds, writefds;
 	struct timeval tv;
+	socklen_t len;
+	struct sockaddr_storage addr;
 
 	if(!servers) {
 		syslog(LOG_ERR, "%s: no TACACS+ servers defined", __FUNCTION__);
@@ -89,17 +91,31 @@ int tac_connect(struct addrinfo **server, int servers) {
 		tv.tv_sec = tac_timeout;
 		tv.tv_usec = 0;
 
-		/* check if socket is ready for read or write */
-		if(!select(fd+1, &readfds, &writefds, NULL, &tv)) {
+		/* check if socket is ready for read and write */
+		if(select(fd+1, &readfds, &writefds, NULL, &tv) < 1) {
      	  		syslog(LOG_WARNING, 
-				"%s: connection timeout with %s : %m", __FUNCTION__,
+				"%s: connection failed with %s : %m", __FUNCTION__,
 						tac_ntop(server[tries]->ai_addr, server[tries]->ai_addrlen));
 			if(fcntl(fd, F_SETFL, flags)) {
      	  			syslog(LOG_WARNING, "%s: cannot restore socket flags",
-					 __FUNCTION__); 
+					__FUNCTION__); 
 			}
 			tries++;
 			continue;
+		} else {
+			/* check with getpeername if we have a valid connection */
+			len = sizeof addr;
+			if(getpeername(fd, (struct sockaddr*)&addr, &len) == -1) {
+     	  			syslog(LOG_WARNING, 
+					"%s: connection failed with %s : %m", __FUNCTION__,
+							tac_ntop(server[tries]->ai_addr, server[tries]->ai_addrlen));
+				if(fcntl(fd, F_SETFL, flags)) {
+     	  				syslog(LOG_WARNING, "%s: cannot restore socket flags",
+						 __FUNCTION__); 
+				}
+				tries++;
+				continue;
+			}
 		}
 
 		/* connected ok */
@@ -110,19 +126,22 @@ int tac_connect(struct addrinfo **server, int servers) {
 		TACDEBUG((LOG_DEBUG, "%s: connected to %s", __FUNCTION__, \
 			       	tac_ntop(server[tries]->ai_addr, server[tries]->ai_addrlen)));
 
+		/* set current tac_secret */
+		tac_secret = key[tries];
 		return(fd);
 	}
 
 	/* all attempts failed */
-	syslog(LOG_ERR, "%s: all possible TACACS+ servers failed", __FUNCTION__); 
 	return(-1);
 } /* tac_connect */
 
 
-int tac_connect_single(struct addrinfo *server) {
-	struct addrinfo *temp[1];
-	temp[0] = server;
-	return(tac_connect(temp, 1));
+int tac_connect_single(struct addrinfo *server, char *key) {
+	struct addrinfo *tmpaddr[1];
+	tmpaddr[0] = server;
+	char *tmpkey[1];
+	tmpkey[0] = key;
+	return(tac_connect(tmpaddr, tmpkey, 1));
 } /* tac_connect_single */
 
 

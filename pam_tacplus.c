@@ -58,6 +58,7 @@
 
 /* support.c */
 extern struct addrinfo *tac_srv[TAC_MAX_SERVERS];
+extern char *tac_srv_key[TAC_MAX_SERVERS];
 extern int tac_srv_no;
 extern char *tac_service;
 extern char *tac_protocol;
@@ -75,11 +76,11 @@ extern void *_xcalloc (size_t size);
 extern u_int32_t magic();
 
 /* libtac */
-extern char *tac_secret;
 extern int tac_encryption;
 
 /* address of server discovered by pam_sm_authenticate */
 static struct addrinfo *active_server;
+char *active_key;
 /* accounting task identifier */
 static short int task_id = 0;
 
@@ -207,7 +208,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
 
 		status = PAM_SUCCESS;
 		  
-		tac_fd = tac_connect(tac_srv, tac_srv_no);
+		tac_fd = tac_connect(tac_srv, tac_srv_key, tac_srv_no);
 		if(tac_fd < 0) {
 			_pam_log(LOG_ERR, "%s: error sending %s - no servers",
 				__FUNCTION__, typemsg);
@@ -238,7 +239,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
 		for(srv_i = 0; srv_i < tac_srv_no; srv_i++) {
 			int tac_fd;
 				  
-			tac_fd = tac_connect_single(tac_srv[srv_i]);
+			tac_fd = tac_connect_single(tac_srv[srv_i], tac_srv_key[srv_i]);
 			if(tac_fd < 0) {
 				_pam_log(LOG_WARNING, "%s: error sending %s (fd)",
 					__FUNCTION__, typemsg);
@@ -343,13 +344,14 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
 		if (ctrl & PAM_TAC_DEBUG)
 			syslog (LOG_DEBUG, "%s: trying srv %d", __FUNCTION__, srv_i );
 
-		tac_fd = tac_connect_single(tac_srv[srv_i]);
+		tac_fd = tac_connect_single(tac_srv[srv_i], tac_srv_key[srv_i]);
 		if (tac_fd < 0) {
 			_pam_log (LOG_ERR, "connection failed srv %d: %m", srv_i);
 			if (srv_i == tac_srv_no-1) {
 				_pam_log (LOG_ERR, "no more servers to connect");
 				return PAM_AUTHINFO_UNAVAIL;
 			}
+			continue;
 		}
 		if (tac_authen_send (tac_fd, user, pass, tty) < 0) {
 			_pam_log (LOG_ERR, "error sending auth req to TACACS+ server");
@@ -372,6 +374,7 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
 						   accepted us for pam_sm_acct_mgmt and exit the loop */
 						status = PAM_SUCCESS;
 						active_server = tac_srv[srv_i];
+						active_key = tac_srv_key[srv_i];
 						close(tac_fd);
 						break;
 					}
@@ -384,16 +387,12 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
 				   accepted us for pam_sm_acct_mgmt and exit the loop */
 				status = PAM_SUCCESS;
 				active_server = tac_srv[srv_i];
+				active_key = tac_srv_key[srv_i];
 				close(tac_fd);
 				break;
 			}
 		}
 		close(tac_fd);
-		/* if we are here, this means that authentication failed
-		   on current server; break if we are not allowed to probe
-		   another one, continue otherwise */
-		if (!(ctrl & PAM_TAC_FIRSTHIT))
-			break;
 	}
 
 	if (ctrl & PAM_TAC_DEBUG)
@@ -497,7 +496,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
 	tac_add_attrib(&attr, "service", tac_service);
 	tac_add_attrib(&attr, "protocol", tac_protocol);
 
-	tac_fd = tac_connect_single(active_server);
+	tac_fd = tac_connect_single(active_server, active_key);
 	if(tac_fd < 0) {
 		_pam_log (LOG_ERR, "TACACS+ server unavailable");
 		status = PAM_AUTH_ERR;

@@ -34,7 +34,7 @@ int session_id;
 int tac_encryption;
 
 /* Pointer to TACACS+ shared secret string. */
-char *tac_secret;
+char *tac_secret = "";
 
 /* Pointer to TACACS+ shared login string. */
 char *tac_login = "pap";

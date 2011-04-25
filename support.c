@@ -35,12 +35,13 @@
 
 struct addrinfo *tac_srv[TAC_MAX_SERVERS];
 int tac_srv_no = 0;
+char *tac_srv_key[TAC_MAX_SERVERS];
+int tac_srv_key_no = 0;
 char *tac_service = NULL;
 char *tac_protocol = NULL;
 char *tac_prompt = NULL;
 
 /* libtac */
-extern char *tac_secret;
 extern char *tac_login;
 extern int tac_encryption;
 extern int tac_timeout;
@@ -161,16 +162,12 @@ int _pam_parse (int argc, const char **argv) {
 	int ctrl = 0;
 
 	/* otherwise the list will grow with each call */
-	tac_srv_no = 0;
+	tac_srv_no = tac_srv_key_no = 0;
+	tac_encryption = 0;
 
 	for (ctrl = 0; argc-- > 0; ++argv) {
 		if (!strcmp (*argv, "debug")) { /* all */
 			ctrl |= PAM_TAC_DEBUG;
-		} else if (!strcmp (*argv, "encrypt")) {
-			ctrl |= PAM_TAC_ENCRYPT;
-			tac_encryption = 1;
-		} else if (!strcmp (*argv, "first_hit")) { /* authentication */
-			ctrl |= PAM_TAC_FIRSTHIT;
 		} else if (!strncmp (*argv, "service=", 8)) { /* author & acct */
 			tac_service = (char *) _xcalloc (strlen (*argv + 8) + 1);
 			strcpy (tac_service, *argv + 8);
@@ -212,8 +209,15 @@ int _pam_parse (int argc, const char **argv) {
 					TAC_MAX_SERVERS);
 			}
 		} else if (!strncmp (*argv, "secret=", 7)) {
-			tac_secret = (char *) _xcalloc (strlen (*argv + 7) + 1);
-			strcpy (tac_secret, *argv + 7);
+			tac_encryption = 1;
+			if(tac_srv_key_no < TAC_MAX_SERVERS) {
+				tac_srv_key[tac_srv_key_no] = (char *) _xcalloc (strlen (*argv + 7) + 1);
+				strcpy (tac_srv_key[tac_srv_key_no], *argv + 7);
+				tac_srv_key_no++;
+			} else {
+				_pam_log(LOG_ERR, "maximum number of secrets (%d) exceeded, skipping",
+					TAC_MAX_SERVERS);
+			}
 		} else if (!strncmp (*argv, "timeout=", 8)) {
 			tac_timeout = atoi(*argv + 8);
 		} else if (!strncmp (*argv, "login=", 6)) {
@@ -222,6 +226,14 @@ int _pam_parse (int argc, const char **argv) {
 		} else {
 			_pam_log (LOG_WARNING, "unrecognized option: %s", *argv);
 		}
+	}
+
+	if (tac_srv_key_no == 0) {
+		tac_srv_key[0] = "";
+		tac_srv_key_no++;
+	}
+	for (;tac_srv_key_no < tac_srv_no;tac_srv_key_no++) {
+		tac_srv_key[tac_srv_key_no] = tac_srv_key[0];
 	}
 
 	return ctrl;
