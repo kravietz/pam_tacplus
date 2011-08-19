@@ -32,6 +32,7 @@ libtac/lib/md5.c \
 libtac/lib/md5.h \
 libtac/lib/messages.c \
 libtac/lib/messages.h \
+libtac/lib/read_wait.c \
 libtac/lib/version.c \
 libtac/lib/xalloc.c \
 libtac/lib/xalloc.h \

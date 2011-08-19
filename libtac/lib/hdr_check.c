@@ -1,6 +1,6 @@
 /* hdr_check.c - Perform basic sanity checks on received packet.
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,23 +31,21 @@
  * or NULL when the header seems to be correct
  */
 char *_tac_check_header(HDR *th, int type) {
-
- 	if(th->type != type) {
-  		syslog(LOG_ERR,
-			 "%s: unrelated reply, type %d, expected %d", 
-			 __FUNCTION__, th->type, type);
-  		return(protocol_err_msg);
- 	} else if((th->seq_no != 2) && (th->seq_no != 4)) {
-  		syslog(LOG_ERR, "%s: not a reply - seq_no %d != 2", 
-						__FUNCTION__, th->seq_no);
-  		return(protocol_err_msg);
- 	} /* else if(ntohl(th->session_id) != session_id) {
-  		syslog(LOG_ERR, 
-			"%s: unrelated reply, received session_id %d != sent %d",
-			__FUNCTION__, ntohl(th->session_id), session_id);
-  		return(protocol_err_msg);
- 	} */
-	
-	return(NULL); /* header is ok */	
-
+    if(th->type != type) {
+        TACSYSLOG((LOG_ERR,\
+            "%s: unrelated reply, type %d, expected %d",\
+            __FUNCTION__, th->type, type))
+        return(protocol_err_msg);
+    } else if((th->seq_no != 2) && (th->seq_no != 4)) {
+        TACSYSLOG((LOG_ERR, "%s: not a reply - seq_no %d != {2,4}",\
+            __FUNCTION__, th->seq_no))
+        return(protocol_err_msg);
+    } /* else if(ntohl(th->session_id) != session_id) {
+        TACSYSLOG((LOG_ERR,\
+            "%s: unrelated reply, received session_id %d != sent %d",\
+            __FUNCTION__, ntohl(th->session_id), session_id))
+        return(protocol_err_msg);
+    } */
+    
+    return(NULL); /* header is ok */    
 } /* check header */

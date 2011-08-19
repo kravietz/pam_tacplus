@@ -1,6 +1,6 @@
 /* xalloc.h
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,5 +19,13 @@
  * See `CHANGES' file for revision history.
  */
 
+#ifndef _XALLOC_H
+#define _XALLOC_H
+
+__BEGIN_DECLS
 extern void *xcalloc(size_t nmemb, size_t size);
 extern void *xrealloc(void *ptr, size_t size);
+extern char *xstrdup(char *s);
+__END_DECLS
+
+#endif

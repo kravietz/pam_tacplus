@@ -40,7 +40,8 @@ extern void srand48 __P((long));
 
 /* on Linux we use /dev/urandom as random numbers source 
    I find it really cool :) */
-int rfd = 0;	/* /dev/urandom */
+int rfd = -1;	/* /dev/urandom */
+int magic_inited = 0;
 #endif
 
 /*
@@ -56,20 +57,16 @@ magic_init()
     long seed;
     struct timeval t;
 
+    magic_inited = 1;
 #ifdef __linux__
-	rfd = open("/dev/urandom", O_RDONLY);
-	if(rfd != -1) 
-			return;
-	else {
-		rfd = 0;
+    rfd = open("/dev/urandom", O_RDONLY);
+    if(rfd != -1) 
+        return;
 #endif
-	/* if /dev/urandom fails, we try traditional method */
+    /* if /dev/urandom fails, we try traditional method */
     gettimeofday(&t, NULL);
     seed = gethostid() ^ t.tv_sec ^ t.tv_usec ^ getpid();
     srand48(seed);
-#ifdef __linux__
-	}
-#endif
 }
 
 /*
@@ -79,16 +76,18 @@ u_int32_t
 magic()
 {
 #ifdef __linux__
-	u_int32_t ret = 0;
-	int bytes = 0;
+    u_int32_t ret = 0;
+    int bytes = 0;
 
-	if(rfd) 
-	{
-		bytes = read(rfd, &ret, sizeof(ret));
-		return(ret);
-	}
+    if (magic_inited == 0 )
+        magic_init();
+
+	if(rfd > -1) {
+            bytes = read(rfd, &ret, sizeof(ret));
+            return(ret);
+        }
 	else
-    	return (u_int32_t) mrand48();
+            return (u_int32_t) mrand48();
 #else
     return (u_int32_t) mrand48();
 #endif

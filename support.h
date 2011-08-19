@@ -1,6 +1,6 @@
 /* support.h - support functions for pam_tacplus.c
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@
  */
 
 #ifndef __linux__
-	#include <security/pam_appl.h>
+    #include <security/pam_appl.h>
 #endif
 #include <security/pam_modules.h>
 
@@ -28,10 +28,10 @@
 extern int _pam_parse (int argc, const char **argv);
 extern unsigned long _resolve_name (char *serv);
 extern int tacacs_get_password (pam_handle_t * pamh, int flags
-			,int ctrl, char **password);
+    ,int ctrl, char **password);
 extern int converse (pam_handle_t * pamh, int nargs
-		,struct pam_message **message
-		,struct pam_response **response);
+    ,struct pam_message **message
+    ,struct pam_response **response);
 extern void _pam_log (int err, const char *format,...);
 extern void *_xcalloc (size_t size);
 extern char *_pam_get_terminal(pam_handle_t *pamh);

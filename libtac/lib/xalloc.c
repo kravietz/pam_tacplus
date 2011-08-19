@@ -1,7 +1,7 @@
 /* xalloc.c - Failsafe memory allocation functions.
  *            Taken from excellent glibc.info ;)
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,24 +20,34 @@
  * See `CHANGES' file for revision history.
  */
 
-#include <syslog.h>
-#include <stdlib.h>
+#include "libtac.h"
 
 void *xcalloc(size_t nmemb, size_t size) {
-	register void *val = calloc(nmemb, size);
-	if(val == 0) {
-		syslog(LOG_ERR, "%s: calloc(%u,%u) failed", __FUNCTION__, 
-			(unsigned) nmemb, (unsigned) size);
-		exit(1);
-	}
-	return val;
+    register void *val = calloc(nmemb, size);
+    if(val == 0) {
+        TACSYSLOG((LOG_ERR, "%s: calloc(%u,%u) failed", __FUNCTION__,\
+            (unsigned) nmemb, (unsigned) size))
+        exit(1);
+    }
+    return val;
 }
 
 void *xrealloc(void *ptr, size_t size) {
-	register void *val = realloc(ptr, size);
-	if(val == 0) {
-		syslog(LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned) size);
-		exit(1);
-	}
-	return val;
+    register void *val = realloc(ptr, size);
+    if(val == 0) {
+        TACSYSLOG((LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned) size))
+        exit(1);
+    }
+    return val;
+}
+
+char *xstrdup(char *s) {
+    char *p;
+    if (s == NULL) return NULL;
+
+    if ( (p = strdup(s)) == NULL ) {
+        TACSYSLOG((LOG_ERR, "%s: strdup(%s) failed: %m", __FUNCTION__, s))
+        exit(1);
+    }
+    return p;
 }

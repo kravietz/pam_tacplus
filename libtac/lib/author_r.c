@@ -1,6 +1,6 @@
 /* author_r.c - Reads authorization reply from the server.
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,166 +29,209 @@
     2. message for the user
     3. list of attributes returned by server
    The attributes should be applied to service authorization
-   is requested for, but actually the aren't. Attributes are
-   discarded. 
-*/
-void tac_author_read(int fd, struct areply *re) {
-	HDR th;
-	struct author_reply *tb = NULL;
-	int len_from_header, r, len_from_body;
-	char *pktp;
-	char *msg = NULL;
+   is requested for.
+ *
+ * return value:
+ *   <  0 : error status code, see LIBTAC_STATUS_...
+ *         LIBTAC_STATUS_READ_TIMEOUT
+ *         LIBTAC_STATUS_SHORT_HDR
+ *         LIBTAC_STATUS_SHORT_BODY
+ *         LIBTAC_STATUS_PROTOCOL_ERR
+ *   >= 0 : server response, see TAC_PLUS_AUTHOR_STATUS_...
+ */
+int tac_author_read(int fd, struct areply *re) {
+    HDR th;
+    struct author_reply *tb = NULL;
+    int len_from_header, r, len_from_body;
+    u_char *pktp = NULL;
+    char *msg = NULL;
+    int timeleft;
+    re->msg = NULL;
 
-	bzero(re, sizeof(struct areply));
-	
-	r=read(fd, &th, TAC_PLUS_HDR_SIZE);
-	if(r < TAC_PLUS_HDR_SIZE) {
-  		syslog(LOG_ERR,
- 			"%s: short author header, %d of %d: %m", __FUNCTION__,
-		 	r, TAC_PLUS_HDR_SIZE);
-		re->msg = system_err_msg;
-		re->status = AUTHOR_STATUS_ERROR;
-		goto AuthorExit;
- 	}
+    bzero(re, sizeof(struct areply));
+    if (tac_readtimeout_enable &&
+        tac_read_wait(fd,tac_timeout*1000,TAC_PLUS_HDR_SIZE,&timeleft) < 0 ) {
 
-	/* check header consistency */
-	msg = _tac_check_header(&th, TAC_PLUS_AUTHOR);
-	if(msg != NULL) {
-		/* no need to process body if header is broken */
-		re->msg = msg;
-		re->status = AUTHOR_STATUS_ERROR;
-		goto AuthorExit;
-	}
+        TACSYSLOG((LOG_ERR,\
+            "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout))
+        re->msg = xstrdup(author_syserr_msg);
+        re->status = LIBTAC_STATUS_READ_TIMEOUT;
+        goto AuthorExit;
+    }
 
- 	len_from_header=ntohl(th.datalength);
- 	tb=(struct author_reply *) xcalloc(1, len_from_header);
+    r = read(fd, &th, TAC_PLUS_HDR_SIZE);
+    if(r < TAC_PLUS_HDR_SIZE) {
+        TACSYSLOG((LOG_ERR,\
+            "%s: short reply header, read %d of %d: %m", __FUNCTION__,\
+            r, TAC_PLUS_HDR_SIZE))
+        re->msg = xstrdup(author_syserr_msg);
+        re->status = LIBTAC_STATUS_SHORT_HDR;
+        goto AuthorExit;
+    }
 
- 	/* read reply packet body */
- 	r=read(fd, tb, len_from_header);
- 	if(r < len_from_header) {
-  		syslog(LOG_ERR,
-			"%s: short author body, %d of %d: %m", __FUNCTION__,
-			r, len_from_header);
-		re->msg = system_err_msg;
-		re->status = AUTHOR_STATUS_ERROR;
-		goto AuthorExit;
- 	}
+    /* check header consistency */
+    msg = _tac_check_header(&th, TAC_PLUS_AUTHOR);
+    if (msg != NULL) {
+        /* no need to process body if header is broken */
+        re->msg = xstrdup(msg);
+        re->status = LIBTAC_STATUS_PROTOCOL_ERR;
+        goto AuthorExit;
+    }
 
- 	/* decrypt the body */
- 	_tac_crypt((u_char *) tb, &th, len_from_header);
+    len_from_header = ntohl(th.datalength);
+    tb = (struct author_reply *) xcalloc(1, len_from_header);
 
-	/* Convert network byte order to host byte order */
-	tb->msg_len  = ntohs(tb->msg_len);
-	tb->data_len = ntohs(tb->data_len);
+    /* read reply packet body */
+    if (tac_readtimeout_enable &&
+        tac_read_wait(fd,timeleft,len_from_header,NULL) < 0 ) {
 
- 	/* check consistency of the reply body
-	 * len_from_header = declared in header
-	 * len_from_body = value computed from body fields
-	 */
- 	len_from_body = TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE +
-	    		tb->msg_len + tb->data_len;
-	    
-	pktp = (char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
-	
-	for(r = 0; r < tb->arg_cnt; r++) {
-	    len_from_body += sizeof(u_char); /* add arg length field's size*/
-	    len_from_body += *pktp; /* add arg length itself */
-		pktp++;
-	}
-	
- 	if(len_from_header != len_from_body) {
-  		syslog(LOG_ERR,
-			"%s: inconsistent author reply body, incorrect key?",
-			__FUNCTION__);
-		re->msg = system_err_msg;
-		re->status = AUTHOR_STATUS_ERROR;
-		goto AuthorExit;
- 	}
+        TACSYSLOG((LOG_ERR,\
+            "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout))
+        re->msg = xstrdup(author_syserr_msg);
+        re->status = LIBTAC_STATUS_READ_TIMEOUT;
+        goto AuthorExit;
+    }
+    r = read(fd, tb, len_from_header);
+    if (r < len_from_header) {
+        TACSYSLOG((LOG_ERR,\
+            "%s: short reply body, read %d of %d: %m", __FUNCTION__,\
+            r, len_from_header))
+        re->msg = xstrdup(author_syserr_msg);
+        re->status = LIBTAC_STATUS_SHORT_BODY;
+        goto AuthorExit;
+    }
 
-	/* packet seems to be consistent, prepare return messages */
-	/* server message for user */
-	if(tb->msg_len) {
-		char *msg = (char *) xcalloc(1, tb->msg_len+1);
-		bcopy((u_char *) tb+TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
-				+ (tb->arg_cnt)*sizeof(u_char),
-				msg, tb->msg_len);
-		re->msg = msg;
-	}
+    /* decrypt the body */
+    _tac_crypt((u_char *) tb, &th, len_from_header);
 
-	/* server message to syslog */
-	if(tb->data_len) {
-		char *smsg=(char *) xcalloc(1, tb->data_len+1);
-		bcopy((u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
-				+ (tb->arg_cnt)*sizeof(u_char)
-				+ tb->msg_len, smsg, 
-				tb->data_len);
-		syslog(LOG_ERR, "%s: author failed: %s", __FUNCTION__,smsg);
-		free(smsg);
-	}
+    /* Convert network byte order to host byte order */
+    tb->msg_len  = ntohs(tb->msg_len);
+    tb->data_len = ntohs(tb->data_len);
 
-	/* prepare status */
-	switch(tb->status) {
-		/* success conditions */
-		/* XXX support optional vs mandatory arguments */
-		case AUTHOR_STATUS_PASS_ADD:
-		case AUTHOR_STATUS_PASS_REPL:
-			{
-				char *argp; 
+    /* check consistency of the reply body
+     * len_from_header = declared in header
+     * len_from_body = value computed from body fields
+     */
+    len_from_body = TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE +
+        tb->msg_len + tb->data_len;
+        
+    pktp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
+    
+    for (r = 0; r < tb->arg_cnt; r++) {
+        len_from_body += sizeof(u_char); /* add arg length field's size*/
+        len_from_body += *pktp; /* add arg length itself */
+        pktp++;
+    }
+    
+    if(len_from_header != len_from_body) {
+        TACSYSLOG((LOG_ERR,\
+            "%s: inconsistent reply body, incorrect key?",\
+            __FUNCTION__))
+        re->msg = xstrdup(protocol_err_msg);
+        re->status = LIBTAC_STATUS_PROTOCOL_ERR;
+        goto AuthorExit;
+    }
 
-				if(!re->msg) re->msg=author_ok_msg;
-				re->status=tb->status;
-			
-				/* add attributes received to attribute list returned to
-				   the client */
-				pktp = (char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
-				argp = pktp + (tb->arg_cnt * sizeof(u_char)) + tb->msg_len +
-						tb->data_len;
-				/* argp points to current argument string
-				   pktp holds current argument length */
-				for(r=0; r < tb->arg_cnt; r++) {
-					char buff[256];
-					char *sep;
-					char *value;
-					
-					bcopy(argp, buff, *pktp);
-					buff[(int)*pktp] = '\0';
-					sep=index(buff, '=');
-					if(sep == NULL)
-						sep=index(buff, '*');
-					if(sep == NULL)
-						syslog(LOG_WARNING, "AUTHOR_STATUS_PASS_REPL: attribute contains no separator: %s", buff);
-					*sep = '\0';
-					value = ++sep;
-					/* now buff points to attribute name,
-					   value to the attribute value */
-					tac_add_attrib(&re->attr, buff, value);
-					
-					argp += *pktp;
-					pktp++; 
-				}
-			}
-			
-			break;
+    /* packet seems to be consistent, prepare return messages */
+    /* server message for user */
+    if(tb->msg_len) {
+        char *msg = (char *) xcalloc(1, tb->msg_len+1);
+        bcopy((u_char *) tb+TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
+            + (tb->arg_cnt)*sizeof(u_char),
+            msg, tb->msg_len);
+        msg[(int) tb->msg_len] = '\0';
+        re->msg = msg;      /* freed by caller */
+    }
 
-		/* authorization failure conditions */
-		/* failing to follow is allowed by RFC, page 23  */
-		case AUTHOR_STATUS_FOLLOW: 
-		case AUTHOR_STATUS_FAIL:
-			if(!re->msg) re->msg=author_fail_msg;
-			re->status=AUTHOR_STATUS_FAIL;
-			break;
+    /* server message to syslog */
+    if(tb->data_len) {
+        char *smsg=(char *) xcalloc(1, tb->data_len+1);
+        bcopy((u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
+            + (tb->arg_cnt)*sizeof(u_char)
+            + tb->msg_len, smsg, 
+            tb->data_len);
+        smsg[(int) tb->data_len] = '\0';
+        TACSYSLOG((LOG_ERR, "%s: reply message: %s", __FUNCTION__,smsg))
+        free(smsg);
+    }
 
-		/* error conditions */	
-		case AUTHOR_STATUS_ERROR:
-		default:
-			if(!re->msg) re->msg=author_err_msg;
-			re->status=AUTHOR_STATUS_ERROR;
-	}
+    /* prepare status */
+    switch(tb->status) {
+        /* success conditions */
+        /* XXX support optional vs mandatory arguments */
+        case TAC_PLUS_AUTHOR_STATUS_PASS_REPL:
+            tac_free_attrib(&re->attr);
+
+        case TAC_PLUS_AUTHOR_STATUS_PASS_ADD:
+            {
+                u_char *argp; 
+
+                if(!re->msg) re->msg=xstrdup(author_ok_msg);
+                    re->status=tb->status;
+            
+                /* add attributes received to attribute list returned to
+                   the client */
+                pktp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
+                argp = pktp + (tb->arg_cnt * sizeof(u_char)) + tb->msg_len +
+                    tb->data_len;
+                /* argp points to current argument string
+                   pktp points to current argument length */
+                for(r=0; r < tb->arg_cnt; r++) {
+                    char buff[256];
+                    char *sep;
+                    char *value;
+                    char sepchar = '=';
+                    
+                    bcopy(argp, buff, (int)*pktp);
+                    buff[(int)*pktp] = '\0';
+                    sep = strchr(buff, '=');
+                if ( sep == NULL ) {
+                    sep = strchr(buff, '*');
+                }
+                if(sep == NULL) {
+                    TACSYSLOG((LOG_WARNING,\
+                        "AUTHOR_STATUS_PASS_ADD/REPL: av pair does not contain a separator: %s",\
+                        buff))
+                    /* now buff points to attribute name, make value ""
+                       treat as "name=" */
+                    value = "";
+                } else {
+                    sepchar = *sep;
+                    *sep = '\0';
+                    value = ++sep;
+                    /* now buff points to attribute name,
+                       value to the attribute value */
+                }
+                tac_add_attrib_pair(&re->attr, buff, sepchar, value);
+                argp += *pktp;
+                pktp++; 
+            }
+        }
+            
+        goto AuthorExit;
+            break;
+    }
+
+    TACDEBUG((LOG_DEBUG, "%s: authorization failed, server reply status=%d",\
+        __FUNCTION__, tb->status))
+    switch (tb->status) {
+        /* authorization failure conditions */
+        /* failing to follow is allowed by RFC, page 23  */
+        case TAC_PLUS_AUTHOR_STATUS_FOLLOW: 
+        case TAC_PLUS_AUTHOR_STATUS_FAIL:
+            if(!re->msg) re->msg = xstrdup(author_fail_msg);
+            re->status=TAC_PLUS_AUTHOR_STATUS_FAIL;
+            break;
+        /* error conditions */  
+        case TAC_PLUS_AUTHOR_STATUS_ERROR:
+        default:
+            if(!re->msg) re->msg = xstrdup(author_err_msg);
+            re->status=TAC_PLUS_AUTHOR_STATUS_ERROR;
+    }
 
 AuthorExit:
-
-	free(tb);	
-	TACDEBUG((LOG_DEBUG, "%s: server replied '%s'", __FUNCTION__, \
-			re->msg))
-	
+    free(tb);
+    TACDEBUG((LOG_DEBUG, "%s: exit status=%d, status message \"%s\"",\
+        __FUNCTION__, re->status, re->msg != NULL ? re->msg : ""))
+    return(re->status);
 }

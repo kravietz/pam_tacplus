@@ -1,6 +1,6 @@
 /* messages.h
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,8 +19,17 @@
  * See `CHANGES' file for revision history.
  */
 
-extern char *system_err_msg;
+#ifndef _MESSAGES_H
+#define _MESSAGES_H
+
 extern char *protocol_err_msg;
 extern char *author_ok_msg;
 extern char *author_fail_msg;
 extern char *author_err_msg;
+extern char *author_syserr_msg;
+extern char *acct_ok_msg;
+extern char *acct_fail_msg;
+extern char *acct_err_msg;
+extern char *acct_syserr_msg;
+
+#endif

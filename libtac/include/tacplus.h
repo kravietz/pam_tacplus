@@ -1,6 +1,6 @@
 /* tacplus.h
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,64 +24,40 @@
 
 #include <sys/types.h>
 #ifdef sun
-  #include "cdefs.h"
+    #include "cdefs.h"
 #else
-  #include <sys/cdefs.h>
+    #include <sys/cdefs.h>
 #endif
-
-struct tac_attrib {
-	char *attr;
-	u_char attr_len;
-	struct tac_attrib *next;
-};
-
-struct areply {
-	struct tac_attrib *attr;
-	char *msg;
-	int status;
-};
-
-#ifndef TAC_PLUS_MAXSERVERS		
-#define TAC_PLUS_MAXSERVERS		4
-#endif
-
-#ifndef TAC_PLUS_PORT
-#define	TAC_PLUS_PORT			49
-#endif
-
-#define TAC_PLUS_READ_TIMEOUT		180	/* seconds */
-#define TAC_PLUS_WRITE_TIMEOUT		180	/* seconds */
 
 /* All tacacs+ packets have the same header format */
-
 struct tac_plus_pak_hdr {
     u_char version;
 
 #define TAC_PLUS_MAJOR_VER_MASK 0xf0
 #define TAC_PLUS_MAJOR_VER      0xc0
 
-#define TAC_PLUS_MINOR_VER_0    0x0
+#define TAC_PLUS_MINOR_VER_0 0x00
 #define TAC_PLUS_VER_0  (TAC_PLUS_MAJOR_VER | TAC_PLUS_MINOR_VER_0)
 
-#define TAC_PLUS_MINOR_VER_1    0x01
+#define TAC_PLUS_MINOR_VER_1 0x01
 #define TAC_PLUS_VER_1  (TAC_PLUS_MAJOR_VER | TAC_PLUS_MINOR_VER_1)
 
     u_char type;
 
-#define TAC_PLUS_AUTHEN			1
-#define TAC_PLUS_AUTHOR			2
-#define TAC_PLUS_ACCT			3
+#define TAC_PLUS_AUTHEN 0x01
+#define TAC_PLUS_AUTHOR	0x02
+#define TAC_PLUS_ACCT   0x03
 
-    u_char seq_no;		/* packet sequence number */
-    u_char encryption;		/* packet is encrypted or cleartext */
+    u_char seq_no;        /* packet sequence number */
+    u_char encryption;    /* packet is encrypted or cleartext */
 
-#define TAC_PLUS_ENCRYPTED 0x0		/* packet is encrypted */
-#define TAC_PLUS_CLEAR     0x1		/* packet is not encrypted */
+#define TAC_PLUS_ENCRYPTED_FLAG      0x00    /* packet is encrypted */
+#define TAC_PLUS_UNENCRYPTED_FLAG    0x01    /* packet is unencrypted */
+#define TAC_PLUS_SINGLE_CONNECT_FLAG 0x04    /* multiplexing supported */
 
-    int session_id;		/* session identifier FIXME: Is this needed? */
-    int datalength;		/* length of encrypted data following this
-				 * header */
-    /* datalength bytes of encrypted data */
+    int session_id;    /* session identifier FIXME: Is this needed? */
+    int datalength;    /* length of encrypted data following this
+                          header datalength bytes of encrypted data */
 };
 
 #define TAC_PLUS_HDR_SIZE 12
@@ -89,46 +65,46 @@ struct tac_plus_pak_hdr {
 typedef struct tac_plus_pak_hdr HDR;
 
 /* Authentication packet NAS sends to us */ 
-
 struct authen_start {
     u_char action;
 
-#define TAC_PLUS_AUTHEN_LOGIN    0x1
-#define TAC_PLUS_AUTHEN_CHPASS   0x2
-#define TAC_PLUS_AUTHEN_SENDPASS 0x3 /* deprecated */
-#define TAC_PLUS_AUTHEN_SENDAUTH 0x4
+#define TAC_PLUS_AUTHEN_LOGIN    0x01
+#define TAC_PLUS_AUTHEN_CHPASS   0x02
+#define TAC_PLUS_AUTHEN_SENDPASS 0x03 /* deprecated */
+#define TAC_PLUS_AUTHEN_SENDAUTH 0x04
 
     u_char priv_lvl;
 
-#define TAC_PLUS_PRIV_LVL_MIN 0x0
-#define TAC_PLUS_PRIV_LVL_MAX 0xf
+#define TAC_PLUS_PRIV_LVL_MIN  0x00
+#define TAC_PLUS_PRIV_LVL_MAX  0x0f
+#define TAC_PLUS_PRIV_LVL_USER 0x01
+#define TAC_PLUS_PRIV_LVL_ROOT 0x0f
 
     u_char authen_type;
 
-#define TAC_PLUS_AUTHEN_TYPE_ASCII  1
-#define TAC_PLUS_AUTHEN_TYPE_PAP    2
-#define TAC_PLUS_AUTHEN_TYPE_CHAP   3
-#define TAC_PLUS_AUTHEN_TYPE_ARAP   4
+#define TAC_PLUS_AUTHEN_TYPE_ASCII  0x01
+#define TAC_PLUS_AUTHEN_TYPE_PAP    0x02
+#define TAC_PLUS_AUTHEN_TYPE_CHAP   0x03
+#define TAC_PLUS_AUTHEN_TYPE_ARAP   0x04
+#define TAC_PLUS_AUTHEN_TYPE_MSCHAP 0x05
 
     u_char service;
 
-#define TAC_PLUS_AUTHEN_SVC_LOGIN  1
-#define TAC_PLUS_AUTHEN_SVC_ENABLE 2
-#define TAC_PLUS_AUTHEN_SVC_PPP    3
-#define TAC_PLUS_AUTHEN_SVC_ARAP   4
-#define TAC_PLUS_AUTHEN_SVC_PT     5
-#define TAC_PLUS_AUTHEN_SVC_RCMD   6
-#define TAC_PLUS_AUTHEN_SVC_X25    7
-#define TAC_PLUS_AUTHEN_SVC_NASI   8
+#define TAC_PLUS_AUTHEN_SVC_NONE    0x00
+#define TAC_PLUS_AUTHEN_SVC_LOGIN   0x01
+#define TAC_PLUS_AUTHEN_SVC_ENABLE  0x02
+#define TAC_PLUS_AUTHEN_SVC_PPP     0x03
+#define TAC_PLUS_AUTHEN_SVC_ARAP    0x04
+#define TAC_PLUS_AUTHEN_SVC_PT      0x05
+#define TAC_PLUS_AUTHEN_SVC_RCMD    0x06
+#define TAC_PLUS_AUTHEN_SVC_X25     0x07
+#define TAC_PLUS_AUTHEN_SVC_NASI    0x08
+#define TAC_PLUS_AUTHEN_SVC_FWPROXY 0x09
 
     u_char user_len;
     u_char port_len;
     u_char rem_addr_len;
     u_char data_len;
-    /* <user_len bytes of char data> */
-    /* <port_len bytes of char data> */
-    /* <rem_addr_len bytes of u_char data> */
-    /* <data_len bytes of u_char data> */
 };
 
 #define TAC_AUTHEN_START_FIXED_FIELDS_SIZE 8
@@ -139,10 +115,8 @@ struct authen_cont {
     u_short user_data_len;
     u_char flags;
 
-#define TAC_PLUS_CONTINUE_FLAG_ABORT 0x1
+#define TAC_PLUS_CONTINUE_FLAG_ABORT 0x01
 
-    /* <user_msg_len bytes of u_char data> */
-    /* <user_data_len bytes of u_char data> */
 };
 
 #define TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE 5
@@ -151,43 +125,52 @@ struct authen_cont {
 struct authen_reply {
     u_char status;
 
-#define TAC_PLUS_AUTHEN_STATUS_PASS     1
-#define TAC_PLUS_AUTHEN_STATUS_FAIL     2
-#define TAC_PLUS_AUTHEN_STATUS_GETDATA  3
-#define TAC_PLUS_AUTHEN_STATUS_GETUSER  4
-#define TAC_PLUS_AUTHEN_STATUS_GETPASS  5
-#define TAC_PLUS_AUTHEN_STATUS_RESTART  6
-#define TAC_PLUS_AUTHEN_STATUS_ERROR    7 
-#define TAC_PLUS_AUTHEN_STATUS_FOLLOW   0x21
+#define TAC_PLUS_AUTHEN_STATUS_PASS    0x01
+#define TAC_PLUS_AUTHEN_STATUS_FAIL    0x02
+#define TAC_PLUS_AUTHEN_STATUS_GETDATA 0x03
+#define TAC_PLUS_AUTHEN_STATUS_GETUSER 0x04
+#define TAC_PLUS_AUTHEN_STATUS_GETPASS 0x05
+#define TAC_PLUS_AUTHEN_STATUS_RESTART 0x06
+#define TAC_PLUS_AUTHEN_STATUS_ERROR   0x07 
+#define TAC_PLUS_AUTHEN_STATUS_FOLLOW  0x21
 
     u_char flags;
 
-#define TAC_PLUS_AUTHEN_FLAG_NOECHO     0x1
+#define TAC_PLUS_AUTHEN_FLAG_NOECHO 0x01
 
     u_short msg_len;
     u_short data_len;
-
-    /* <msg_len bytes of char data> */
-    /* <data_len bytes of u_char data> */
 };
 
 #define TAC_AUTHEN_REPLY_FIXED_FIELDS_SIZE 6
 
-#define AUTHEN_METH_NONE             0x01
-#define AUTHEN_METH_KRB5             0x02
-#define AUTHEN_METH_LINE             0x03
-#define AUTHEN_METH_ENABLE           0x04
-#define AUTHEN_METH_LOCAL            0x05
-#define AUTHEN_METH_TACACSPLUS       0x06
-#define AUTHEN_METH_RCMD             0x20
+#define TAC_PLUS_AUTHEN_METH_NOT_SET    0x00
+#define TAC_PLUS_AUTHEN_METH_NONE       0x01
+#define TAC_PLUS_AUTHEN_METH_KRB5       0x02
+#define TAC_PLUS_AUTHEN_METH_LINE       0x03
+#define TAC_PLUS_AUTHEN_METH_ENABLE     0x04
+#define TAC_PLUS_AUTHEN_METH_LOCAL      0x05
+#define TAC_PLUS_AUTHEN_METH_TACACSPLUS 0x06
+#define TAC_PLUS_AUTHEN_METH_GUEST      0x08
+#define TAC_PLUS_AUTHEN_METH_RADIUS     0x10
+#define TAC_PLUS_AUTHEN_METH_KRB4       0x11
+#define TAC_PLUS_AUTHEN_METH_RCMD       0x20
+
+#define AUTHEN_METH_NONE       TAC_PLUS_AUTHEN_METH_NONE
+#define AUTHEN_METH_KRB5       TAC_PLUS_AUTHEN_METH_KRB5
+#define AUTHEN_METH_LINE       TAC_PLUS_AUTHEN_METH_LINE
+#define AUTHEN_METH_ENABLE     TAC_PLUS_AUTHEN_METH_ENABLE
+#define AUTHEN_METH_LOCAL      TAC_PLUS_AUTHEN_METH_LOCAL
+#define AUTHEN_METH_TACACSPLUS TAC_PLUS_AUTHEN_METH_TACACSPLUS
+#define AUTHEN_METH_RCMD       TAC_PLUS_AUTHEN_METH_RCMD
 
 struct acct {
     u_char flags;
 
-#define TAC_PLUS_ACCT_FLAG_MORE     0x1
-#define TAC_PLUS_ACCT_FLAG_START    0x2
-#define TAC_PLUS_ACCT_FLAG_STOP     0x4
-#define TAC_PLUS_ACCT_FLAG_WATCHDOG 0x8
+#define TAC_PLUS_ACCT_FLAG_MORE     0x01
+#define TAC_PLUS_ACCT_FLAG_START    0x02
+#define TAC_PLUS_ACCT_FLAG_STOP     0x04
+#define TAC_PLUS_ACCT_FLAG_WATCHDOG 0x08
 	    
     u_char authen_method;
     u_char priv_lvl;
@@ -196,12 +179,7 @@ struct acct {
     u_char user_len;
     u_char port_len;
     u_char rem_addr_len;
-    u_char arg_cnt; /* the number of cmd args */
-    /* one u_char containing size for each arg */
-    /* <user_len bytes of char data> */
-    /* <port_len bytes of char data> */
-    /* <rem_addr_len bytes of u_char data> */
-    /* char data for args 1 ... n */
+    u_char arg_cnt;    /* the number of cmd args */
 };
 
 #define TAC_ACCT_REQ_FIXED_FIELDS_SIZE 9
@@ -229,13 +207,7 @@ struct author {
     u_char user_len;
     u_char port_len;
     u_char rem_addr_len;
-    u_char arg_cnt;		/* the number of args */
-
-    /* <arg_cnt u_chars containing the lengths of args 1 to arg n> */
-    /* <user_len bytes of char data> */
-    /* <port_len bytes of char data> */
-    /* <rem_addr_len bytes of u_char data> */
-    /* <char data for each arg> */
+    u_char arg_cnt;    /* the number of args */
 };
 
 #define TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE 8
@@ -247,19 +219,20 @@ struct author_reply {
     u_short msg_len;
     u_short data_len;
 
-#define AUTHOR_STATUS_PASS_ADD       0x01
-#define AUTHOR_STATUS_PASS_REPL      0x02
-#define AUTHOR_STATUS_FAIL           0x10
-#define AUTHOR_STATUS_ERROR          0x11
-#define AUTHOR_STATUS_FOLLOW	     0x21
+#define TAC_PLUS_AUTHOR_STATUS_PASS_ADD  0x01
+#define TAC_PLUS_AUTHOR_STATUS_PASS_REPL 0x02
+#define TAC_PLUS_AUTHOR_STATUS_FAIL      0x10
+#define TAC_PLUS_AUTHOR_STATUS_ERROR     0x11
+#define TAC_PLUS_AUTHOR_STATUS_FOLLOW    0x21
 
-    /* <arg_cnt u_chars containing the lengths of arg 1 to arg n> */
-    /* <msg_len bytes of char data> */
-    /* <data_len bytes of char data> */
-    /* <char data for each arg> */
+#define AUTHOR_STATUS_PASS_ADD       TAC_PLUS_AUTHOR_STATUS_PASS_ADD
+#define AUTHOR_STATUS_PASS_REPL      TAC_PLUS_AUTHOR_STATUS_PASS_REPL
+#define AUTHOR_STATUS_FAIL           TAC_PLUS_AUTHOR_STATUS_FAIL
+#define AUTHOR_STATUS_ERROR          TAC_PLUS_AUTHOR_STATUS_ERROR
+#define AUTHOR_STATUS_FOLLOW         TAC_PLUS_AUTHOR_STATUS_FOLLOW
+
 };
 
 #define TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE 6
-
 
 #endif

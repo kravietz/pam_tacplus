@@ -1,3 +1,62 @@
+1.3.5
+* Changed libtac version to 1.7.1
+* Changed tabsize to 4
+* Fixed missing xalloc.h in authen_s.c
+* This version will be dedicated to Darren Besler, thank you for your major 
+  contribution!
+* The following is done by Darren Besler:
+- add ability to set more elements of tacacs+ packet from parameters or globals
+- cleanup messaging to be consistent with function and presentation format
+- cleanup how strings are handled and returned
+- acct and author read require areply.msg to be freed by caller now
+- cast return values
+- added port # to formatted IP address
+- add timeout on read capability
+- cleanup method messages are returned to caller, including adding a 0 byte
+  0 byte added for safety reasons
+- caller must free areply.msg now.
+- add rem_addr as an argument
+- include rem_addr in packet
+- include ability to set priv_lvl in packet
+- add ability to set authen_service from global variable aot fixed value
+
+Bugs fixed by Darren Besler:
+- cleanup various memory leaks, lost memory, and dangling pointers
+- attrib.c: wasn't preserving '*' separator in attrib.c
+- author_r.c:
+- free attributes for replace status. Was always adding.
+- uncasted char* for length was producing negative length to bcopy for arg len > 127
+- possible null dereference when no separator
+- cont_s.c
+- was creating a new session id, should be using session id from authen start.
+- magic.c
+- magic was returning 0 on first call. Wasn't being initialized properly.
+
+Other changes by Darren Besler:
+* libtac/include/cdefs.h
+- add #ifndef guards
+
+* libtac/include/libtac.h
+- rename #ifndef guard to match filename
+- add extern "C" for C++
+- alter define for TACDEBUG
+- add define for TACSYSLOG
+- alter macro for TACDEBUG to be able to be used at runtime via tac_debug_enable
+- add declarations from tacplus.h not related to protocol
+- add defines for return status codes for library functions
+- add declarations for new additional global variables
+tac_priv_lvl
+tac_authen_method
+tac_authen_service
+tac_debug_enable
+tac_readtimeout_enable
+- revise declarations for functions to that have altered parameters lists, or return value
+
+* libtac/include/tacplus.h
+- move library specific declarations to libtac.h, leaving declarations
+here to be used for protocol specific details
+- add additional declarations for more complete coverage of tacacs+ protocol (v1.78) 
+
 1.3.4
 * removed encrypt option just check if there is a secret (key).
 * removed first_hit option because you can get the same behaviour by using only one server.

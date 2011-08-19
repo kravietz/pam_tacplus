@@ -1,6 +1,6 @@
 /* version.c - TACACS+ library version.
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,5 +20,5 @@
  */
 
 int tac_ver_major = 1;
-int tac_ver_minor = 6;
-int tac_ver_patch = 5; /* patchlevel */
+int tac_ver_minor = 7;
+int tac_ver_patch = 1; /* patchlevel */

@@ -24,69 +24,83 @@
 
 /* this function sends a continue packet do TACACS+ server, asking
  * for validation of given password
+ *
+ * return value:
+ *      0 : success
+ *   <  0 : error status code, see LIBTAC_STATUS_...
+ *         LIBTAC_STATUS_WRITE_ERR
+ *         LIBTAC_STATUS_WRITE_TIMEOUT  (pending impl)
+ *         LIBTAC_STATUS_ASSEMBLY_ERR
  */
-int tac_cont_send(int fd, char *pass)
-{
- 	HDR *th;		/* TACACS+ packet header */
- 	struct authen_cont tb;	/* continue body */
- 	int pass_len, bodylength, w;
- 	int pkt_len=0;
-	int ret=0;
- 	u_char *pkt;
+int tac_cont_send(int fd, char *pass) {
+    HDR *th;        /* TACACS+ packet header */
+    struct authen_cont tb;  /* continue body */
+    int pass_len, bodylength, w;
+    int pkt_len = 0;
+    int ret = 0;
+    u_char *pkt = NULL;
 
- 	th=_tac_req_header(TAC_PLUS_AUTHEN);
+    th = _tac_req_header(TAC_PLUS_AUTHEN, 1);
 
- 	/* set some header options */
- 	th->version=TAC_PLUS_VER_0;
-	th->seq_no=3;		/* 1 = request, 2 = reply, 3 = continue, 4 = reply */
- 	th->encryption=tac_encryption ? TAC_PLUS_ENCRYPTED : TAC_PLUS_CLEAR;
+    /* set some header options */
+    th->version = TAC_PLUS_VER_0;
+    th->seq_no = 3;       /* 1 = request, 2 = reply, 3 = continue, 4 = reply */
+    th->encryption = tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
 
- 	/* get size of submitted data */
- 	pass_len=strlen(pass);
+    /* get size of submitted data */
+    pass_len = strlen(pass);
 
- 	/* fill the body of message */
-	tb.user_msg_len=htons(pass_len);
- 	tb.user_data_len=tb.flags=0;
+    /* fill the body of message */
+    tb.user_msg_len = htons(pass_len);
+    tb.user_data_len = tb.flags = 0;
 
- 	/* fill body length in header */
- 	bodylength=TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE+0+pass_len;
+    /* fill body length in header */
+    bodylength = TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE+0+pass_len;
 
- 	th->datalength=htonl(bodylength);
+    th->datalength = htonl(bodylength);
 
- 	/* we can now write the header */
- 	w=write(fd, th, TAC_PLUS_HDR_SIZE);
-	if(w < 0 || w < TAC_PLUS_HDR_SIZE) {
-		syslog(LOG_ERR, "%s: short write on header: wrote %d of %d: %m", 
-						__FUNCTION__, w, TAC_PLUS_HDR_SIZE);
-		ret=-1;
-	}
+    /* we can now write the header */
+    w = write(fd, th, TAC_PLUS_HDR_SIZE);
+    if (w < 0 || w < TAC_PLUS_HDR_SIZE) {
+        TACSYSLOG((LOG_ERR, "%s: short write on header, wrote %d of %d: %m",\
+            __FUNCTION__, w, TAC_PLUS_HDR_SIZE))
+        ret=LIBTAC_STATUS_WRITE_ERR;
+        goto ContExit;
+    }
 
- 	/* build the packet */
- 	pkt=(u_char *) xcalloc(1, bodylength);
+    /* build the packet */
+    pkt = (u_char *) xcalloc(1, bodylength);
 
- 	bcopy(&tb, pkt+pkt_len, TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE); /* packet body beginning */
- 	pkt_len+=TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE;
- 	bcopy(pass, pkt+pkt_len, pass_len);  /* password */
- 	pkt_len+=pass_len;
+    bcopy(&tb, pkt+pkt_len, TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE); /* packet body beginning */
+    pkt_len += TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE;
+    bcopy(pass, pkt+pkt_len, pass_len);  /* password */
+    pkt_len += pass_len;
 
- 	/* pkt_len == bodylength ? */
-	if(pkt_len != bodylength) {
-		syslog(LOG_ERR, "%s: bodylength %d != pkt_len %d", __FUNCTION__, bodylength, pkt_len);
-		ret=-1;
-	} 
- 	
-	/* encrypt the body */
- 	_tac_crypt(pkt, th, bodylength);
+    /* pkt_len == bodylength ? */
+    if (pkt_len != bodylength) {
+        TACSYSLOG((LOG_ERR,\
+            "%s: bodylength %d != pkt_len %d",\
+            __FUNCTION__, bodylength, pkt_len))
+        ret=LIBTAC_STATUS_ASSEMBLY_ERR;
+        goto ContExit;
+    } 
+    
+    /* encrypt the body */
+    _tac_crypt(pkt, th, bodylength);
 
- 	w=write(fd, pkt, pkt_len);
-	if(w < 0 || w < pkt_len) {
-		syslog(LOG_ERR, "%s: short write on body: wrote %d of %d: %m",
-					   __FUNCTION__, w, pkt_len);
-		ret=-1;
-	}
+    w = write(fd, pkt, pkt_len);
+    if (w < 0 || w < pkt_len) {
+        TACSYSLOG((LOG_ERR,\
+            "%s: short write on body, wrote %d of %d: %m",\
+            __FUNCTION__, w, pkt_len))
+        ret=LIBTAC_STATUS_WRITE_ERR;
+    }
 
- 	free(pkt);
- 	free(th);
+ContExit:
 
- 	return(ret);
+    free(pkt);
+    free(th);
+
+    TACDEBUG((LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret))
+    return(ret);
 } /* tac_cont_send */

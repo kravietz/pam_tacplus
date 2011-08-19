@@ -28,7 +28,7 @@ BuildRequires: gcc binutils pam-devel
 Requires: pam
 
 %description
-PAM Tacacs+ module based on code produced by Pawel Krawczyk <kravietz@ceti.com.pl> and Jeroen Nijhof <jeroen@nijhofnet.nl>
+PAM Tacacs+ module based on code produced by Pawel Krawczyk <pawel.krawczyk@hush.com> and Jeroen Nijhof <jeroen@nijhofnet.nl>
 
 %prep
 %setup -q -a 0

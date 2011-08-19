@@ -1,6 +1,6 @@
 /* header.c - Create pre-filled header for TACACS+ request.
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,13 +31,27 @@
 int session_id;
 
 /* Encryption flag. */
-int tac_encryption;
+int tac_encryption = 0;
 
 /* Pointer to TACACS+ shared secret string. */
 char *tac_secret = "";
 
 /* Pointer to TACACS+ shared login string. */
 char *tac_login = "pap";
+
+/* priv_lvl */
+int tac_priv_lvl = TAC_PLUS_PRIV_LVL_MIN;
+
+/* Authentication Method */
+int tac_authen_method = TAC_PLUS_AUTHEN_METH_TACACSPLUS;
+
+/* Service requesting authentication */
+int tac_authen_service = TAC_PLUS_AUTHEN_SVC_PPP;
+
+/* additional runtime flags */
+
+int tac_debug_enable = 0;
+int tac_readtimeout_enable = 0;
 
 /* Returns pre-filled TACACS+ packet header of given type.
  * 1. you MUST fill th->datalength and th->version
@@ -47,19 +61,20 @@ char *tac_login = "pap";
  * field depends on the TACACS+ request type and thus it
  * cannot be predefined.
  */
-HDR *_tac_req_header(u_char type) {
- 	HDR *th;
+HDR *_tac_req_header(u_char type, int cont_session) {
+    HDR *th;
 
- 	th=(HDR *) xcalloc(1, TAC_PLUS_HDR_SIZE);
+    th=(HDR *) xcalloc(1, TAC_PLUS_HDR_SIZE);
 
- 	/* preset some packet options in header */
- 	th->type=type;
- 	th->seq_no=1; /* always 1 for request */
- 	th->encryption=TAC_PLUS_ENCRYPTED;
+    /* preset some packet options in header */
+    th->type=type;
+    th->seq_no=1; /* always 1 for request */
+    th->encryption=TAC_PLUS_ENCRYPTED_FLAG;
  
- 	/* make session_id from pseudo-random number */
- 	session_id = magic();
- 	th->session_id = htonl(session_id);
+    /* make session_id from pseudo-random number */
+    if (!cont_session)
+        session_id = magic();
+    th->session_id = htonl(session_id);
 
- 	return(th);
+    return(th);
 }

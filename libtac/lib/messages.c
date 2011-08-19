@@ -1,6 +1,6 @@
 /* messages.c - Various messages returned to user.
  * 
- * Copyright (C) 2010, Pawel Krawczyk <kravietz@ceti.pl> and
+ * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@nijhofnet.nl>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,8 +19,12 @@
  * See `CHANGES' file for revision history.
  */
 
-char *system_err_msg="Authentication error, please contact administrator.";
-char *protocol_err_msg="Protocol error.";
-char *author_ok_msg="Service granted.";
-char *author_fail_msg="Service not allowed.";
-char *author_err_msg="Protocol error.";
+char *protocol_err_msg = "(Protocol error)";
+char *author_ok_msg = "(Service granted)";
+char *author_fail_msg = "(Service not allowed)";
+char *author_err_msg = "(Service not allowed. Server error)";
+char *author_syserr_msg = "(Authorization system error)";
+char *acct_ok_msg = "(Accounted ok)";
+char *acct_fail_msg = "(Accounting failed)";
+char *acct_err_msg = "(Accounting failed. Server error)";
+char *acct_syserr_msg = "(Accounting system error)";
