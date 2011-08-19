@@ -89,7 +89,7 @@ static short int task_id = 0;
 int _pam_send_account(int tac_fd, int type, const char *user, char *tty) {
     char buf[40];
     struct tac_attrib *attr;
-    int retval, status = -1;
+    int retval;
         
     attr=(struct tac_attrib *)_xcalloc(sizeof(struct tac_attrib));
         
@@ -117,8 +117,8 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty) {
             __FUNCTION__, 
             (type == TAC_PLUS_ACCT_FLAG_START) ? "start" : "stop",
             task_id);
-        status = -1;
-        goto ErrExit;
+        close(tac_fd);
+        return -1;
     }
         
     struct areply re;
@@ -127,16 +127,14 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty) {
             __FUNCTION__, 
             (type == TAC_PLUS_ACCT_FLAG_START) ? "start" : "stop",
             task_id);
-        status = -1;
-        goto ErrExit;
+        if(re.msg != NULL) free(re.msg);
+        close(tac_fd);
+        return -1;
     }
 
-    status = 0;
-
-ErrExit:
     if(re.msg != NULL) free(re.msg);
-        close(tac_fd);
-        return status;
+    close(tac_fd);
+    return 0;
 }
 
 int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
@@ -503,8 +501,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     tac_fd = tac_connect_single(active_server, active_key);
     if(tac_fd < 0) {
         _pam_log (LOG_ERR, "TACACS+ server unavailable");
-        status = PAM_AUTH_ERR;
-        goto ErrExit;
+        if(arep.msg != NULL) free (arep.msg);
+        close(tac_fd);
+        return PAM_AUTH_ERR;
     }
 
     retval = tac_author_send(tac_fd, user, tty, "", attr);
@@ -513,8 +512,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
   
     if(retval < 0) {
         _pam_log (LOG_ERR, "error getting authorization");
-        status = PAM_AUTH_ERR;
-        goto ErrExit;
+        if(arep.msg != NULL) free (arep.msg);
+        close(tac_fd);
+        return PAM_AUTH_ERR;
     }
 
     if (ctrl & PAM_TAC_DEBUG)
@@ -526,8 +526,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
         arep.status != AUTHOR_STATUS_PASS_REPL) {
 
         _pam_log (LOG_ERR, "TACACS+ authorisation failed for [%s]", user);
-        status = PAM_PERM_DENIED;
-        goto ErrExit;
+        if(arep.msg != NULL) free (arep.msg);
+        close(tac_fd);
+        return PAM_PERM_DENIED;
     }
 
     if (ctrl & PAM_TAC_DEBUG)
@@ -581,10 +582,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
 
     /* free returned attributes */
     if(arep.attr != NULL) tac_free_attrib(&arep.attr);
-
-ErrExit:
     if(arep.msg != NULL) free (arep.msg);
     close(tac_fd);
+
     return status;
 }    /* pam_sm_acct_mgmt */
 
@@ -601,7 +601,7 @@ int pam_sm_open_session (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
     task_id=(short int) magic();
-    return(_pam_account(pamh, argc, argv,TAC_PLUS_ACCT_FLAG_START)); 
+    return _pam_account(pamh, argc, argv,TAC_PLUS_ACCT_FLAG_START); 
 }    /* pam_sm_open_session */
 
 /* sends STOP accounting request to the remote TACACS+ server
@@ -612,7 +612,7 @@ PAM_EXTERN
 int pam_sm_close_session (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
-    return(_pam_account(pamh, argc, argv,TAC_PLUS_ACCT_FLAG_STOP)); 
+    return _pam_account(pamh, argc, argv,TAC_PLUS_ACCT_FLAG_STOP); 
 }    /* pam_sm_close_session */
 
 

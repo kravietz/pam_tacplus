@@ -60,7 +60,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
 
     /* all attempts failed if fd is still < 0 */
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d",__FUNCTION__, fd))
-    return(fd);
+    return fd;
 } /* tac_connect */
 
 
@@ -164,7 +164,7 @@ int tac_connect_single(struct addrinfo *server, char *key) {
 
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d (fd=%d)",\
         __FUNCTION__, retval < 0 ? retval:0, fd))
-    return(retval);
+    return retval;
 } /* tac_connect_single */
 
 

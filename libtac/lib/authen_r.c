@@ -49,7 +49,8 @@ int tac_authen_read(int fd) {
         TACSYSLOG((LOG_ERR,\
             "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout))
         status=LIBTAC_STATUS_READ_TIMEOUT;
-        goto AuthenExit;
+        free(tb);
+        return status;
     }
     r = read(fd, &th, TAC_PLUS_HDR_SIZE);
     if (r < TAC_PLUS_HDR_SIZE) {
@@ -58,14 +59,16 @@ int tac_authen_read(int fd) {
             __FUNCTION__,\
             r, TAC_PLUS_HDR_SIZE))
         status=LIBTAC_STATUS_SHORT_HDR;
-        goto AuthenExit;
+        free(tb);
+        return status;
     }
 
     /* check the reply fields in header */
     msg = _tac_check_header(&th, TAC_PLUS_AUTHEN);
     if(msg != NULL) {
         status = LIBTAC_STATUS_PROTOCOL_ERR;
-        goto AuthenExit;
+        free(tb);
+        return status;
     }
  
     len_from_header = ntohl(th.datalength);
@@ -84,8 +87,9 @@ int tac_authen_read(int fd) {
             "%s: short reply body, read %d of %d: %m",\
             __FUNCTION__,\
             r, len_from_header))
-        status=LIBTAC_STATUS_SHORT_BODY;
-        goto AuthenExit;
+        status = LIBTAC_STATUS_SHORT_BODY;
+        free(tb);
+        return status;
     }
 
     /* decrypt the body */
@@ -104,8 +108,9 @@ int tac_authen_read(int fd) {
         TACSYSLOG((LOG_ERR,\
             "%s: inconsistent reply body, incorrect key?",\
             __FUNCTION__))
-        status=LIBTAC_STATUS_PROTOCOL_ERR;
-        goto AuthenExit;
+        status = LIBTAC_STATUS_PROTOCOL_ERR;
+        free(tb);
+        return status;
     }
 
     /* save status and clean up */
@@ -115,21 +120,20 @@ int tac_authen_read(int fd) {
     /* server authenticated username and password successfully */
     if (r == TAC_PLUS_AUTHEN_STATUS_PASS) {
         TACDEBUG((LOG_DEBUG, "%s: authentication ok", __FUNCTION__))
-        goto AuthenExit;
+        free(tb);
+        return status;
     }
         
     /* server ask for continue packet with password */
     if (r == TAC_PLUS_AUTHEN_STATUS_GETPASS) {
         TACDEBUG((LOG_DEBUG, "%s: continue packet with password needed", __FUNCTION__))
-        goto AuthenExit;
+        free(tb);
+        return status;
     }
 
     TACDEBUG((LOG_DEBUG, "%s: authentication failed, server reply status=%d",\
         __FUNCTION__, r))
 
-AuthenExit:
     free(tb);
-    TACDEBUG((LOG_DEBUG, "%s: exit status=%d",\
-        __FUNCTION__, status))
-    return(status);
+    return status;
 }    /* tac_authen_read */

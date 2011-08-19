@@ -1,9 +1,12 @@
 1.3.5
-* Changed libtac version to 1.7.1
-* Changed tabsize to 4
-* Fixed missing xalloc.h in authen_s.c
 * This version will be dedicated to Darren Besler, thank you for your major 
   contribution!
+
+* libtac version is now 1.7.1
+* Finally got rid of all goto illness!
+* Changed tabsize to 4
+* Fixed missing xalloc.h in authen_s.c
+
 * The following is done by Darren Besler:
 - add ability to set more elements of tacacs+ packet from parameters or globals
 - cleanup messaging to be consistent with function and presentation format

@@ -69,7 +69,7 @@ char *_pam_get_terminal(pam_handle_t *pamh) {
         if(tty == NULL || *tty == '\0')
             tty = "unknown";
     }
-    return(tty);
+    return tty;
 }
 
 void _pam_log(int err, const char *format,...) {

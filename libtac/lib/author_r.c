@@ -56,7 +56,8 @@ int tac_author_read(int fd, struct areply *re) {
             "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout))
         re->msg = xstrdup(author_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
-        goto AuthorExit;
+        free(tb);
+        return re->status;
     }
 
     r = read(fd, &th, TAC_PLUS_HDR_SIZE);
@@ -66,7 +67,8 @@ int tac_author_read(int fd, struct areply *re) {
             r, TAC_PLUS_HDR_SIZE))
         re->msg = xstrdup(author_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_HDR;
-        goto AuthorExit;
+        free(tb);
+        return re->status;
     }
 
     /* check header consistency */
@@ -75,7 +77,8 @@ int tac_author_read(int fd, struct areply *re) {
         /* no need to process body if header is broken */
         re->msg = xstrdup(msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
-        goto AuthorExit;
+        free(tb);
+        return re->status;
     }
 
     len_from_header = ntohl(th.datalength);
@@ -89,7 +92,8 @@ int tac_author_read(int fd, struct areply *re) {
             "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout))
         re->msg = xstrdup(author_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
-        goto AuthorExit;
+        free(tb);
+        return re->status;
     }
     r = read(fd, tb, len_from_header);
     if (r < len_from_header) {
@@ -98,7 +102,8 @@ int tac_author_read(int fd, struct areply *re) {
             r, len_from_header))
         re->msg = xstrdup(author_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_BODY;
-        goto AuthorExit;
+        free(tb);
+        return re->status;
     }
 
     /* decrypt the body */
@@ -129,7 +134,8 @@ int tac_author_read(int fd, struct areply *re) {
             __FUNCTION__))
         re->msg = xstrdup(protocol_err_msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
-        goto AuthorExit;
+        free(tb);
+        return re->status;
     }
 
     /* packet seems to be consistent, prepare return messages */
@@ -207,9 +213,9 @@ int tac_author_read(int fd, struct areply *re) {
                 pktp++; 
             }
         }
-            
-        goto AuthorExit;
-            break;
+        free(tb);
+        return re->status;
+        break;
     }
 
     TACDEBUG((LOG_DEBUG, "%s: authorization failed, server reply status=%d",\
@@ -229,9 +235,6 @@ int tac_author_read(int fd, struct areply *re) {
             re->status=TAC_PLUS_AUTHOR_STATUS_ERROR;
     }
 
-AuthorExit:
     free(tb);
-    TACDEBUG((LOG_DEBUG, "%s: exit status=%d, status message \"%s\"",\
-        __FUNCTION__, re->status, re->msg != NULL ? re->msg : ""))
-    return(re->status);
+    return re->status;
 }

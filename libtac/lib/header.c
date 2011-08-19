@@ -76,5 +76,5 @@ HDR *_tac_req_header(u_char type, int cont_session) {
         session_id = magic();
     th->session_id = htonl(session_id);
 
-    return(th);
+    return th;
 }

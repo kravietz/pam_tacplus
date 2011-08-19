@@ -35,17 +35,17 @@ char *_tac_check_header(HDR *th, int type) {
         TACSYSLOG((LOG_ERR,\
             "%s: unrelated reply, type %d, expected %d",\
             __FUNCTION__, th->type, type))
-        return(protocol_err_msg);
+        return protocol_err_msg;
     } else if((th->seq_no != 2) && (th->seq_no != 4)) {
         TACSYSLOG((LOG_ERR, "%s: not a reply - seq_no %d != {2,4}",\
             __FUNCTION__, th->seq_no))
-        return(protocol_err_msg);
+        return protocol_err_msg;
     } /* else if(ntohl(th->session_id) != session_id) {
         TACSYSLOG((LOG_ERR,\
             "%s: unrelated reply, received session_id %d != sent %d",\
             __FUNCTION__, ntohl(th->session_id), session_id))
-        return(protocol_err_msg);
+        return protocol_err_msg;
     } */
     
-    return(NULL); /* header is ok */    
+    return NULL; /* header is ok */    
 } /* check header */

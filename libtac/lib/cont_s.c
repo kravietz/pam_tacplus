@@ -64,8 +64,9 @@ int tac_cont_send(int fd, char *pass) {
     if (w < 0 || w < TAC_PLUS_HDR_SIZE) {
         TACSYSLOG((LOG_ERR, "%s: short write on header, wrote %d of %d: %m",\
             __FUNCTION__, w, TAC_PLUS_HDR_SIZE))
-        ret=LIBTAC_STATUS_WRITE_ERR;
-        goto ContExit;
+        free(pkt);
+        free(th);
+        return LIBTAC_STATUS_WRITE_ERR;
     }
 
     /* build the packet */
@@ -81,8 +82,9 @@ int tac_cont_send(int fd, char *pass) {
         TACSYSLOG((LOG_ERR,\
             "%s: bodylength %d != pkt_len %d",\
             __FUNCTION__, bodylength, pkt_len))
-        ret=LIBTAC_STATUS_ASSEMBLY_ERR;
-        goto ContExit;
+        free(pkt);
+        free(th);
+        return LIBTAC_STATUS_ASSEMBLY_ERR;
     } 
     
     /* encrypt the body */
@@ -96,11 +98,8 @@ int tac_cont_send(int fd, char *pass) {
         ret=LIBTAC_STATUS_WRITE_ERR;
     }
 
-ContExit:
-
     free(pkt);
     free(th);
-
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret))
-    return(ret);
+    return ret;
 } /* tac_cont_send */

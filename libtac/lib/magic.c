@@ -84,7 +84,7 @@ magic()
 
 	if(rfd > -1) {
             bytes = read(rfd, &ret, sizeof(ret));
-            return(ret);
+            return ret;
         }
 	else
             return (u_int32_t) mrand48();

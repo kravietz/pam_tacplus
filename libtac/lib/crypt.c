@@ -79,7 +79,7 @@ u_char *_tac_md5_pad(int len, HDR *hdr)  {
     }
 
     free(buf);
-    return(pad);
+    return pad;
  
 }    /* _tac_md5_pad */
 

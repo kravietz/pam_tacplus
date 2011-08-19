@@ -48,7 +48,8 @@ int tac_account_read(int fd, struct areply *re) {
             "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout))
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
-        goto AcctExit;
+        free(tb);
+        return re->status;
     }
 
     r=read(fd, &th, TAC_PLUS_HDR_SIZE);
@@ -58,7 +59,8 @@ int tac_account_read(int fd, struct areply *re) {
             r, TAC_PLUS_HDR_SIZE))
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_HDR;
-        goto AcctExit;
+        free(tb);
+        return re->status;
     }
 
     /* check the reply fields in header */
@@ -66,7 +68,10 @@ int tac_account_read(int fd, struct areply *re) {
     if(msg != NULL) {
         re->msg = xstrdup(msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
-        goto AcctExit;
+        free(tb);
+        TACDEBUG((LOG_DEBUG, "%s: exit status=%d, status message \"%s\"",\
+            __FUNCTION__, re->status, re->msg != NULL ? re->msg : ""))
+        return re->status;
     }
 
     len_from_header=ntohl(th.datalength);
@@ -79,7 +84,8 @@ int tac_account_read(int fd, struct areply *re) {
             "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout))
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
-        goto AcctExit;
+        free(tb);
+        return re->status;
     }
 
     r=read(fd, tb, len_from_header);
@@ -90,7 +96,8 @@ int tac_account_read(int fd, struct areply *re) {
             r, len_from_header))
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_BODY;
-        goto AcctExit;
+        free(tb);
+        return re->status;
     }
 
     /* decrypt the body */
@@ -110,7 +117,8 @@ int tac_account_read(int fd, struct areply *re) {
             __FUNCTION__))
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
-        goto AcctExit;
+        free(tb);
+        return re->status;
     }
 
     /* save status and clean up */
@@ -125,9 +133,10 @@ int tac_account_read(int fd, struct areply *re) {
     /* server logged our request successfully */
     if (tb->status == TAC_PLUS_ACCT_STATUS_SUCCESS) {
         TACDEBUG((LOG_DEBUG, "%s: accounted ok", __FUNCTION__))
-        if (!re->msg) re->msg=xstrdup(acct_ok_msg);
+        if (!re->msg) re->msg = xstrdup(acct_ok_msg);
         re->status = tb->status;
-        goto AcctExit;
+        free(tb);
+        return re->status;
     }
 
     TACDEBUG((LOG_DEBUG, "%s: accounting failed, server reply status=%d",\
@@ -145,9 +154,6 @@ int tac_account_read(int fd, struct areply *re) {
             break;
     }
 
-AcctExit:
     free(tb);
-    TACDEBUG((LOG_DEBUG, "%s: exit status=%d, status message \"%s\"",\
-        __FUNCTION__, re->status, re->msg != NULL ? re->msg : ""))
-    return(re->status);
+    return re->status;
 }

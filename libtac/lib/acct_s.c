@@ -46,7 +46,7 @@ int tac_account_send(int fd, int type, const char *user, char *tty,
     /* u_char *pktp; */             /* obsolute */
     int ret = 0;
 
-    th=_tac_req_header(TAC_PLUS_ACCT, 0);
+    th = _tac_req_header(TAC_PLUS_ACCT, 0);
 
     /* set header options */
     th->version=TAC_PLUS_VER_0;
@@ -64,7 +64,7 @@ int tac_account_send(int fd, int type, const char *user, char *tty,
     tb.flags=(u_char) type;
     tb.authen_method=tac_authen_method;
     tb.priv_lvl=tac_priv_lvl;
-    if(strcmp(tac_login,"chap") == 0) {
+    if (strcmp(tac_login,"chap") == 0) {
         tb.authen_type=TAC_PLUS_AUTHEN_TYPE_CHAP;
     } else if(strcmp(tac_login,"login") == 0) {
         tb.authen_type=TAC_PLUS_AUTHEN_TYPE_ASCII;
@@ -82,7 +82,7 @@ int tac_account_send(int fd, int type, const char *user, char *tty,
 
     /* fill attribute length fields */
     a = attr;
-    while(a) {
+    while (a) {
         pktl = pkt_len;
         pkt_len += sizeof(a->attr_len);
         pkt = (u_char*) xrealloc(pkt, pkt_len);
@@ -132,13 +132,14 @@ int tac_account_send(int fd, int type, const char *user, char *tty,
     th->datalength = htonl(pkt_len);
 
     /* write header */
-    w=write(fd, th, TAC_PLUS_HDR_SIZE);
+    w = write(fd, th, TAC_PLUS_HDR_SIZE);
 
     if(w < TAC_PLUS_HDR_SIZE) {
         TACSYSLOG((LOG_ERR, "%s: short write on header, wrote %d of %d: %m",\
             __FUNCTION__, w, TAC_PLUS_HDR_SIZE))
-        ret = LIBTAC_STATUS_WRITE_ERR;
-        goto AcctExit;
+        free(pkt);
+        free(th);
+        return LIBTAC_STATUS_WRITE_ERR;
     }
         
     /* encrypt packet body  */
@@ -152,9 +153,8 @@ int tac_account_send(int fd, int type, const char *user, char *tty,
         ret = LIBTAC_STATUS_WRITE_ERR;
     }
 
-AcctExit:
     free(pkt);
     free(th);
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret))
-    return(ret);
+    return ret;
 }

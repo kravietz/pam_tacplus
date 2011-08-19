@@ -116,8 +116,10 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
         TACSYSLOG((LOG_ERR,\
             "%s: short write on header, wrote %d of %d: %m",\
             __FUNCTION__, w, TAC_PLUS_HDR_SIZE))
-        ret = LIBTAC_STATUS_WRITE_ERR;
-        goto AuthenExit;
+        free(token);
+        free(pkt);
+        free(th);
+        return LIBTAC_STATUS_WRITE_ERR;
     }
 
     /* build the packet */
@@ -139,8 +141,10 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
     if (pkt_len != bodylength) {
         TACSYSLOG((LOG_ERR, "%s: bodylength %d != pkt_len %d",\
             __FUNCTION__, bodylength, pkt_len))
-        ret = LIBTAC_STATUS_ASSEMBLY_ERR;
-        goto AuthenExit;
+        free(token);
+        free(pkt);
+        free(th);
+        return LIBTAC_STATUS_ASSEMBLY_ERR;
     } 
         
     /* encrypt the body */
@@ -154,10 +158,9 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
         ret = LIBTAC_STATUS_WRITE_ERR;
     }
 
-AuthenExit:
     free(token);
     free(pkt);
     free(th);
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret))
-    return(ret);
+    return ret;
 }    /* tac_authen_send */

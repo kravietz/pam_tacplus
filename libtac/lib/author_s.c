@@ -140,8 +140,9 @@ int tac_author_send(int fd, const char *user, char *tty, char *rem_addr,
         TACSYSLOG((LOG_ERR,\
             "%s: short write on header, wrote %d of %d: %m",\
             __FUNCTION__, w, TAC_PLUS_HDR_SIZE))
-        ret = LIBTAC_STATUS_WRITE_ERR;
-        goto AuthorExit;
+        free(pkt);
+        free(th);
+        return LIBTAC_STATUS_WRITE_ERR;
     }
     
     /* encrypt packet body  */
@@ -156,9 +157,8 @@ int tac_author_send(int fd, const char *user, char *tty, char *rem_addr,
         ret = LIBTAC_STATUS_WRITE_ERR;
     }
 
-AuthorExit:
     free(pkt);
     free(th);
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret))
-    return(ret);
+    return ret;
 }
