@@ -6,6 +6,8 @@
 * Finally got rid of all goto illness!
 * Changed tabsize to 4
 * Fixed missing xalloc.h in authen_s.c
+* Get PAM_RHOST from PAM stack and use it as rem_addr
+* Added _pam_get_rhost() and _pam_get_user()
 
 * The following is done by Darren Besler:
 - add ability to set more elements of tacacs+ packet from parameters or globals

@@ -86,7 +86,7 @@ static short int task_id = 0;
 
 
 /* Helper functions */
-int _pam_send_account(int tac_fd, int type, const char *user, char *tty) {
+int _pam_send_account(int tac_fd, int type, const char *user, char *tty, char *rem_addr) {
     char buf[40];
     struct tac_attrib *attr;
     int retval;
@@ -107,7 +107,7 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty) {
     tac_add_attrib(&attr, "service", tac_service);
     tac_add_attrib(&attr, "protocol", tac_protocol);
 
-    retval = tac_account_send(tac_fd, type, user, tty, "", attr);
+    retval = tac_account_send(tac_fd, type, user, tty, rem_addr, attr);
 
     /* this is no longer needed */
     tac_free_attrib(&attr);
@@ -140,12 +140,9 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty) {
 int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
     int retval;
     static int ctrl;
-#if (defined(__linux__) || defined(__NetBSD__))
     char *user = NULL;
-#else
-    const char *user = NULL;
-#endif
     char *tty = NULL;
+    char *rem_addr = NULL;
     char *typemsg;
     int status = PAM_SESSION_ERR;
   
@@ -158,26 +155,21 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: tac_srv_no=%d", __FUNCTION__, tac_srv_no);
   
-#if (defined(__linux__) || defined(__NetBSD__))
-    retval = pam_get_item(pamh, PAM_USER, (const void **) (const void*) &user);
-#else
-    retval = pam_get_item(pamh, PAM_USER, (void **) (void*) &user);
-#endif
-    if(retval != PAM_SUCCESS || user == NULL || *user == '\0') {
-        _pam_log(LOG_ERR, "%s: unable to obtain username", __FUNCTION__);
-        return PAM_SESSION_ERR;
-    }
+    if ((user = _pam_get_user(pamh)) == NULL)
+        return PAM_USER_UNKNOWN;
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: username [%s] obtained", __FUNCTION__, user);
   
     tty = _pam_get_terminal(pamh);
-  
     if(!strncmp(tty, "/dev/", 5)) 
         tty += 5;
-  
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: tty [%s] obtained", __FUNCTION__, tty);
+
+    rem_addr = _pam_get_rhost(pamh);
+    if (ctrl & PAM_TAC_DEBUG)
+        syslog(LOG_DEBUG, "%s: rhost [%s] obtained", __FUNCTION__, rem_addr);
 
     /* checks for specific data required by TACACS+, which should
        be supplied in command line  */
@@ -216,7 +208,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
         if (ctrl & PAM_TAC_DEBUG)
             syslog(LOG_DEBUG, "%s: connected with fd=%d", __FUNCTION__, tac_fd);
 
-        retval = _pam_send_account(tac_fd, type, user, tty);
+        retval = _pam_send_account(tac_fd, type, user, tty, rem_addr);
         if(retval < 0) {
             _pam_log(LOG_ERR, "%s: error sending %s", 
                 __FUNCTION__, typemsg);
@@ -246,7 +238,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
             if (ctrl & PAM_TAC_DEBUG)
                 syslog(LOG_DEBUG, "%s: connected with fd=%d (srv %d)", __FUNCTION__, tac_fd, srv_i);
 
-            retval = _pam_send_account(tac_fd, type, user, tty);
+            retval = _pam_send_account(tac_fd, type, user, tty, rem_addr);
             /* return code from function in this mode is
                status of the last server we tried to send
                packet to */
@@ -283,18 +275,15 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
     int ctrl, retval;
-#if (defined(__linux__) || defined(__NetBSD__))
-    const char *user;
-#else
     char *user;
-#endif
     char *pass;
     char *tty;
+    char *rem_addr;
     int srv_i;
     int tac_fd;
     int status = PAM_AUTH_ERR;
 
-    user = pass = tty = NULL;
+    user = pass = tty = rem_addr = NULL;
 
     ctrl = _pam_parse (argc, argv);
 
@@ -302,11 +291,8 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
         syslog (LOG_DEBUG, "%s: called (pam_tacplus v%hu.%hu.%hu)"
             , __FUNCTION__, PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
 
-    retval = pam_get_user (pamh, &user, "Username: ");
-    if (retval != PAM_SUCCESS || user == NULL || *user == '\0') {
-        _pam_log (LOG_ERR, "unable to obtain username");
+    if ((user = _pam_get_user(pamh)) == NULL)
         return PAM_USER_UNKNOWN;
-    }
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: user [%s] obtained", __FUNCTION__, user);
@@ -329,12 +315,14 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
         syslog (LOG_DEBUG, "%s: password obtained", __FUNCTION__);
 
     tty = _pam_get_terminal(pamh);
-
     if (!strncmp (tty, "/dev/", 5))
         tty += 5;
-
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: tty [%s] obtained", __FUNCTION__, tty);
+
+    rem_addr = _pam_get_rhost(pamh);
+    if (ctrl & PAM_TAC_DEBUG)
+        syslog (LOG_DEBUG, "%s: rhost [%s] obtained", __FUNCTION__, rem_addr);
 
     for (srv_i = 0; srv_i < tac_srv_no; srv_i++) {
         int msg = TAC_PLUS_AUTHEN_STATUS_FAIL;
@@ -351,7 +339,7 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
             continue;
         }
 
-        if (tac_authen_send(tac_fd, user, pass, tty, "") < 0) {
+        if (tac_authen_send(tac_fd, user, pass, tty, rem_addr) < 0) {
             _pam_log (LOG_ERR, "error sending auth req to TACACS+ server");
             status = PAM_AUTHINFO_UNAVAIL;
         } else {
@@ -428,17 +416,14 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
     int retval, ctrl, status=PAM_AUTH_ERR;
-#if (defined(__linux__) || defined(__NetBSD__))
-    const char *user;
-#else
     char *user;
-#endif
     char *tty;
+    char *rem_addr;
     struct areply arep;
     struct tac_attrib *attr = NULL;
     int tac_fd;
 
-    user = tty = NULL;
+    user = tty = rem_addr = NULL;
   
     /* this also obtains service name for authorization
        this should be normally performed by pam_get_item(PAM_SERVICE)
@@ -454,26 +439,21 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
             tac_ntop(active_server->ai_addr, active_server->ai_addrlen));
     }
   
-#if (defined(__linux__) || defined(__NetBSD__))
-    retval = pam_get_item(pamh, PAM_USER, (const void **) (const void*) &user);
-#else
-    retval = pam_get_item(pamh, PAM_USER, (void **) (void*) &user);
-#endif
-    if (retval != PAM_SUCCESS || user == NULL || *user == '\0') {
-        _pam_log (LOG_ERR, "unable to obtain username");
+    if ((user = _pam_get_user(pamh)) == NULL)
         return PAM_USER_UNKNOWN;
-    }
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: username obtained [%s]", __FUNCTION__, user);
   
     tty = _pam_get_terminal(pamh);
-
     if(!strncmp(tty, "/dev/", 5)) 
         tty += 5;
-
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: tty obtained [%s]", __FUNCTION__, tty);
+
+    rem_addr = _pam_get_rhost(pamh);
+    if (ctrl & PAM_TAC_DEBUG)
+        syslog(LOG_DEBUG, "%s: rhost obtained [%s]", __FUNCTION__, rem_addr);
   
     /* checks if user has been successfully authenticated
        by TACACS+; we cannot solely authorize user if it hasn't
@@ -506,7 +486,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
         return PAM_AUTH_ERR;
     }
 
-    retval = tac_author_send(tac_fd, user, tty, "", attr);
+    retval = tac_author_send(tac_fd, user, tty, rem_addr, attr);
 
     tac_free_attrib(&attr);
   
@@ -560,15 +540,6 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
 
             if (ctrl & PAM_TAC_DEBUG)
                 syslog(LOG_DEBUG, "%s: returned attribute `%s%s' from server", __FUNCTION__, attribute, value);
-
-            /* set PAM_RHOST if 'addr' attribute was returned from server */
-            if(!strncmp(attribute, "addr", 4) && isdigit((int)*value)) {
-                retval = pam_set_item(pamh, PAM_RHOST, value);
-                if (retval != PAM_SUCCESS)
-                    syslog(LOG_WARNING, "%s: unable to set remote address for PAM", __FUNCTION__);
-                else if(ctrl & PAM_TAC_DEBUG)
-                    syslog(LOG_DEBUG, "%s: set remote addr to `%s'", __FUNCTION__, value);
-            }
 
             /* make returned attributes available for other PAM modules via PAM environment */
             if (pam_putenv(pamh, strncat(attribute, value, strlen(value))) != PAM_SUCCESS)

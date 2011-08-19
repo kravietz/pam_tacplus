@@ -34,4 +34,6 @@ extern int converse (pam_handle_t * pamh, int nargs
     ,struct pam_response **response);
 extern void _pam_log (int err, const char *format,...);
 extern void *_xcalloc (size_t size);
+extern char *_pam_get_user(pam_handle_t *pamh);
 extern char *_pam_get_terminal(pam_handle_t *pamh);
+extern char *_pam_get_rhost(pam_handle_t *pamh);

@@ -42,8 +42,8 @@ extern "C" {
 #if defined(DEBUGTAC) && !defined(TACDEBUG)
 #define TACDEBUG(x) syslog x;
 #else
-#define TACDEBUG(x) syslog x;
-// #define TACDEBUG(x)
+//#define TACDEBUG(x) syslog x;
+#define TACDEBUG(x)
 #endif
 
 #define TACSYSLOG(x) syslog x;

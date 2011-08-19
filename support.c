@@ -59,19 +59,6 @@ void *_xcalloc (size_t size) {
 #define _xcalloc xcalloc
 #endif
 
-char *_pam_get_terminal(pam_handle_t *pamh) {
-    int retval;
-    char *tty;
-
-    retval = pam_get_item (pamh, PAM_TTY, (void *)&tty);
-    if (retval != PAM_SUCCESS || tty == NULL || *tty == '\0') {
-        tty = ttyname(STDIN_FILENO);
-        if(tty == NULL || *tty == '\0')
-            tty = "unknown";
-    }
-    return tty;
-}
-
 void _pam_log(int err, const char *format,...) {
     char msg[256];
     va_list args;
@@ -82,6 +69,42 @@ void _pam_log(int err, const char *format,...) {
     syslog(err, "%s", msg);
     va_end(args);
     closelog();
+}
+
+char *_pam_get_user(pam_handle_t *pamh) {
+    int retval;
+    char *user;
+
+    retval = pam_get_user(pamh, (void *)&user, "Username: ");
+    if (retval != PAM_SUCCESS || user == NULL || *user == '\0') {
+        _pam_log(LOG_ERR, "unable to obtain username");
+        user = NULL;
+    }
+    return user;
+}
+
+char *_pam_get_terminal(pam_handle_t *pamh) {
+    int retval;
+    char *tty;
+
+    retval = pam_get_item(pamh, PAM_TTY, (void *)&tty);
+    if (retval != PAM_SUCCESS || tty == NULL || *tty == '\0') {
+        tty = ttyname(STDIN_FILENO);
+        if(tty == NULL || *tty == '\0')
+            tty = "unknown";
+    }
+    return tty;
+}
+
+char *_pam_get_rhost(pam_handle_t *pamh) {
+    int retval;
+    char *rhost;
+
+    retval = pam_get_item(pamh, PAM_RHOST, (void *)&rhost);
+    if (retval != PAM_SUCCESS || rhost == NULL || *rhost == '\0') {
+        rhost = "unknown";
+    }
+    return rhost;
 }
 
 /* stolen from pam_stress */
