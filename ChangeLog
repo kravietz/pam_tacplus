@@ -3,6 +3,7 @@
   contribution!
 
 * libtac version is now 1.7.1
+* magic.c: magic_inited is only used for linux
 * Finally got rid of all goto illness!
 * Changed tabsize to 4
 * Fixed missing xalloc.h in authen_s.c

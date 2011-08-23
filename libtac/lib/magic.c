@@ -57,8 +57,8 @@ magic_init()
     long seed;
     struct timeval t;
 
-    magic_inited = 1;
 #ifdef __linux__
+    magic_inited = 1;
     rfd = open("/dev/urandom", O_RDONLY);
     if(rfd != -1) 
         return;
