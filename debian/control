@@ -1,16 +1,17 @@
 Source: libpam-tacplus
-Priority: optional
-Maintainer: J. Nijhof <jeroen@nijhofnet.nl>
+Section: admin
+Priority: extra
+Maintainer: Jeroen Nijhof <jeroen@nijhofnet.nl>
 Build-Depends: debhelper (>= 4.0.0), libpam-dev, chrpath
-Standards-Version: 1.3.5
-Section: libs
+Standards-Version: 3.9.2
+Homepage: http://sourceforge.net/projects/tacplus
 
 Package: libpam-tacplus
-Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libpam-doc
-Description: TACACS+ protocol client library and PAM module in C.
+Description: TACACS+ protocol client library and PAM module in C
  This PAM module support authentication, authorization (account management) and
- accounting (session management) performed using TACACS+ protocol designed by Cisco.
+ accounting (session management) performed using TACACS+ protocol designed by
+ Cisco.
 
