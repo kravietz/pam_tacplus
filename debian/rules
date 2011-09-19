@@ -5,100 +5,22 @@
 # As a special exception, when this file is copied by dh-make into a
 # dh-make output file, you may use that output file without restriction.
 # This special exception was added by Craig Small in version 0.37 of dh-make.
-
 # Uncomment this to turn on verbose mode.
-export DH_VERBOSE=1
+#export DH_VERBOSE=1
+SHELL := sh -e
 
-# Do not include git source directories
-export DH_ALWAYS_EXCLUDE=.git
+%:
+	dh  $@
 
-# These are used for cross-compiling and for saving the configure script
-# from having to guess our platform (since we know it already)
-DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-
-DEBFLAGS=
-ifeq ($(DEB_HOST_ARCH),i386)
-	DEBFLAGS = -m32
-endif
-
-configure: configure-stamp
-
-configure-stamp:
-	dh_testdir
-
-	# Add here commands to configure the package.
-	dh_auto_configure -- --libdir=/lib --docdir=/usr/share/doc/libpam-tacplus
-	touch configure-stamp
-
-build: build-arch build-indep
-
-build-arch: build-stamp
-
-build-indep: build-stamp
-
-build-stamp: configure-stamp
-	dh_testdir
-
-	# Add here commands to compile the package.
-	DEBFLAGS=$(DEBFLAGS) $(MAKE)
-	touch build-stamp
-
-clean:
-	dh_testdir
-	dh_testroot
-
-	# Add here commands to clean up after the build process.
-	$(MAKE) clean
-	rm -f build-stamp configure-stamp config.log config.h
-	rm -f Makefile config.status libtool stamp-h1
-	rm -rf .deps
-	dh_clean 
-
-install: build
-	dh_testdir
-	dh_testroot
+override_dh_clean:
+	rm -f config.status config.log
 	dh_clean
-	dh_installdirs
 
-	# Add here commands to install the package into debian/libpam-tacplus
-	$(MAKE) install DESTDIR=$(CURDIR)/debian/libpam-tacplus/
+override_dh_auto_configure:
+	dh_auto_configure -- --libdir=/lib --docdir=/usr/share/doc/libpam-tacplus
 
-# Build architecture-independent files here.
-binary-indep: build install
-# We have nothing to do by default.
+override_dh_install:
+	dh_install
 
-# Build architecture-dependent files here.
-binary-arch: build install
-	dh_testdir
-	dh_testroot
-	dh_installchangelogs
+override_dh_installdocs:
 	dh_installdocs
-#	dh_installexamples
-#	dh_install
-#	dh_movefiles --sourcedir=debian/tmp
-#	dh_installmenu
-#	dh_installdebconf	
-#	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-#	dh_installinit
-#	dh_installcron
-#	dh_installinfo
-#	dh_installman
-#	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-#	dh_perl
-#	dh_python
-	dh_makeshlibs
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure

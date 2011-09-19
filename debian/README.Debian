@@ -1,7 +1,7 @@
-pam_tacplus for Debian
+libpam-tacplus for Debian
 ---------------------
 
-The pam_tacplus module is placed in /lib/security/
+The pam_tacplus.so module is placed in /lib/security/
 to include pam_tacplus.so edit /etc/pam.d/common-*
 
 Run script -c "dpkg-buildpackage" as root
