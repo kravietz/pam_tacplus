@@ -19,8 +19,3 @@ override_dh_clean:
 override_dh_auto_configure:
 	dh_auto_configure -- --libdir=/lib --docdir=/usr/share/doc/libpam-tacplus
 
-override_dh_install:
-	dh_install
-
-override_dh_installdocs:
-	dh_installdocs
