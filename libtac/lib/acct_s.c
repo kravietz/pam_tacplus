@@ -1,7 +1,7 @@
 /* acct_s.c - Send accounting event information to server.
  * 
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
- * Jeroen Nijhof <jeroen@nijhofnet.nl>
+ * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,21 @@
 #include "libtac.h"
 #include "xalloc.h"
 
+char *tac_acct_flag2str(int flag) {
+    switch(flag) {
+        case TAC_PLUS_ACCT_FLAG_MORE:
+            return "more";
+        case TAC_PLUS_ACCT_FLAG_START:
+            return "start";
+        case TAC_PLUS_ACCT_FLAG_STOP:
+            return "stop";
+        case TAC_PLUS_ACCT_FLAG_WATCHDOG:
+            return "update";
+        default:
+            return "unknown";
+    }
+}
+
 /*
  * return value:
  *      0 : success
@@ -31,7 +46,7 @@
  *             LIBTAC_STATUS_WRITE_TIMEOUT  (pending impl)
  *             LIBTAC_STATUS_ASSEMBLY_ERR   (pending impl)
  */
-int tac_account_send(int fd, int type, const char *user, char *tty,
+int tac_acct_send(int fd, int type, const char *user, char *tty,
     char *rem_addr, struct tac_attrib *attr) {
 
     HDR *th;
@@ -55,7 +70,7 @@ int tac_account_send(int fd, int type, const char *user, char *tty,
     TACDEBUG((LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s, type: %s", \
         __FUNCTION__, user, tty, rem_addr, \
         (tac_encryption) ? "yes" : "no", \
-        (type == TAC_PLUS_ACCT_FLAG_START) ? "START" : "STOP"))
+        tac_acct_flag2str(type)))
         
     user_len=(u_char) strlen(user);
     port_len=(u_char) strlen(tty);

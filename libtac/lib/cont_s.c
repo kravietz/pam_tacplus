@@ -1,6 +1,6 @@
 /* cont_s.c - Send continue request to the server.
  * 
- * Copyright (C) 2010, Jeroen Nijhof <jeroen@nijhofnet.nl>
+ * Copyright (C) 2010, Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

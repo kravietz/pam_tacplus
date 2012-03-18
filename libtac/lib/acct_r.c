@@ -1,7 +1,7 @@
 /* acct_r.c - Read accounting reply from server.
  * 
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
- * Jeroen Nijhof <jeroen@nijhofnet.nl>
+ * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
  *             LIBTAC_STATUS_PROTOCOL_ERR
  *   >= 0 : server response, see TAC_PLUS_AUTHEN_STATUS_...
  */
-int tac_account_read(int fd, struct areply *re) {
+int tac_acct_read(int fd, struct areply *re) {
     HDR th;
     struct acct_reply *tb = NULL;
     int len_from_header, r, len_from_body;

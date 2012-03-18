@@ -1,6 +1,6 @@
 
-pam_tacplus v1.3.5
-Aug 19 2011
+pam_tacplus v1.3.6
+Mar 18 2012
 
 This PAM module support the following functions:
 
@@ -180,4 +180,4 @@ Authors:
 Pawel Krawczyk <pawel.krawczyk@hush.com>
 http://ipsec.pl
 
-Jeroen Nijhof <jeroen@nijhofnet.nl>
+Jeroen Nijhof <jeroen@jeroennijhof.nl>

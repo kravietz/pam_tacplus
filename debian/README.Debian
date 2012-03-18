@@ -15,4 +15,4 @@ Look at the content list of the deb file with "dpkg -c"
 Change the version number by running "debchange -i" and add in the NEWS
 entries for the given version.
 
- -- J. Nijhof <jeroen@nijhofnet.nl>, Sun, 14 Feb 2010
+ -- J. Nijhof <jeroen@jeroennijhof.nl>, Sun, 14 Feb 2010

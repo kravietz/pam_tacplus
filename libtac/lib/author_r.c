@@ -1,7 +1,7 @@
 /* author_r.c - Reads authorization reply from the server.
  * 
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
- * Jeroen Nijhof <jeroen@nijhofnet.nl>
+ * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

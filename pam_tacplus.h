@@ -1,7 +1,7 @@
 /* pam_tacplus.h
  * 
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
- * Jeroen Nijhof <jeroen@nijhofnet.nl>
+ * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 /* pam_tacplus major, minor and patchlevel version numbers */
 #define PAM_TAC_VMAJ 1
 #define PAM_TAC_VMIN 3
-#define PAM_TAC_VPAT 5
+#define PAM_TAC_VPAT 6
 
 #ifndef PAM_EXTERN
     #define PAM_EXTERN extern

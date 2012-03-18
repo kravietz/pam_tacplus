@@ -1,7 +1,7 @@
 /* pam_tacplus.c - PAM interface for TACACS+ protocol.
  * 
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
- * Jeroen Nijhof <jeroen@nijhofnet.nl>
+ * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,9 @@ static short int task_id = 0;
 
 
 /* Helper functions */
-int _pam_send_account(int tac_fd, int type, const char *user, char *tty, char *rem_addr) {
+int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
+    char *rem_addr, char *cmd) {
+
     char buf[40];
     struct tac_attrib *attr;
     int retval;
@@ -99,15 +101,20 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty, char *r
     sprintf(buf, "%lu", (long unsigned int)time(0));
 #endif
 
-    tac_add_attrib(&attr, 
-        (type == TAC_PLUS_ACCT_FLAG_START) ? "start_time" : "stop_time"
-        , buf);
+    if (type == TAC_PLUS_ACCT_FLAG_START) {
+        tac_add_attrib(&attr, "start_time", buf);
+    } else if (type == TAC_PLUS_ACCT_FLAG_STOP) {
+        tac_add_attrib(&attr, "stop_time", buf);
+    }
     sprintf(buf, "%hu", task_id);
     tac_add_attrib(&attr, "task_id", buf);
     tac_add_attrib(&attr, "service", tac_service);
     tac_add_attrib(&attr, "protocol", tac_protocol);
+    if (cmd != NULL) {
+        tac_add_attrib(&attr, "cmd", cmd);
+    }
 
-    retval = tac_account_send(tac_fd, type, user, tty, rem_addr, attr);
+    retval = tac_acct_send(tac_fd, type, user, tty, rem_addr, attr);
 
     /* this is no longer needed */
     tac_free_attrib(&attr);
@@ -115,17 +122,17 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty, char *r
     if(retval < 0) {
         _pam_log (LOG_WARNING, "%s: send %s accounting failed (task %hu)",
             __FUNCTION__, 
-            (type == TAC_PLUS_ACCT_FLAG_START) ? "start" : "stop",
+            tac_acct_flag2str(type),
             task_id);
         close(tac_fd);
         return -1;
     }
         
     struct areply re;
-    if( tac_account_read(tac_fd, &re) != TAC_PLUS_ACCT_STATUS_SUCCESS ) {
+    if( tac_acct_read(tac_fd, &re) != TAC_PLUS_ACCT_STATUS_SUCCESS ) {
         _pam_log (LOG_WARNING, "%s: accounting %s failed (task %hu)",
             __FUNCTION__, 
-            (type == TAC_PLUS_ACCT_FLAG_START) ? "start" : "stop",
+            tac_acct_flag2str(type),
             task_id);
         if(re.msg != NULL) free(re.msg);
         close(tac_fd);
@@ -137,7 +144,9 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty, char *r
     return 0;
 }
 
-int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
+int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
+    int type, char *cmd) {
+
     int retval;
     static int ctrl;
     char *user = NULL;
@@ -146,7 +155,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
     char *typemsg;
     int status = PAM_SESSION_ERR;
   
-    typemsg = (type == TAC_PLUS_ACCT_FLAG_START) ? "START" : "STOP";
+    typemsg = tac_acct_flag2str(type);
     ctrl = _pam_parse (argc, argv);
 
     if (ctrl & PAM_TAC_DEBUG)
@@ -208,7 +217,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
         if (ctrl & PAM_TAC_DEBUG)
             syslog(LOG_DEBUG, "%s: connected with fd=%d", __FUNCTION__, tac_fd);
 
-        retval = _pam_send_account(tac_fd, type, user, tty, rem_addr);
+        retval = _pam_send_account(tac_fd, type, user, tty, rem_addr, cmd);
         if(retval < 0) {
             _pam_log(LOG_ERR, "%s: error sending %s", 
                 __FUNCTION__, typemsg);
@@ -238,7 +247,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,  int type) {
             if (ctrl & PAM_TAC_DEBUG)
                 syslog(LOG_DEBUG, "%s: connected with fd=%d (srv %d)", __FUNCTION__, tac_fd, srv_i);
 
-            retval = _pam_send_account(tac_fd, type, user, tty, rem_addr);
+            retval = _pam_send_account(tac_fd, type, user, tty, rem_addr, cmd);
             /* return code from function in this mode is
                status of the last server we tried to send
                packet to */
@@ -572,7 +581,7 @@ int pam_sm_open_session (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
     task_id=(short int) magic();
-    return _pam_account(pamh, argc, argv,TAC_PLUS_ACCT_FLAG_START); 
+    return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_START, NULL); 
 }    /* pam_sm_open_session */
 
 /* sends STOP accounting request to the remote TACACS+ server
@@ -583,7 +592,7 @@ PAM_EXTERN
 int pam_sm_close_session (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
-    return _pam_account(pamh, argc, argv,TAC_PLUS_ACCT_FLAG_STOP); 
+    return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_STOP, NULL); 
 }    /* pam_sm_close_session */
 
 

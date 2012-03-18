@@ -2,7 +2,7 @@ dnl
 dnl File:        configure.in
 dnl Revision:    $Id: configure.ac,v 1.4 2010/06/11 12:04:29 j-nijhof Exp $
 dnl Created:     2010/06/09
-dnl Author:      Jeroen Nijhof <jeroen@nijhofnet.nl>
+dnl Author:      Jeroen Nijhof <jeroen@jeroennijhof.nl>
 dnl              Benoit Donneaux <benoit.donneaux@gmail.com>
 dnl
 dnl Process this file with autoconf to produce a configure script
@@ -14,7 +14,7 @@ AC_PREREQ(2.59)
 AC_COPYRIGHT([
 See the included file: COPYING for copyright information.
 ])
-AC_INIT(pam_tacplus, 1.3.5, [jeroen@nijhofnet.nl,pawel.krawczyk@hush.com])
+AC_INIT(pam_tacplus, 1.3.6, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([pam_tacplus.c])

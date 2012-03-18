@@ -1,3 +1,11 @@
+1.3.6
+* Changed e-mail adres to jeroen@jeroennijhof.nl
+* Improved accounting, added cmd attribute for command logging.
+* Added tac_acct_flag2str()
+* Renamed tac_account_read, tac_account_send to tac_acct_read and tac_acct_send
+* pam_tacplus.spec.in: fixed static library path and pam_tacplus.so location.
+* Debian packaging improvements
+
 1.3.5
 * This version will be dedicated to Darren Besler, thank you for your major 
   contribution!

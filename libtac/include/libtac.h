@@ -1,7 +1,7 @@
 /* libtac.h
  * 
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
- * Jeroen Nijhof <jeroen@nijhofnet.nl>
+ * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,9 +132,10 @@ extern void _tac_crypt(u_char *buf, HDR *th, int length);
 extern u_char *_tac_md5_pad(int len, HDR *hdr);
 extern void tac_add_attrib(struct tac_attrib **attr, char *name, char *value);
 extern void tac_free_attrib(struct tac_attrib **attr);
-extern int tac_account_send(int fd, int type, const char *user, char *tty, char *rem_addr,
+extern char *tac_acct_flag2str(int flag);
+extern int tac_acct_send(int fd, int type, const char *user, char *tty, char *rem_addr,
     struct tac_attrib *attr);
-extern int tac_account_read(int fd, struct areply *arep);
+extern int tac_acct_read(int fd, struct areply *arep);
 extern void *xcalloc(size_t nmemb, size_t size);
 extern void *xrealloc(void *ptr, size_t size);
 extern char *_tac_check_header(HDR *th, int type);
