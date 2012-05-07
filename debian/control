@@ -3,7 +3,7 @@ Section: admin
 Priority: extra
 Maintainer: Jeroen Nijhof <jeroen@jeroennijhof.nl>
 Build-Depends: debhelper (>= 7.0.50~), libpam-dev
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Homepage: http://sourceforge.net/projects/tacplus
 
 Package: libpam-tacplus
