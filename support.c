@@ -137,41 +137,55 @@ int converse(pam_handle_t * pamh, int nargs
 int tacacs_get_password (pam_handle_t * pamh, int flags
     ,int ctrl, char **password) {
 
+    const void *pam_pass;
     char *pass = NULL;
-    struct pam_message msg[1], *pmsg[1];
-    struct pam_response *resp;
-    int retval;
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: called", __FUNCTION__);
 
-    /* set up conversation call */
-    pmsg[0] = &msg[0];
-    msg[0].msg_style = PAM_PROMPT_ECHO_OFF;
-
-    if (!tac_prompt) {
-        msg[0].msg = "Password: ";
+    if ( (ctrl & (PAM_TAC_TRY_FIRST_PASS | PAM_TAC_USE_FIRST_PASS))
+        && (pam_get_item(pamh, PAM_AUTHTOK, &pam_pass) == PAM_SUCCESS)
+        && (pam_pass != NULL) ) {
+         if ((pass = strdup(pam_pass)) == NULL)
+              return PAM_BUF_ERR;
+    } else if ((ctrl & PAM_TAC_USE_FIRST_PASS)) {
+         _pam_log(LOG_WARNING, "no forwarded password");
+         return PAM_PERM_DENIED;
     } else {
-        msg[0].msg = tac_prompt;
+         struct pam_message msg[1], *pmsg[1];
+         struct pam_response *resp;
+         int retval;
+
+         /* set up conversation call */
+         pmsg[0] = &msg[0];
+         msg[0].msg_style = PAM_PROMPT_ECHO_OFF;
+
+         if (!tac_prompt) {
+             msg[0].msg = "Password: ";
+         } else {
+             msg[0].msg = tac_prompt;
+         }
+         resp = NULL;
+
+         if ((retval = converse (pamh, 1, pmsg, &resp)) != PAM_SUCCESS)
+             return retval;
+
+         if (resp) {
+             if ((resp[0].resp == NULL) && (ctrl & PAM_TAC_DEBUG))
+                 _pam_log (LOG_DEBUG, "pam_sm_authenticate: NULL authtok given");
+
+             pass = resp[0].resp;    /* remember this! */
+             resp[0].resp = NULL;
+         } else {
+             if (ctrl & PAM_TAC_DEBUG) {
+               _pam_log (LOG_DEBUG, "pam_sm_authenticate: no error reported");
+               _pam_log (LOG_DEBUG, "getting password, but NULL returned!?");
+             }
+             return PAM_CONV_ERR;
+         }
+         free(resp);
+         resp = NULL;
     }
-    resp = NULL;
-
-    if ((retval = converse (pamh, 1, pmsg, &resp)) != PAM_SUCCESS)
-        return retval;
-
-    if (resp) {
-        if ((resp[0].resp == NULL) && (ctrl & PAM_TAC_DEBUG))
-            _pam_log (LOG_DEBUG, "pam_sm_authenticate: NULL authtok given");
-        pass = resp[0].resp;    /* remember this! */
-        resp[0].resp = NULL;
-    } else if (ctrl & PAM_TAC_DEBUG) {
-        _pam_log (LOG_DEBUG, "pam_sm_authenticate: no error reported");
-        _pam_log (LOG_DEBUG, "getting password, but NULL returned!?");
-        return PAM_CONV_ERR;
-    }
-
-    free(resp);
-    resp = NULL;
 
     *password = pass;       /* this *MUST* be free()'d by this module */
 
@@ -191,6 +205,10 @@ int _pam_parse (int argc, const char **argv) {
     for (ctrl = 0; argc-- > 0; ++argv) {
         if (!strcmp (*argv, "debug")) { /* all */
             ctrl |= PAM_TAC_DEBUG;
+        } else if (!strcmp (*argv, "use_first_pass")) {
+            ctrl |= PAM_TAC_USE_FIRST_PASS;
+        } else if (!strcmp (*argv, "try_first_pass")) { 
+            ctrl |= PAM_TAC_TRY_FIRST_PASS;
         } else if (!strncmp (*argv, "service=", 8)) { /* author & acct */
             tac_service = (char *) _xcalloc (strlen (*argv + 8) + 1);
             strcpy (tac_service, *argv + 8);

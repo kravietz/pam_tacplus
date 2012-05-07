@@ -8,7 +8,7 @@ Homepage: http://sourceforge.net/projects/tacplus
 
 Package: libpam-tacplus
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libpam-runtime
 Description: PAM module for using TACACS+ as an authentication service
  This PAM module support authentication, authorization (account management) and
  accounting (session management) performed using TACACS+ protocol designed by
