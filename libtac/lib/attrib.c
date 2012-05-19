@@ -85,4 +85,6 @@ void tac_free_attrib(struct tac_attrib **attr) {
         free(a->attr);
         free(a);
     } while (b != NULL);
+
+    *attr = NULL;
 }
