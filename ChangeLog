@@ -1,3 +1,7 @@
+1.3.7
+* attrib.c: Explicity setting *attr to NULL after free(),
+  thanks to Anthony Low <anthonyl@xkl.com>
+
 1.3.6
 * Added libpam-runtime support for debian
 * Added use_first_pass and try_first_pass option, thanks to Luc Ducazu <lducazu@gmail.com>
