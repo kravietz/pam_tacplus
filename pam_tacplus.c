@@ -441,12 +441,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
        solution is found ;) */
     ctrl = _pam_parse (argc, argv);
 
-    if (ctrl & PAM_TAC_DEBUG) {
+    if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: called (pam_tacplus v%hu.%hu.%hu)"
             , __FUNCTION__, PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
-        syslog (LOG_DEBUG, "%s: active server is [%s]", __FUNCTION__,
-            tac_ntop(active_server->ai_addr, active_server->ai_addrlen));
-    }
   
     if ((user = _pam_get_user(pamh)) == NULL)
         return PAM_USER_UNKNOWN;
@@ -472,6 +469,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
         _pam_log (LOG_ERR, "user not authenticated by TACACS+");
         return PAM_AUTH_ERR;
     }
+    if (ctrl & PAM_TAC_DEBUG)
+        syslog (LOG_DEBUG, "%s: active server is [%s]", __FUNCTION__,
+            tac_ntop(active_server->ai_addr, active_server->ai_addrlen));
 
     /* checks for specific data required by TACACS+, which should
        be supplied in command line  */

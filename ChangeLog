@@ -1,5 +1,7 @@
 1.3.7
-* attrib.c: Explicity setting *attr to NULL after free(),
+* pam_tacplus.c: moved debug message after active_server validation, avoiding
+  null pointer exception
+* attrib.c: explicity setting *attr to NULL after free(),
   thanks to Anthony Low <anthonyl@xkl.com>
 
 1.3.6
