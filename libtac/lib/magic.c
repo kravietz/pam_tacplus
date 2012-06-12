@@ -77,13 +77,12 @@ magic()
 {
 #ifdef __linux__
     u_int32_t ret = 0;
-    int bytes = 0;
 
     if (magic_inited == 0 )
         magic_init();
 
 	if(rfd > -1) {
-            bytes = read(rfd, &ret, sizeof(ret));
+            read(rfd, &ret, sizeof(ret));
             return ret;
         }
 	else

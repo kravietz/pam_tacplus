@@ -1,4 +1,9 @@
 1.3.7
+* Handle attributes which contains no value,
+  thanks to James Allwright <jamesallwright@yahoo.co.uk>
+* Global variables tac_login and tac_secret not static anymore,
+  pointed out by James Allwright <jamesallwright@yahoo.co.uk>
+* version.c: libtac version 1.8.1
 * pam_tacplus.c: moved debug message after active_server validation, avoiding
   null pointer exception
 * attrib.c: explicity setting *attr to NULL after free(),

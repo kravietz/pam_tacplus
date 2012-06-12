@@ -91,7 +91,7 @@ void _tac_crypt(u_char *buf, HDR *th, int length) {
     u_char *pad;
  
     /* null operation if no encryption requested */
-    if(th->encryption == TAC_PLUS_ENCRYPTED_FLAG) {
+    if((tac_secret != NULL) && (th->encryption == TAC_PLUS_ENCRYPTED_FLAG)) {
         pad = _tac_md5_pad(length, th);
  
         for (i=0; i<length; i++) {

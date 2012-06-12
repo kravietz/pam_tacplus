@@ -31,8 +31,15 @@ void tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
 void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
     struct tac_attrib *a;
     u_char l1 = (u_char) strlen(name);
-    u_char l2 = (u_char) strlen(value);
-    int total_len = l1 + l2 + 1; /* "name" + "=" + "value" */
+    u_char l2;
+    int total_len;
+    
+    if (value == NULL) {
+        l2 = 0;
+    } else {
+        l2 = (u_char) strlen(value);
+    }
+    total_len = l1 + l2 + 1; /* "name" + "=" + "value" */
 
     if (total_len > 255) {
         TACSYSLOG((LOG_WARNING,\
@@ -64,7 +71,9 @@ void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *v
     a->attr = (char *) xcalloc(1, total_len+1);
     bcopy(name, a->attr, l1);    /* paste name */
     *(a->attr+l1)=sep;           /* insert seperator "[=*]" */
-    bcopy(value, (a->attr+l1+1), l2); /* paste value */
+    if (value != NULL) {
+        bcopy(value, (a->attr+l1+1), l2); /* paste value */
+    }
     *(a->attr+total_len) = '\0';      /* add 0 for safety */
     a->next = NULL; /* make sure it's null */
 }

@@ -79,12 +79,17 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     tb.flags=(u_char) type;
     tb.authen_method=tac_authen_method;
     tb.priv_lvl=tac_priv_lvl;
-    if (strcmp(tac_login,"chap") == 0) {
-        tb.authen_type=TAC_PLUS_AUTHEN_TYPE_CHAP;
-    } else if(strcmp(tac_login,"login") == 0) {
-        tb.authen_type=TAC_PLUS_AUTHEN_TYPE_ASCII;
+    if (tac_login == NULL) {
+        /* default to PAP */
+        tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
     } else {
-        tb.authen_type=TAC_PLUS_AUTHEN_TYPE_PAP;
+        if (strcmp(tac_login,"chap") == 0) {
+            tb.authen_type=TAC_PLUS_AUTHEN_TYPE_CHAP;
+        } else if(strcmp(tac_login,"login") == 0) {
+            tb.authen_type=TAC_PLUS_AUTHEN_TYPE_ASCII;
+        } else {
+            tb.authen_type=TAC_PLUS_AUTHEN_TYPE_PAP;
+        }
     }
     tb.authen_service=tac_authen_service;
     tb.user_len=user_len;

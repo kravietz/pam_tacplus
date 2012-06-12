@@ -64,12 +64,17 @@ int tac_author_send(int fd, const char *user, char *tty, char *rem_addr,
 
     tb.authen_method = tac_authen_method;
     tb.priv_lvl = tac_priv_lvl;
-    if (strcmp(tac_login,"chap") == 0) {
-        tb.authen_type = TAC_PLUS_AUTHEN_TYPE_CHAP;
-    } else if (strcmp(tac_login,"login") == 0) {
-        tb.authen_type = TAC_PLUS_AUTHEN_TYPE_ASCII;
-    } else {
+    if (tac_login == NULL) {
+        /* default to PAP */
         tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
+    } else {
+        if (strcmp(tac_login,"chap") == 0) {
+            tb.authen_type = TAC_PLUS_AUTHEN_TYPE_CHAP;
+        } else if (strcmp(tac_login,"login") == 0) {
+            tb.authen_type = TAC_PLUS_AUTHEN_TYPE_ASCII;
+        } else {
+            tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
+        }
     }
     tb.service = tac_authen_service;
     tb.user_len = user_len;

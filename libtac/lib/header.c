@@ -34,10 +34,10 @@ int session_id;
 int tac_encryption = 0;
 
 /* Pointer to TACACS+ shared secret string. */
-char *tac_secret = "";
+char *tac_secret = NULL;
 
 /* Pointer to TACACS+ shared login string. */
-char *tac_login = "pap";
+char *tac_login = NULL; /* default is PAP */
 
 /* priv_lvl */
 int tac_priv_lvl = TAC_PLUS_PRIV_LVL_MIN;
