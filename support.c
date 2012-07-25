@@ -43,7 +43,6 @@ char *tac_prompt = NULL;
 
 /* libtac */
 extern char *tac_login;
-extern int tac_encryption;
 extern int tac_timeout;
 
 #ifndef xcalloc
@@ -200,7 +199,6 @@ int _pam_parse (int argc, const char **argv) {
 
     /* otherwise the list will grow with each call */
     tac_srv_no = tac_srv_key_no = 0;
-    tac_encryption = 0;
 
     for (ctrl = 0; argc-- > 0; ++argv) {
         if (!strcmp (*argv, "debug")) { /* all */
@@ -250,7 +248,6 @@ int _pam_parse (int argc, const char **argv) {
                     TAC_PLUS_MAXSERVERS);
             }
         } else if (!strncmp (*argv, "secret=", 7)) {
-            tac_encryption = 1;
             if(tac_srv_key_no < TAC_PLUS_MAXSERVERS) {
                 tac_srv_key[tac_srv_key_no] = (char *) _xcalloc (strlen (*argv + 7) + 1);
                 strcpy (tac_srv_key[tac_srv_key_no], *argv + 7);

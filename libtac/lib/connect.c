@@ -153,7 +153,11 @@ int tac_connect_single(struct addrinfo *server, char *key) {
     retval = fd;
 
     /* set current tac_secret */
-    tac_secret = key;
+    tac_encryption = 0;
+    if (key != NULL && strcmp(key, "") != 0) {
+        tac_encryption = 1;
+        tac_secret = key;
+    }
 
     free(ip);
 

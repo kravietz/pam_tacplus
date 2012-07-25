@@ -75,9 +75,6 @@ extern void *_xcalloc (size_t size);
 /* magic.c */
 extern u_int32_t magic();
 
-/* libtac */
-extern int tac_encryption;
-
 /* address of server discovered by pam_sm_authenticate */
 static struct addrinfo *active_server;
 char *active_key;

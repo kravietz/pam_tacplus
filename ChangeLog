@@ -1,4 +1,5 @@
 1.3.7
+* Tac_encryption fully handled by libtac no need to enable it manually
 * Handle attributes which contains no value,
   thanks to James Allwright <jamesallwright@yahoo.co.uk>
 * Global variables tac_login and tac_secret not static anymore,
