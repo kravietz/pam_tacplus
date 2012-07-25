@@ -201,30 +201,38 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
 
     if(!(ctrl & PAM_TAC_ACCT)) {
     /* normal mode, send packet to the first available server */
-        int tac_fd;
-
-        status = PAM_SUCCESS;
+        int srv_i = 0;
                   
-        tac_fd = tac_connect(tac_srv, tac_srv_key, tac_srv_no);
-        if(tac_fd < 0) {
-            _pam_log(LOG_ERR, "%s: error sending %s - no servers",
-                __FUNCTION__, typemsg);
-            status = PAM_SESSION_ERR;
-        }
-        if (ctrl & PAM_TAC_DEBUG)
-            syslog(LOG_DEBUG, "%s: connected with fd=%d", __FUNCTION__, tac_fd);
+        status = PAM_SESSION_ERR;
+        while ((status == PAM_SESSION_ERR) && (srv_i < tac_srv_no)) {
+            int tac_fd;
+                                  
+            tac_fd = tac_connect_single(tac_srv[srv_i], tac_srv_key[srv_i]);
+            if(tac_fd < 0) {
+                _pam_log(LOG_WARNING, "%s: error sending %s (fd)",
+                    __FUNCTION__, typemsg);
+                srv_i++;
+                continue;
+            }
 
-        retval = _pam_send_account(tac_fd, type, user, tty, rem_addr, cmd);
-        if(retval < 0) {
-            _pam_log(LOG_ERR, "%s: error sending %s", 
-                __FUNCTION__, typemsg);
-            status = PAM_SESSION_ERR;
-        }
-        close(tac_fd);
-                  
-        if (ctrl & PAM_TAC_DEBUG) {
-            syslog(LOG_DEBUG, "%s: [%s] for [%s] sent",
-                __FUNCTION__, typemsg,user);
+            if (ctrl & PAM_TAC_DEBUG)
+                syslog(LOG_DEBUG, "%s: connected with fd=%d (srv %d)", __FUNCTION__, tac_fd, srv_i);
+
+            retval = _pam_send_account(tac_fd, type, user, tty, rem_addr, cmd);
+            /* return code from function in this mode is
+               status of the last server we tried to send
+               packet to */
+            if(retval < 0) {
+                _pam_log(LOG_WARNING, "%s: error sending %s (acct)",
+                    __FUNCTION__, typemsg);
+            } else {
+                status = PAM_SUCCESS;
+                if (ctrl & PAM_TAC_DEBUG) 
+                    syslog(LOG_DEBUG, "%s: [%s] for [%s] sent",
+                        __FUNCTION__, typemsg,user);
+            }
+            close(tac_fd);
+            srv_i++;
         }
     } else {
         /* send packet to all servers specified */
