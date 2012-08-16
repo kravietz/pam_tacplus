@@ -1,6 +1,8 @@
 libpam-tacplus (1.3.7-1) unstable; urgency=low
 
   * New upstream release.
+  * Changed compat level to 9 for hardening
+  * Fixed license link
 
  -- Jeroen Nijhof <jeroen@jeroennijhof.nl>  Mon, 19 May 2012 19:25:00 +0100
 
