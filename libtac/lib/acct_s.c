@@ -47,11 +47,11 @@ char *tac_acct_flag2str(int flag) {
  *             LIBTAC_STATUS_ASSEMBLY_ERR   (pending impl)
  */
 int tac_acct_send(int fd, int type, const char *user, char *tty,
-    char *rem_addr, struct tac_attrib *attr) {
+    char *r_addr, struct tac_attrib *attr) {
 
     HDR *th;
     struct acct tb;
-    u_char user_len, port_len, rem_addr_len;
+    u_char user_len, port_len, r_addr_len;
     struct tac_attrib *a;
     int i = 0;    /* arg count */
     int pkt_len = 0;
@@ -68,13 +68,13 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     th->encryption=tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
 
     TACDEBUG((LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s, type: %s", \
-        __FUNCTION__, user, tty, rem_addr, \
+        __FUNCTION__, user, tty, r_addr, \
         (tac_encryption) ? "yes" : "no", \
         tac_acct_flag2str(type)))
         
     user_len=(u_char) strlen(user);
     port_len=(u_char) strlen(tty);
-    rem_addr_len=(u_char) strlen(rem_addr);
+    r_addr_len=(u_char) strlen(r_addr);
 
     tb.flags=(u_char) type;
     tb.authen_method=tac_authen_method;
@@ -94,7 +94,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     tb.authen_service=tac_authen_service;
     tb.user_len=user_len;
     tb.port_len=port_len;
-    tb.rem_addr_len=rem_addr_len;
+    tb.r_addr_len=r_addr_len;
 
     /* allocate packet */
     pkt=(u_char *) xcalloc(1, TAC_ACCT_REQ_FIXED_FIELDS_SIZE);
@@ -139,7 +139,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     /* fill user and port fields */
     PUTATTR(user, user_len)
     PUTATTR(tty, port_len)
-    PUTATTR(rem_addr, rem_addr_len)
+    PUTATTR(r_addr, r_addr_len)
 
     /* fill attributes */
     a = attr;

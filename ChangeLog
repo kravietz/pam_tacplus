@@ -1,3 +1,6 @@
+1.3.8
+* Renamed rem_addr, rem_addr_len to r_addr and r_addr_len
+
 1.3.7
 * Tac_encryption fully handled by libtac no need to enable it manually
 * Fixed connection handling in _pam_account,

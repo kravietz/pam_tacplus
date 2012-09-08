@@ -35,12 +35,12 @@
  *             LIBTAC_STATUS_ASSEMBLY_ERR
  */
 int tac_authen_send(int fd, const char *user, char *pass, char *tty,
-    char *rem_addr) {
+    char *r_addr) {
 
     HDR *th;    /* TACACS+ packet header */
     struct authen_start tb;     /* message body */
     int user_len, port_len, chal_len, mdp_len, token_len, bodylength, w;
-    int rem_addr_len;
+    int r_addr_len;
     int pkt_len = 0;
     int ret = 0;
     char *chal = "1234123412341234";
@@ -60,7 +60,7 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
     th->encryption = tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
 
     TACDEBUG((LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s", \
-        __FUNCTION__, user, tty, rem_addr, \
+        __FUNCTION__, user, tty, r_addr, \
         (tac_encryption) ? "yes" : "no"))        
         
     if ((tac_login != NULL) && (strcmp(tac_login,"chap") == 0)) {
@@ -85,7 +85,7 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
     /* get size of submitted data */
     user_len = strlen(user);
     port_len = strlen(tty);
-    rem_addr_len = strlen(rem_addr);
+    r_addr_len = strlen(r_addr);
     token_len = strlen(token);
 
     /* fill the body of message */
@@ -106,12 +106,12 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
     tb.service = tac_authen_service;
     tb.user_len = user_len;
     tb.port_len = port_len;
-    tb.rem_addr_len = rem_addr_len;    /* may be e.g Caller-ID in future */
+    tb.r_addr_len = r_addr_len;    /* may be e.g Caller-ID in future */
     tb.data_len = token_len;
 
     /* fill body length in header */
     bodylength = sizeof(tb) + user_len
-        + port_len + rem_addr_len + token_len;
+        + port_len + r_addr_len + token_len;
 
     th->datalength = htonl(bodylength);
 
@@ -136,8 +136,8 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
     pkt_len += user_len;
     bcopy(tty, pkt+pkt_len, port_len);   /* tty */
     pkt_len += port_len;
-    bcopy(rem_addr, pkt+pkt_len, rem_addr_len);   /* rem addr */
-    pkt_len += rem_addr_len;
+    bcopy(r_addr, pkt+pkt_len, r_addr_len);   /* rem addr */
+    pkt_len += r_addr_len;
 
     bcopy(token, pkt+pkt_len, token_len);  /* password */
     pkt_len += token_len;

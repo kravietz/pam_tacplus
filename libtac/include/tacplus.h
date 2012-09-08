@@ -103,7 +103,7 @@ struct authen_start {
 
     u_char user_len;
     u_char port_len;
-    u_char rem_addr_len;
+    u_char r_addr_len;
     u_char data_len;
 };
 
@@ -178,7 +178,7 @@ struct acct {
     u_char authen_service;
     u_char user_len;
     u_char port_len;
-    u_char rem_addr_len;
+    u_char r_addr_len;
     u_char arg_cnt;    /* the number of cmd args */
 };
 
@@ -206,7 +206,7 @@ struct author {
 
     u_char user_len;
     u_char port_len;
-    u_char rem_addr_len;
+    u_char r_addr_len;
     u_char arg_cnt;    /* the number of args */
 };
 

@@ -84,7 +84,7 @@ static short int task_id = 0;
 
 /* Helper functions */
 int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
-    char *rem_addr, char *cmd) {
+    char *r_addr, char *cmd) {
 
     char buf[40];
     struct tac_attrib *attr;
@@ -111,7 +111,7 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
         tac_add_attrib(&attr, "cmd", cmd);
     }
 
-    retval = tac_acct_send(tac_fd, type, user, tty, rem_addr, attr);
+    retval = tac_acct_send(tac_fd, type, user, tty, r_addr, attr);
 
     /* this is no longer needed */
     tac_free_attrib(&attr);
@@ -148,7 +148,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
     static int ctrl;
     char *user = NULL;
     char *tty = NULL;
-    char *rem_addr = NULL;
+    char *r_addr = NULL;
     char *typemsg;
     int status = PAM_SESSION_ERR;
   
@@ -173,9 +173,9 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: tty [%s] obtained", __FUNCTION__, tty);
 
-    rem_addr = _pam_get_rhost(pamh);
+    r_addr = _pam_get_rhost(pamh);
     if (ctrl & PAM_TAC_DEBUG)
-        syslog(LOG_DEBUG, "%s: rhost [%s] obtained", __FUNCTION__, rem_addr);
+        syslog(LOG_DEBUG, "%s: rhost [%s] obtained", __FUNCTION__, r_addr);
 
     /* checks for specific data required by TACACS+, which should
        be supplied in command line  */
@@ -218,7 +218,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
             if (ctrl & PAM_TAC_DEBUG)
                 syslog(LOG_DEBUG, "%s: connected with fd=%d (srv %d)", __FUNCTION__, tac_fd, srv_i);
 
-            retval = _pam_send_account(tac_fd, type, user, tty, rem_addr, cmd);
+            retval = _pam_send_account(tac_fd, type, user, tty, r_addr, cmd);
             /* return code from function in this mode is
                status of the last server we tried to send
                packet to */
@@ -252,7 +252,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
             if (ctrl & PAM_TAC_DEBUG)
                 syslog(LOG_DEBUG, "%s: connected with fd=%d (srv %d)", __FUNCTION__, tac_fd, srv_i);
 
-            retval = _pam_send_account(tac_fd, type, user, tty, rem_addr, cmd);
+            retval = _pam_send_account(tac_fd, type, user, tty, r_addr, cmd);
             /* return code from function in this mode is
                status of the last server we tried to send
                packet to */
@@ -292,12 +292,12 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
     char *user;
     char *pass;
     char *tty;
-    char *rem_addr;
+    char *r_addr;
     int srv_i;
     int tac_fd;
     int status = PAM_AUTH_ERR;
 
-    user = pass = tty = rem_addr = NULL;
+    user = pass = tty = r_addr = NULL;
 
     ctrl = _pam_parse (argc, argv);
 
@@ -334,9 +334,9 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: tty [%s] obtained", __FUNCTION__, tty);
 
-    rem_addr = _pam_get_rhost(pamh);
+    r_addr = _pam_get_rhost(pamh);
     if (ctrl & PAM_TAC_DEBUG)
-        syslog (LOG_DEBUG, "%s: rhost [%s] obtained", __FUNCTION__, rem_addr);
+        syslog (LOG_DEBUG, "%s: rhost [%s] obtained", __FUNCTION__, r_addr);
 
     for (srv_i = 0; srv_i < tac_srv_no; srv_i++) {
         int msg = TAC_PLUS_AUTHEN_STATUS_FAIL;
@@ -353,7 +353,7 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
             continue;
         }
 
-        if (tac_authen_send(tac_fd, user, pass, tty, rem_addr) < 0) {
+        if (tac_authen_send(tac_fd, user, pass, tty, r_addr) < 0) {
             _pam_log (LOG_ERR, "error sending auth req to TACACS+ server");
             status = PAM_AUTHINFO_UNAVAIL;
         } else {
@@ -432,12 +432,12 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     int retval, ctrl, status=PAM_AUTH_ERR;
     char *user;
     char *tty;
-    char *rem_addr;
+    char *r_addr;
     struct areply arep;
     struct tac_attrib *attr = NULL;
     int tac_fd;
 
-    user = tty = rem_addr = NULL;
+    user = tty = r_addr = NULL;
   
     /* this also obtains service name for authorization
        this should be normally performed by pam_get_item(PAM_SERVICE)
@@ -462,9 +462,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: tty obtained [%s]", __FUNCTION__, tty);
 
-    rem_addr = _pam_get_rhost(pamh);
+    r_addr = _pam_get_rhost(pamh);
     if (ctrl & PAM_TAC_DEBUG)
-        syslog(LOG_DEBUG, "%s: rhost obtained [%s]", __FUNCTION__, rem_addr);
+        syslog(LOG_DEBUG, "%s: rhost obtained [%s]", __FUNCTION__, r_addr);
   
     /* checks if user has been successfully authenticated
        by TACACS+; we cannot solely authorize user if it hasn't
@@ -500,7 +500,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
         return PAM_AUTH_ERR;
     }
 
-    retval = tac_author_send(tac_fd, user, tty, rem_addr, attr);
+    retval = tac_author_send(tac_fd, user, tty, r_addr, attr);
 
     tac_free_attrib(&attr);
   

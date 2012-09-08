@@ -33,12 +33,12 @@
  *         LIBTAC_STATUS_WRITE_TIMEOUT (pending impl)
  *         LIBTAC_STATUS_ASSEMBLY_ERR  (pending impl)
  */
-int tac_author_send(int fd, const char *user, char *tty, char *rem_addr,
+int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
     struct tac_attrib *attr) {
 
     HDR *th;
     struct author tb;
-    u_char user_len, port_len, rem_addr_len;
+    u_char user_len, port_len, r_addr_len;
     struct tac_attrib *a;
     int i = 0;              /* attributes count */
     int pkt_len = 0;    /* current packet length */
@@ -56,11 +56,11 @@ int tac_author_send(int fd, const char *user, char *tty, char *rem_addr,
 
     TACDEBUG((LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s", \
         __FUNCTION__, user, \
-        tty, rem_addr, tac_encryption ? "yes" : "no"))
+        tty, r_addr, tac_encryption ? "yes" : "no"))
     
     user_len = (u_char) strlen(user);
     port_len = (u_char) strlen(tty);
-    rem_addr_len = (u_char) strlen(rem_addr);
+    r_addr_len = (u_char) strlen(r_addr);
 
     tb.authen_method = tac_authen_method;
     tb.priv_lvl = tac_priv_lvl;
@@ -79,7 +79,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *rem_addr,
     tb.service = tac_authen_service;
     tb.user_len = user_len;
     tb.port_len = port_len;
-    tb.rem_addr_len = rem_addr_len;
+    tb.r_addr_len = r_addr_len;
 
     /* allocate packet */
     pkt = (u_char *) xcalloc(1, TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE);
@@ -125,7 +125,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *rem_addr,
     /* fill user and port fields */
     PUTATTR(user, user_len)
     PUTATTR(tty, port_len)
-    PUTATTR(rem_addr, rem_addr_len)
+    PUTATTR(r_addr, r_addr_len)
 
     /* fill attributes */
     a = attr;

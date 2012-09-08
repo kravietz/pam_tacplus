@@ -124,7 +124,7 @@ extern int tac_connect_single(struct addrinfo *server, char *key);
 extern char *tac_ntop(const struct sockaddr *sa, size_t ai_addrlen);
 
 extern int tac_authen_send(int fd, const char *user, char *pass, char *tty,
-    char *rem_addr);
+    char *r_addr);
 extern int tac_authen_read(int fd);
 extern int tac_cont_send(int fd, char *pass);
 extern HDR *_tac_req_header(u_char type, int cont_session);
@@ -133,13 +133,13 @@ extern u_char *_tac_md5_pad(int len, HDR *hdr);
 extern void tac_add_attrib(struct tac_attrib **attr, char *name, char *value);
 extern void tac_free_attrib(struct tac_attrib **attr);
 extern char *tac_acct_flag2str(int flag);
-extern int tac_acct_send(int fd, int type, const char *user, char *tty, char *rem_addr,
+extern int tac_acct_send(int fd, int type, const char *user, char *tty, char *r_addr,
     struct tac_attrib *attr);
 extern int tac_acct_read(int fd, struct areply *arep);
 extern void *xcalloc(size_t nmemb, size_t size);
 extern void *xrealloc(void *ptr, size_t size);
 extern char *_tac_check_header(HDR *th, int type);
-extern int tac_author_send(int fd, const char *user, char *tty, char *rem_addr,
+extern int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
     struct tac_attrib *attr);
 extern int tac_author_read(int fd, struct areply *arep);
 extern void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep,
