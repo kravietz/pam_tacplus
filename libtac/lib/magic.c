@@ -24,11 +24,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-/* u_int32_t support for sun */
-#ifdef sun
-typedef unsigned int u_int32_t;
-#endif
-
 #include "magic.h"
 
 #ifndef __linux__

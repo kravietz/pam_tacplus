@@ -20,6 +20,8 @@
 
 #ifndef __MD5_INCLUDE__
 
+#include "libtac.h"
+
 /* typedef a 32-bit type */
 typedef unsigned int UINT4;
 

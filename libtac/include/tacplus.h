@@ -22,13 +22,6 @@
 #ifndef _TACPLUS_H
 #define _TACPLUS_H
 
-#include <sys/types.h>
-#ifdef sun
-    #include "cdefs.h"
-#else
-    #include <sys/cdefs.h>
-#endif
-
 /* All tacacs+ packets have the same header format */
 struct tac_plus_pak_hdr {
     u_char version;

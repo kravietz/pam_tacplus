@@ -19,7 +19,6 @@
  * See `CHANGES' file for revision history.
  */
 
-#include "tacplus.h"
 #include "messages.h"
 #include "libtac.h"
 

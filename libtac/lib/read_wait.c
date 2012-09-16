@@ -23,8 +23,12 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 
-#include "tacplus.h"
 #include "libtac.h"
+
+/* FIONREAD support for sun */
+#ifdef sun
+#include <sys/filio.h>
+#endif
 
 static int delta_msecs(struct timeval *newer, struct timeval *older) {
     long deltasecs, deltausecs;

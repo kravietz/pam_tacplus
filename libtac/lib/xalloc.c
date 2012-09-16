@@ -20,7 +20,7 @@
  * See `CHANGES' file for revision history.
  */
 
-#include "libtac.h"
+#include "xalloc.h"
 
 void *xcalloc(size_t nmemb, size_t size) {
     register void *val = calloc(nmemb, size);

@@ -37,7 +37,6 @@
     #include <strings.h>
 #endif
 
-#include "tacplus.h"
 #include "libtac.h"
 #include "pam_tacplus.h"
 #include "support.h"

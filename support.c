@@ -30,7 +30,6 @@
 #include <security/pam_modules.h>
 
 #include "pam_tacplus.h"
-#include "tacplus.h"
 #include "libtac.h"
 
 struct addrinfo *tac_srv[TAC_PLUS_MAXSERVERS];

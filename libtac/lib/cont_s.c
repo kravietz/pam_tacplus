@@ -18,7 +18,6 @@
  * See `CHANGES' file for revision history.
  */
 
-#include "tacplus.h"
 #include "libtac.h"
 #include "md5.h"
 

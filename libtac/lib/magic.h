@@ -20,9 +20,8 @@
 
 #ifndef _MAGIC_H
 #define _MAGIC_H
-#ifndef __linux__
-    #include "cdefs.h"
-#endif
+
+#include "libtac.h"
 
 __BEGIN_DECLS
 void magic_init __P((void));	/* Initialize the magic number generator */

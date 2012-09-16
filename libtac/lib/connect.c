@@ -29,7 +29,6 @@
     #include <sys/socket.h>
 #endif
 
-#include "tacplus.h"
 #include "libtac.h"
 
 /* Pointer to TACACS+ connection timeout */
