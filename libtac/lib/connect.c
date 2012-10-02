@@ -26,7 +26,7 @@
 #include <errno.h>
 
 #ifdef _AIX
-    #include <sys/socket.h>
+#include <sys/socket.h>
 #endif
 
 #include "libtac.h"
@@ -101,7 +101,8 @@ int tac_connect_single(struct addrinfo *server, char *key) {
     }
 
     rc = connect(fd, server->ai_addr, server->ai_addrlen);
-    if((rc == -1) && (errno != EINPROGRESS)) {
+    /* FIX this..for some reason errno = 0 on AIX... */
+    if((rc == -1) && (errno != EINPROGRESS) && (errno != 0)) {
         TACSYSLOG((LOG_ERR,\
             "%s: connection to %s failed: %m", __FUNCTION__, ip))
         return LIBTAC_STATUS_CONN_ERR;
