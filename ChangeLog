@@ -1,4 +1,5 @@
 1.3.8
+* Added port option per server, thanks to Luc Ducazu <lducazu@gmail.com>
 * Fixed missing FIONREAD for solaris
 * Rearranged header file include for libtac.h, fixes AIX compile problems
 * Renamed rem_addr, rem_addr_len to r_addr and r_addr_len

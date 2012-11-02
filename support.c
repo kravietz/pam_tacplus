@@ -228,11 +228,15 @@ int _pam_parse (int argc, const char **argv) {
             if(tac_srv_no < TAC_PLUS_MAXSERVERS) { 
                 struct addrinfo hints, *servers, *server;
                 int rv;
+		char *port;
 
                 memset(&hints, 0, sizeof hints);
                 hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
                 hints.ai_socktype = SOCK_STREAM;
-                if ((rv = getaddrinfo(*argv + 7, "49", &hints, &servers)) == 0) {
+		port = strchr(*argv + 7, ':');
+		if(port)
+		    *port = '\0';
+                if ((rv = getaddrinfo(*argv + 7, (port == NULL ? "49" : port+1), &hints, &servers)) == 0) {
                     for(server = servers; server != NULL; server = server->ai_next) {
                         tac_srv[tac_srv_no] = server;
                         tac_srv_no++;

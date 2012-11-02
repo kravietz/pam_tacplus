@@ -32,7 +32,8 @@ secret=STRING   ALL                     can be specified more than once;
 
 server=HOSTNAME auth, session           can be specified more than once;
 server=IP_ADDR                          adds a TACACS+ server to the servers
-                                        list
+server=HOSTNAME:PORT                    list
+server=IP_ADDR:PORT
 
 timeout=INT     ALL                     connection timeout in seconds
                                         default is 5 seconds
