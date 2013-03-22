@@ -237,7 +237,7 @@ int _pam_parse (int argc, const char **argv) {
 		if(port)
 		    *port = '\0';
                 if ((rv = getaddrinfo(*argv + 7, (port == NULL ? "49" : port+1), &hints, &servers)) == 0) {
-                    for(server = servers; server != NULL; server = server->ai_next) {
+                    for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
                         tac_srv[tac_srv_no] = server;
                         tac_srv_no++;
                     }
