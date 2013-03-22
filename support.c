@@ -228,15 +228,23 @@ int _pam_parse (int argc, const char **argv) {
             if(tac_srv_no < TAC_PLUS_MAXSERVERS) { 
                 struct addrinfo hints, *servers, *server;
                 int rv;
-		char *port;
+                char *port, server_buf[256];
 
                 memset(&hints, 0, sizeof hints);
                 hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
                 hints.ai_socktype = SOCK_STREAM;
-		port = strchr(*argv + 7, ':');
-		if(port)
-		    *port = '\0';
-                if ((rv = getaddrinfo(*argv + 7, (port == NULL ? "49" : port+1), &hints, &servers)) == 0) {
+
+                if (strlen(*argv + 7) >= sizeof(server_buf)) {
+                    _pam_log(LOG_ERR, "server address too long, sorry");
+                    continue;
+                }
+                strcpy(server_buf, *argv + 7);
+
+                port = strchr(server_buf, ':');
+                if (port)
+                    *port = '\0';
+
+                if ((rv = getaddrinfo(server_buf, (port == NULL ? "49" : port+1), &hints, &servers)) == 0) {
                     for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
                         tac_srv[tac_srv_no] = server;
                         tac_srv_no++;
@@ -244,7 +252,7 @@ int _pam_parse (int argc, const char **argv) {
                 } else {
                     _pam_log (LOG_ERR,
                         "skip invalid server: %s (getaddrinfo: %s)",
-                        *argv + 7, gai_strerror(rv));
+                        server_buf, gai_strerror(rv));
                 }
             } else {
                 _pam_log(LOG_ERR, "maximum number of servers (%d) exceeded, skipping",
