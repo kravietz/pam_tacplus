@@ -44,6 +44,9 @@ char *tac_prompt = NULL;
 extern char *tac_login;
 extern int tac_timeout;
 
+/*
+    FIXME using xcalloc() leaks memory for long-running programs that authenticate multiple times
+*/
 #ifndef xcalloc
 void *_xcalloc (size_t size) {
     register void *val = calloc (1, size);
@@ -280,6 +283,9 @@ int _pam_parse (int argc, const char **argv) {
     }
 
     if (tac_srv_key_no == 0) {
+        /* FIXME this should really be NULL
+           but watch out with breaking other code
+        */
         tac_srv_key[0] = "";
         tac_srv_key_no++;
     }
