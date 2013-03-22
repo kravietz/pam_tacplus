@@ -216,7 +216,7 @@ int _pam_parse (int argc, const char **argv) {
         } else if (!strncmp (*argv, "prompt=", 7)) { /* authentication */
             tac_prompt = (char *) _xcalloc (strlen (*argv + 7) + 1);
             strcpy (tac_prompt, *argv + 7);
-            // Replace _ with space
+            /* Replace _ with space */
             int chr;
             for (chr = 0; chr < strlen(tac_prompt); chr++) {
                 if (tac_prompt[chr] == '_') {
@@ -232,7 +232,7 @@ int _pam_parse (int argc, const char **argv) {
                 char *port, server_buf[256];
 
                 memset(&hints, 0, sizeof hints);
-                hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
+                hints.ai_family = AF_UNSPEC;  /* use IPv4 or IPv6, whichever */
                 hints.ai_socktype = SOCK_STREAM;
 
                 if (strlen(*argv + 7) >= sizeof(server_buf)) {
