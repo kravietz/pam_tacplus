@@ -116,10 +116,11 @@ int converse(pam_handle_t * pamh, int nargs
     if ((retval = pam_get_item (pamh, PAM_CONV, (void *)&conv)) == PAM_SUCCESS) {
 #if (defined(__linux__) || defined(__NetBSD__))
         retval = conv->conv (nargs, (const struct pam_message **) message,
+            response, conv->appdata_ptr);
 #else
         retval = conv->conv (nargs, (struct pam_message **) message,
-#endif
             response, conv->appdata_ptr);
+#endif
         if (retval != PAM_SUCCESS) {
             _pam_log(LOG_ERR, "(pam_tacplus) converse returned %d", retval);
             _pam_log(LOG_ERR, "that is: %s", pam_strerror (pamh, retval));
