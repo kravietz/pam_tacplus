@@ -49,7 +49,7 @@ void *_xcalloc (size_t size) {
     register void *val = calloc (1, size);
     if (val == 0) {
         syslog (LOG_ERR, "xcalloc: calloc(1,%u) failed", (unsigned) size);
-        exit (1);
+        abort();
     }
     return val;
 }
