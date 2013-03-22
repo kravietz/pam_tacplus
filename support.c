@@ -242,10 +242,11 @@ int _pam_parse (int argc, const char **argv) {
                 strcpy(server_buf, *argv + 7);
 
                 port = strchr(server_buf, ':');
-                if (port)
+                if (port != NULL) {
                     *port = '\0';
-
-                if ((rv = getaddrinfo(server_buf, (port == NULL ? "49" : port+1), &hints, &servers)) == 0) {
+					port++;
+                }
+                if ((rv = getaddrinfo(server_buf, (port == NULL) ? "49" : port, &hints, &servers)) == 0) {
                     for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
                         tac_srv[tac_srv_no] = server;
                         tac_srv_no++;
