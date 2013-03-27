@@ -154,7 +154,7 @@ int tac_connect_single(struct addrinfo *server, char *key) {
 
     /* set current tac_secret */
     tac_encryption = 0;
-    if (key != NULL && strcmp(key, "") != 0) {
+    if (key != NULL && *key) {
         tac_encryption = 1;
         tac_secret = key;
     }
