@@ -108,22 +108,15 @@ char *_pam_get_rhost(pam_handle_t *pamh) {
     return rhost;
 }
 
-/* stolen from pam_stress */
-int converse(pam_handle_t * pamh, int nargs
-    ,struct pam_message **message
-    ,struct pam_response **response) {
+int converse(pam_handle_t * pamh, int nargs, const struct pam_message *message,
+    struct pam_response **response) {
 
     int retval;
     struct pam_conv *conv;
 
-    if ((retval = pam_get_item (pamh, PAM_CONV, (void *)&conv)) == PAM_SUCCESS) {
-#if (defined(__linux__) || defined(__NetBSD__))
-        retval = conv->conv (nargs, (const struct pam_message **) message,
-            response, conv->appdata_ptr);
-#else
-        retval = conv->conv (nargs, (struct pam_message **) message,
-            response, conv->appdata_ptr);
-#endif
+    if ((retval = pam_get_item (pamh, PAM_CONV, (const void **)&conv)) == PAM_SUCCESS) {
+        retval = conv->conv(nargs, &message, response, conv->appdata_ptr);
+
         if (retval != PAM_SUCCESS) {
             _pam_log(LOG_ERR, "(pam_tacplus) converse returned %d", retval);
             _pam_log(LOG_ERR, "that is: %s", pam_strerror (pamh, retval));
@@ -154,30 +147,31 @@ int tacacs_get_password (pam_handle_t * pamh, int flags
          _pam_log(LOG_WARNING, "no forwarded password");
          return PAM_PERM_DENIED;
     } else {
-         struct pam_message msg[1], *pmsg[1];
-         struct pam_response *resp;
+         struct pam_message msg;
+         struct pam_response *resp = NULL;
          int retval;
 
          /* set up conversation call */
-         pmsg[0] = &msg[0];
-         msg[0].msg_style = PAM_PROMPT_ECHO_OFF;
+         msg.msg_style = PAM_PROMPT_ECHO_OFF;
 
          if (!tac_prompt) {
-             msg[0].msg = "Password: ";
+             msg.msg = "Password: ";
          } else {
-             msg[0].msg = tac_prompt;
+             msg.msg = tac_prompt;
          }
-         resp = NULL;
 
-         if ((retval = converse (pamh, 1, pmsg, &resp)) != PAM_SUCCESS)
+         if ((retval = converse (pamh, 1, &msg, &resp)) != PAM_SUCCESS)
              return retval;
 
-         if (resp) {
-             if ((resp[0].resp == NULL) && (ctrl & PAM_TAC_DEBUG))
+         if (resp != NULL) {
+             if (resp->resp == NULL && (ctrl & PAM_TAC_DEBUG))
                  _pam_log (LOG_DEBUG, "pam_sm_authenticate: NULL authtok given");
 
-             pass = resp[0].resp;    /* remember this! */
-             resp[0].resp = NULL;
+             pass = resp->resp;    /* remember this! */
+             resp->resp = NULL;
+
+             free(resp);
+             resp = NULL;
          } else {
              if (ctrl & PAM_TAC_DEBUG) {
                _pam_log (LOG_DEBUG, "pam_sm_authenticate: no error reported");
@@ -185,10 +179,12 @@ int tacacs_get_password (pam_handle_t * pamh, int flags
              }
              return PAM_CONV_ERR;
          }
-         free(resp);
-         resp = NULL;
     }
 
+    /*
+       FIXME *password can still turn out as NULL
+       and it can't be free()d when it's NULL
+    */
     *password = pass;       /* this *MUST* be free()'d by this module */
 
     if(ctrl & PAM_TAC_DEBUG)
