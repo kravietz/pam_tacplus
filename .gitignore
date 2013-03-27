@@ -23,4 +23,6 @@ stamp-h1
 *.o
 *.lo
 *.la
+*.c.swp
+*.h.swp
 
