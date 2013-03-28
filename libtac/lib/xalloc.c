@@ -23,7 +23,7 @@
 #include "xalloc.h"
 
 void *xcalloc(size_t nmemb, size_t size) {
-    register void *val = calloc(nmemb, size);
+    void *val = calloc(nmemb, size);
     if(val == 0) {
         TACSYSLOG((LOG_ERR, "%s: calloc(%u,%u) failed", __FUNCTION__,\
             (unsigned) nmemb, (unsigned) size))
@@ -33,7 +33,7 @@ void *xcalloc(size_t nmemb, size_t size) {
 }
 
 void *xrealloc(void *ptr, size_t size) {
-    register void *val = realloc(ptr, size);
+    void *val = realloc(ptr, size);
     if(val == 0) {
         TACSYSLOG((LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned) size))
         exit(1);

@@ -56,7 +56,7 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
     struct tac_attrib *attr;
     int retval;
 
-    attr=(struct tac_attrib *)_xcalloc(sizeof(struct tac_attrib));
+    attr=(struct tac_attrib *)xcalloc(1, sizeof(struct tac_attrib));
 
     sprintf(buf, "%lu", (unsigned long)time(NULL));
 
@@ -93,12 +93,17 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
             __FUNCTION__, 
             tac_acct_flag2str(type),
             task_id);
-        if(re.msg != NULL) free(re.msg);
+
+        if(re.msg != NULL)
+            free(re.msg);
+
         close(tac_fd);
         return -1;
     }
 
-    if(re.msg != NULL) free(re.msg);
+    if(re.msg != NULL)
+        free(re.msg);
+
     close(tac_fd);
     return 0;
 }

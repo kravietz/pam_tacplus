@@ -79,7 +79,7 @@ struct areply {
 };
 
 #ifndef TAC_PLUS_MAXSERVERS		
-#define TAC_PLUS_MAXSERVERS 4
+#define TAC_PLUS_MAXSERVERS 8
 #endif
 
 #ifndef TAC_PLUS_PORT
@@ -114,7 +114,7 @@ extern int tac_ver_patch;
 extern int session_id;
 extern int tac_encryption;
 extern const char *tac_secret;
-extern char *tac_login;
+extern char tac_login[64];
 extern int tac_priv_lvl;
 extern int tac_authen_method;
 extern int tac_authen_service;
