@@ -24,7 +24,6 @@
 
 #include "libtac.h"
 
-#include <security/pam_appl.h>
 #include <security/pam_modules.h>
 
 extern struct addrinfo *tac_srv[TAC_PLUS_MAXSERVERS];

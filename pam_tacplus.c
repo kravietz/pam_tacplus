@@ -19,6 +19,9 @@
  * See `CHANGES' file for revision history.
  */
 
+#include "pam_tacplus.h"
+#include "support.h"
+
 #include <stdlib.h>     /* malloc */
 #include <stdio.h>
 #include <syslog.h>
@@ -34,28 +37,13 @@
 #include <unistd.h>
 #include <strings.h>
 
-#include "libtac.h"
-#include "pam_tacplus.h"
-#include "support.h"
-
-#define PAM_SM_AUTH
-#define PAM_SM_ACCOUNT
-#define PAM_SM_SESSION
-/* #define PAM_SM_PASSWORD */
-
-#include <security/pam_appl.h>
-#include <security/pam_modules.h>
-
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+  #include "config.h"
 #endif
 
-/* magic.c */
-extern u_int32_t magic();
-
 /* address of server discovered by pam_sm_authenticate */
-static struct addrinfo *active_server;
-char *active_key;
+static struct addrinfo *active_server = NULL;
+static char *active_key = NULL;
 /* accounting task identifier */
 static short int task_id = 0;
 

@@ -151,6 +151,9 @@ extern void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep,
     char *value);
 extern int tac_read_wait(int fd, int timeout, int size, int *time_left);
 
+/* magic.c */
+u_int32_t magic(void);
+
 #ifdef __cplusplus
 }
 #endif
