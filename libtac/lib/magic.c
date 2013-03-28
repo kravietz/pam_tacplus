@@ -76,15 +76,15 @@ magic()
     if (magic_inited == 0 )
         magic_init();
 
-	if(rfd > -1) {
-            read(rfd, &ret, sizeof(ret));
-            return ret;
-        }
-	else
+    if(rfd > -1) {
+        if (read(rfd, &ret, sizeof(ret)) < sizeof(ret)) {
+            /* on read() error, fallback to other method */
             return (u_int32_t) mrand48();
-#else
-    return (u_int32_t) mrand48();
+        }
+        return ret;
+    }
 #endif
+    return (u_int32_t) mrand48();
 }
 
 #ifdef NO_DRAND48
