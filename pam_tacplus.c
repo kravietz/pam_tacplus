@@ -155,7 +155,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
     ctrl = _pam_parse (argc, argv);
 
     if (ctrl & PAM_TAC_DEBUG)
-        syslog (LOG_DEBUG, "%s: [%s] called (pam_tacplus v%hu.%hu.%hu)"
+        syslog (LOG_DEBUG, "%s: [%s] called (pam_tacplus v%u.%u.%u)"
             , __FUNCTION__, typemsg, PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: tac_srv_no=%d", __FUNCTION__, tac_srv_no);
@@ -301,7 +301,7 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
     ctrl = _pam_parse (argc, argv);
 
     if (ctrl & PAM_TAC_DEBUG)
-        syslog (LOG_DEBUG, "%s: called (pam_tacplus v%hu.%hu.%hu)"
+        syslog (LOG_DEBUG, "%s: called (pam_tacplus v%u.%u.%u)"
             , __FUNCTION__, PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
 
     if ((user = _pam_get_user(pamh)) == NULL)
@@ -413,7 +413,7 @@ int pam_sm_setcred (pam_handle_t * pamh, int flags,
     int ctrl = _pam_parse (argc, argv);
 
     if (ctrl & PAM_TAC_DEBUG)
-        syslog (LOG_DEBUG, "%s: called (pam_tacplus v%hu.%hu.%hu)"
+        syslog (LOG_DEBUG, "%s: called (pam_tacplus v%u.%u.%u)"
             , __FUNCTION__, PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
 
     return PAM_SUCCESS;
@@ -446,7 +446,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     ctrl = _pam_parse (argc, argv);
 
     if (ctrl & PAM_TAC_DEBUG)
-        syslog (LOG_DEBUG, "%s: called (pam_tacplus v%hu.%hu.%hu)"
+        syslog (LOG_DEBUG, "%s: called (pam_tacplus v%u.%u.%u)"
             , __FUNCTION__, PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
   
     if ((user = _pam_get_user(pamh)) == NULL)
@@ -609,7 +609,7 @@ int pam_sm_chauthtok (pam_handle_t * pamh, int flags,
     int ctrl = _pam_parse (argc, argv);
 
     if (ctrl & PAM_TAC_DEBUG)
-        syslog (LOG_DEBUG, "%s: called (pam_tacplus v%hu.%hu.%hu)"
+        syslog (LOG_DEBUG, "%s: called (pam_tacplus v%u.%u.%u)"
             , __FUNCTION__, PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
 
     return PAM_SUCCESS;
