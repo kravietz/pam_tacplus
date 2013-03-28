@@ -56,6 +56,7 @@ magic_init()
     if (magic_inited)
         return;
 
+/* FIXME this should be ifdef HAVE_DEV_URANDOM + test for /dev/urandom in configure */
 #ifdef __linux__
     rfd = open("/dev/urandom", O_RDONLY);
     if(rfd != -1) 
