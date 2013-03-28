@@ -445,7 +445,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     }
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: active server is [%s]", __FUNCTION__,
-            tac_ntop(active_server->addr->ai_addr, active_server->addr->ai_addrlen));
+            tac_ntop(active_server->addr->ai_addr));
 
     /* checks for specific data required by TACACS+, which should
        be supplied in command line  */

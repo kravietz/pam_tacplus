@@ -280,7 +280,7 @@ int _pam_parse (int argc, const char **argv) {
         _pam_log(LOG_DEBUG, "%d servers defined", tac_srv_no);
 
         for(n = 0; n < tac_srv_no; n++) {
-            _pam_log(LOG_DEBUG, "server[%d] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr, 0), tac_srv[n].key);
+            _pam_log(LOG_DEBUG, "server[%d] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr), tac_srv[n].key);
         }
     }
 
