@@ -19,9 +19,7 @@
  * See `CHANGES' file for revision history.
  */
 
-#ifndef __linux__
-    #include <security/pam_appl.h>
-#endif
+#include <security/pam_appl.h>
 #include <security/pam_modules.h>
 
 /* support.c */

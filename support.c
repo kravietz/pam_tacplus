@@ -24,9 +24,7 @@
 #define PAM_SM_SESSION
 /* #define PAM_SM_PASSWORD */
 
-#ifndef __linux__
-    #include <security/pam_appl.h>
-#endif
+#include <security/pam_appl.h>
 #include <security/pam_modules.h>
 
 #include "pam_tacplus.h"

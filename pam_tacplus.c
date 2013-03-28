@@ -32,10 +32,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <unistd.h>
-
-#ifndef __linux__
-    #include <strings.h>
-#endif
+#include <strings.h>
 
 #include "libtac.h"
 #include "pam_tacplus.h"
@@ -46,9 +43,7 @@
 #define PAM_SM_SESSION
 /* #define PAM_SM_PASSWORD */
 
-#ifndef __linux__
-    #include <security/pam_appl.h>
-#endif
+#include <security/pam_appl.h>
 #include <security/pam_modules.h>
 
 #ifdef HAVE_CONFIG_H
@@ -85,17 +80,13 @@ static short int task_id = 0;
 int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
     char *r_addr, char *cmd) {
 
-    char buf[40];
+    char buf[64];
     struct tac_attrib *attr;
     int retval;
-        
+
     attr=(struct tac_attrib *)_xcalloc(sizeof(struct tac_attrib));
-        
-#ifdef _AIX
-    sprintf(buf, "%d", time(0));
-#else
-    sprintf(buf, "%lu", (long unsigned int)time(0));
-#endif
+
+    sprintf(buf, "%lu", (unsigned long)time(NULL));
 
     if (type == TAC_PLUS_ACCT_FLAG_START) {
         tac_add_attrib(&attr, "start_time", buf);
