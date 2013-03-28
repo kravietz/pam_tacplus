@@ -113,7 +113,7 @@ extern int tac_ver_patch;
 /* header.c */
 extern int session_id;
 extern int tac_encryption;
-extern char *tac_secret;
+extern const char *tac_secret;
 extern char *tac_login;
 extern int tac_priv_lvl;
 extern int tac_authen_method;
@@ -126,7 +126,7 @@ extern int tac_readtimeout_enable;
 extern int tac_timeout;
 
 int tac_connect(struct addrinfo **, char **, int);
-int tac_connect_single(struct addrinfo *, char *);
+int tac_connect_single(struct addrinfo *, const char *);
 char *tac_ntop(const struct sockaddr *, size_t);
 
 int tac_authen_send(int, const char *, char *, char *,

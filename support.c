@@ -27,10 +27,9 @@
 #include "support.h"
 #include "pam_tacplus.h"
 
-struct addrinfo *tac_srv[TAC_PLUS_MAXSERVERS];
+tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
 int tac_srv_no = 0;
-char *tac_srv_key[TAC_PLUS_MAXSERVERS];
-int tac_srv_key_no = 0;
+
 char *tac_service = NULL;
 char *tac_protocol = NULL;
 char *tac_prompt = NULL;
@@ -186,9 +185,11 @@ int tacacs_get_password (pam_handle_t * pamh, int flags
 
 int _pam_parse (int argc, const char **argv) {
     int ctrl = 0;
+    const char *current_secret = NULL;
 
     /* otherwise the list will grow with each call */
-    tac_srv_no = tac_srv_key_no = 0;
+    memset(tac_srv, 0, sizeof(tacplus_server_t) * TAC_PLUS_MAXSERVERS);
+    tac_srv_no = 0;
 
     for (ctrl = 0; argc-- > 0; ++argv) {
         if (!strcmp (*argv, "debug")) { /* all */
@@ -238,7 +239,8 @@ int _pam_parse (int argc, const char **argv) {
                 }
                 if ((rv = getaddrinfo(server_buf, (port == NULL) ? "49" : port, &hints, &servers)) == 0) {
                     for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
-                        tac_srv[tac_srv_no] = server;
+                        tac_srv[tac_srv_no].addr = server;
+                        tac_srv[tac_srv_no].key = current_secret;
                         tac_srv_no++;
                     }
                 } else {
@@ -251,13 +253,16 @@ int _pam_parse (int argc, const char **argv) {
                     TAC_PLUS_MAXSERVERS);
             }
         } else if (!strncmp (*argv, "secret=", 7)) {
-            if(tac_srv_key_no < TAC_PLUS_MAXSERVERS) {
-                tac_srv_key[tac_srv_key_no] = (char *) _xcalloc (strlen (*argv + 7) + 1);
-                strcpy (tac_srv_key[tac_srv_key_no], *argv + 7);
-                tac_srv_key_no++;
-            } else {
-                _pam_log(LOG_ERR, "maximum number of secrets (%d) exceeded, skipping",
-                    TAC_PLUS_MAXSERVERS);
+            int i;
+
+            current_secret = *argv + 7;     /* points right into argv (which is const) */
+
+            /* if 'secret=' was given after a 'server=' parameter, fill in the current secret */
+            for(i = tac_srv_no-1; i >= 0; i--) {
+                if (tac_srv[i].key != NULL)
+                    break;
+
+                tac_srv[i].key = current_secret;
             }
         } else if (!strncmp (*argv, "timeout=", 8)) {
             tac_timeout = atoi(*argv + 8);
@@ -269,15 +274,14 @@ int _pam_parse (int argc, const char **argv) {
         }
     }
 
-    if (tac_srv_key_no == 0) {
-        /* FIXME this should really be NULL
-           but watch out with breaking other code
-        */
-        tac_srv_key[0] = "";
-        tac_srv_key_no++;
-    }
-    for (;tac_srv_key_no < tac_srv_no;tac_srv_key_no++) {
-        tac_srv_key[tac_srv_key_no] = tac_srv_key[0];
+    if (ctrl & PAM_TAC_DEBUG) {
+        int n;
+
+        _pam_log(LOG_DEBUG, "%d servers defined", tac_srv_no);
+
+        for(n = 0; n < tac_srv_no; n++) {
+            _pam_log(LOG_DEBUG, "server[%d] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr, 0), tac_srv[n].key);
+        }
     }
 
     return ctrl;

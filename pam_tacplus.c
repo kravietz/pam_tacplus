@@ -42,8 +42,8 @@
 #endif
 
 /* address of server discovered by pam_sm_authenticate */
-static struct addrinfo *active_server = NULL;
-static char *active_key = NULL;
+static tacplus_server_t *active_server = NULL;
+
 /* accounting task identifier */
 static short int task_id = 0;
 
@@ -169,7 +169,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
         while ((status == PAM_SESSION_ERR) && (srv_i < tac_srv_no)) {
             int tac_fd;
                                   
-            tac_fd = tac_connect_single(tac_srv[srv_i], tac_srv_key[srv_i]);
+            tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key);
             if(tac_fd < 0) {
                 _pam_log(LOG_WARNING, "%s: error sending %s (fd)",
                     __FUNCTION__, typemsg);
@@ -204,7 +204,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
         for(srv_i = 0; srv_i < tac_srv_no; srv_i++) {
             int tac_fd;
                                   
-            tac_fd = tac_connect_single(tac_srv[srv_i], tac_srv_key[srv_i]);
+            tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key);
             if(tac_fd < 0) {
                 _pam_log(LOG_WARNING, "%s: error sending %s (fd)",
                     __FUNCTION__, typemsg);
@@ -260,6 +260,7 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
     int status = PAM_AUTH_ERR;
 
     user = pass = tty = r_addr = NULL;
+    active_server = NULL;
 
     ctrl = _pam_parse (argc, argv);
 
@@ -305,7 +306,7 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
         if (ctrl & PAM_TAC_DEBUG)
             syslog (LOG_DEBUG, "%s: trying srv %d", __FUNCTION__, srv_i );
 
-        tac_fd = tac_connect_single(tac_srv[srv_i], tac_srv_key[srv_i]);
+        tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key);
         if (tac_fd < 0) {
             _pam_log (LOG_ERR, "connection failed srv %d: %m", srv_i);
             if (srv_i == tac_srv_no-1) {
@@ -335,9 +336,12 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
                         /* OK, we got authenticated; save the server that
                            accepted us for pam_sm_acct_mgmt and exit the loop */
                         status = PAM_SUCCESS;
-                        active_server = tac_srv[srv_i];
-                        active_key = tac_srv_key[srv_i];
+                        active_server = &tac_srv[srv_i];
                         close(tac_fd);
+
+                        if (ctrl & PAM_TAC_DEBUG)
+                            syslog (LOG_DEBUG, "%s: active srv %d", __FUNCTION__, srv_i );
+
                         break;
                     }
                 }
@@ -348,9 +352,12 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
                 /* OK, we got authenticated; save the server that
                    accepted us for pam_sm_acct_mgmt and exit the loop */
                 status = PAM_SUCCESS;
-                active_server = tac_srv[srv_i];
-                active_key = tac_srv_key[srv_i];
+                active_server = &tac_srv[srv_i];
                 close(tac_fd);
+
+                if (ctrl & PAM_TAC_DEBUG)
+                    syslog (LOG_DEBUG, "%s: active srv %d", __FUNCTION__, srv_i );
+
                 break;
             }
         }
@@ -417,7 +424,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: username obtained [%s]", __FUNCTION__, user);
-  
+ 
     tty = _pam_get_terminal(pamh);
     if(!strncmp(tty, "/dev/", 5)) 
         tty += 5;
@@ -432,21 +439,21 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
        by TACACS+; we cannot solely authorize user if it hasn't
        been authenticated or has been authenticated by method other
        than TACACS+ */
-    if(!active_server) {
+    if(active_server == NULL) {
         _pam_log (LOG_ERR, "user not authenticated by TACACS+");
         return PAM_AUTH_ERR;
     }
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: active server is [%s]", __FUNCTION__,
-            tac_ntop(active_server->ai_addr, active_server->ai_addrlen));
+            tac_ntop(active_server->addr->ai_addr, active_server->addr->ai_addrlen));
 
     /* checks for specific data required by TACACS+, which should
        be supplied in command line  */
-    if(tac_service == NULL || *tac_service == '\0') {
+    if(tac_service == NULL || !*tac_service) {
         _pam_log (LOG_ERR, "TACACS+ service type not configured");
         return PAM_AUTH_ERR;
     }
-    if(tac_protocol == NULL || *tac_protocol == '\0') {
+    if(tac_protocol == NULL || !*tac_protocol) {
         _pam_log (LOG_ERR, "TACACS+ protocol type not configured");
         return PAM_AUTH_ERR;
     }
@@ -454,10 +461,12 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     tac_add_attrib(&attr, "service", tac_service);
     tac_add_attrib(&attr, "protocol", tac_protocol);
 
-    tac_fd = tac_connect_single(active_server, active_key);
+    tac_fd = tac_connect_single(active_server->addr, active_server->key);
     if(tac_fd < 0) {
         _pam_log (LOG_ERR, "TACACS+ server unavailable");
-        if(arep.msg != NULL) free (arep.msg);
+        if(arep.msg != NULL)
+            free (arep.msg);
+
         close(tac_fd);
         return PAM_AUTH_ERR;
     }
@@ -468,7 +477,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
   
     if(retval < 0) {
         _pam_log (LOG_ERR, "error getting authorization");
-        if(arep.msg != NULL) free (arep.msg);
+        if(arep.msg != NULL)
+            free (arep.msg);
+
         close(tac_fd);
         return PAM_AUTH_ERR;
     }
@@ -482,7 +493,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
         arep.status != AUTHOR_STATUS_PASS_REPL) {
 
         _pam_log (LOG_ERR, "TACACS+ authorisation failed for [%s]", user);
-        if(arep.msg != NULL) free (arep.msg);
+        if(arep.msg != NULL)
+            free (arep.msg);
+
         close(tac_fd);
         return PAM_PERM_DENIED;
     }
@@ -528,8 +541,12 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     }
 
     /* free returned attributes */
-    if(arep.attr != NULL) tac_free_attrib(&arep.attr);
-    if(arep.msg != NULL) free (arep.msg);
+    if(arep.attr != NULL)
+        tac_free_attrib(&arep.attr);
+
+    if(arep.msg != NULL)
+        free (arep.msg);
+
     close(tac_fd);
 
     return status;

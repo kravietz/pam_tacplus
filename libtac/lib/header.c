@@ -33,7 +33,7 @@ int session_id;
 int tac_encryption = 0;
 
 /* Pointer to TACACS+ shared secret string. */
-char *tac_secret = NULL;
+const char *tac_secret = NULL;
 
 /* Pointer to TACACS+ shared login string. */
 char *tac_login = NULL; /* default is PAP */
