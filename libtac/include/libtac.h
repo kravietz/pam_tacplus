@@ -124,32 +124,33 @@ extern int tac_readtimeout_enable;
 
 /* connect.c */
 extern int tac_timeout;
-extern int tac_connect(struct addrinfo **server, char **key, int servers);
-extern int tac_connect_single(struct addrinfo *server, char *key);
-extern char *tac_ntop(const struct sockaddr *sa, size_t ai_addrlen);
 
-extern int tac_authen_send(int fd, const char *user, char *pass, char *tty,
-    char *r_addr);
-extern int tac_authen_read(int fd);
-extern int tac_cont_send(int fd, char *pass);
-extern HDR *_tac_req_header(u_char type, int cont_session);
-extern void _tac_crypt(u_char *buf, HDR *th, int length);
-extern u_char *_tac_md5_pad(int len, HDR *hdr);
-extern void tac_add_attrib(struct tac_attrib **attr, char *name, char *value);
-extern void tac_free_attrib(struct tac_attrib **attr);
-extern char *tac_acct_flag2str(int flag);
-extern int tac_acct_send(int fd, int type, const char *user, char *tty, char *r_addr,
-    struct tac_attrib *attr);
-extern int tac_acct_read(int fd, struct areply *arep);
-extern void *xcalloc(size_t nmemb, size_t size);
-extern void *xrealloc(void *ptr, size_t size);
-extern char *_tac_check_header(HDR *th, int type);
-extern int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
-    struct tac_attrib *attr);
-extern int tac_author_read(int fd, struct areply *arep);
-extern void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep,
-    char *value);
-extern int tac_read_wait(int fd, int timeout, int size, int *time_left);
+int tac_connect(struct addrinfo **, char **, int);
+int tac_connect_single(struct addrinfo *, char *);
+char *tac_ntop(const struct sockaddr *, size_t);
+
+int tac_authen_send(int, const char *, char *, char *,
+    char *);
+int tac_authen_read(int);
+int tac_cont_send(int, char *);
+HDR *_tac_req_header(u_char, int);
+void _tac_crypt(u_char *, HDR *, int);
+u_char *_tac_md5_pad(int, HDR *);
+void tac_add_attrib(struct tac_attrib **, char *, char *);
+void tac_free_attrib(struct tac_attrib **);
+char *tac_acct_flag2str(int);
+int tac_acct_send(int, int, const char *, char *, char *,
+    struct tac_attrib *);
+int tac_acct_read(int, struct areply *);
+void *xcalloc(size_t, size_t);
+void *xrealloc(void *, size_t);
+char *_tac_check_header(HDR *, int);
+int tac_author_send(int, const char *, char *, char *,
+    struct tac_attrib *);
+int tac_author_read(int, struct areply *);
+void tac_add_attrib_pair(struct tac_attrib **, char *, char,
+    char *);
+int tac_read_wait(int, int, int, int *);
 
 /* magic.c */
 u_int32_t magic(void);
