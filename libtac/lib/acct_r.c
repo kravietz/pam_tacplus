@@ -126,7 +126,7 @@ int tac_acct_read(int fd, struct areply *re) {
         msg=(char *) xcalloc(1, tb->msg_len+1);
         bcopy((u_char *) tb+TAC_ACCT_REPLY_FIXED_FIELDS_SIZE, msg, tb->msg_len); 
         msg[(int)tb->msg_len] = '\0';
-        re->msg = msg;      // Freed by caller
+        re->msg = msg;      /* Freed by caller */
     }
 
     /* server logged our request successfully */

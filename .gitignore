@@ -10,7 +10,9 @@ config/install-sh
 config/ltmain.sh
 config/missing
 configure
+config/*.m4
 .deps/
+.libs/
 Makefile
 config.h
 config.log
@@ -18,3 +20,9 @@ config.status
 libtool
 pam_tacplus.spec
 stamp-h1
+*.o
+*.lo
+*.la
+*.c.swp
+*.h.swp
+

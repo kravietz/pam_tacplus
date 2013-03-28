@@ -44,12 +44,15 @@ char *tac_prompt = NULL;
 extern char *tac_login;
 extern int tac_timeout;
 
+/*
+    FIXME using xcalloc() leaks memory for long-running programs that authenticate multiple times
+*/
 #ifndef xcalloc
 void *_xcalloc (size_t size) {
     register void *val = calloc (1, size);
     if (val == 0) {
         syslog (LOG_ERR, "xcalloc: calloc(1,%u) failed", (unsigned) size);
-        exit (1);
+        abort();
     }
     return val;
 }
@@ -105,21 +108,15 @@ char *_pam_get_rhost(pam_handle_t *pamh) {
     return rhost;
 }
 
-/* stolen from pam_stress */
-int converse(pam_handle_t * pamh, int nargs
-    ,struct pam_message **message
-    ,struct pam_response **response) {
+int converse(pam_handle_t * pamh, int nargs, const struct pam_message *message,
+    struct pam_response **response) {
 
     int retval;
     struct pam_conv *conv;
 
-    if ((retval = pam_get_item (pamh, PAM_CONV, (void *)&conv)) == PAM_SUCCESS) {
-#if (defined(__linux__) || defined(__NetBSD__))
-        retval = conv->conv (nargs, (const struct pam_message **) message,
-#else
-        retval = conv->conv (nargs, (struct pam_message **) message,
-#endif
-            response, conv->appdata_ptr);
+    if ((retval = pam_get_item (pamh, PAM_CONV, (const void **)&conv)) == PAM_SUCCESS) {
+        retval = conv->conv(nargs, &message, response, conv->appdata_ptr);
+
         if (retval != PAM_SUCCESS) {
             _pam_log(LOG_ERR, "(pam_tacplus) converse returned %d", retval);
             _pam_log(LOG_ERR, "that is: %s", pam_strerror (pamh, retval));
@@ -150,30 +147,31 @@ int tacacs_get_password (pam_handle_t * pamh, int flags
          _pam_log(LOG_WARNING, "no forwarded password");
          return PAM_PERM_DENIED;
     } else {
-         struct pam_message msg[1], *pmsg[1];
-         struct pam_response *resp;
+         struct pam_message msg;
+         struct pam_response *resp = NULL;
          int retval;
 
          /* set up conversation call */
-         pmsg[0] = &msg[0];
-         msg[0].msg_style = PAM_PROMPT_ECHO_OFF;
+         msg.msg_style = PAM_PROMPT_ECHO_OFF;
 
          if (!tac_prompt) {
-             msg[0].msg = "Password: ";
+             msg.msg = "Password: ";
          } else {
-             msg[0].msg = tac_prompt;
+             msg.msg = tac_prompt;
          }
-         resp = NULL;
 
-         if ((retval = converse (pamh, 1, pmsg, &resp)) != PAM_SUCCESS)
+         if ((retval = converse (pamh, 1, &msg, &resp)) != PAM_SUCCESS)
              return retval;
 
-         if (resp) {
-             if ((resp[0].resp == NULL) && (ctrl & PAM_TAC_DEBUG))
+         if (resp != NULL) {
+             if (resp->resp == NULL && (ctrl & PAM_TAC_DEBUG))
                  _pam_log (LOG_DEBUG, "pam_sm_authenticate: NULL authtok given");
 
-             pass = resp[0].resp;    /* remember this! */
-             resp[0].resp = NULL;
+             pass = resp->resp;    /* remember this! */
+             resp->resp = NULL;
+
+             free(resp);
+             resp = NULL;
          } else {
              if (ctrl & PAM_TAC_DEBUG) {
                _pam_log (LOG_DEBUG, "pam_sm_authenticate: no error reported");
@@ -181,10 +179,12 @@ int tacacs_get_password (pam_handle_t * pamh, int flags
              }
              return PAM_CONV_ERR;
          }
-         free(resp);
-         resp = NULL;
     }
 
+    /*
+       FIXME *password can still turn out as NULL
+       and it can't be free()d when it's NULL
+    */
     *password = pass;       /* this *MUST* be free()'d by this module */
 
     if(ctrl & PAM_TAC_DEBUG)
@@ -215,7 +215,7 @@ int _pam_parse (int argc, const char **argv) {
         } else if (!strncmp (*argv, "prompt=", 7)) { /* authentication */
             tac_prompt = (char *) _xcalloc (strlen (*argv + 7) + 1);
             strcpy (tac_prompt, *argv + 7);
-            // Replace _ with space
+            /* Replace _ with space */
             int chr;
             for (chr = 0; chr < strlen(tac_prompt); chr++) {
                 if (tac_prompt[chr] == '_') {
@@ -228,15 +228,24 @@ int _pam_parse (int argc, const char **argv) {
             if(tac_srv_no < TAC_PLUS_MAXSERVERS) { 
                 struct addrinfo hints, *servers, *server;
                 int rv;
-		char *port;
+                char *port, server_buf[256];
 
                 memset(&hints, 0, sizeof hints);
-                hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
+                hints.ai_family = AF_UNSPEC;  /* use IPv4 or IPv6, whichever */
                 hints.ai_socktype = SOCK_STREAM;
-		port = strchr(*argv + 7, ':');
-		if(port)
-		    *port = '\0';
-                if ((rv = getaddrinfo(*argv + 7, (port == NULL ? "49" : port+1), &hints, &servers)) == 0) {
+
+                if (strlen(*argv + 7) >= sizeof(server_buf)) {
+                    _pam_log(LOG_ERR, "server address too long, sorry");
+                    continue;
+                }
+                strcpy(server_buf, *argv + 7);
+
+                port = strchr(server_buf, ':');
+                if (port != NULL) {
+                    *port = '\0';
+					port++;
+                }
+                if ((rv = getaddrinfo(server_buf, (port == NULL) ? "49" : port, &hints, &servers)) == 0) {
                     for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
                         tac_srv[tac_srv_no] = server;
                         tac_srv_no++;
@@ -244,7 +253,7 @@ int _pam_parse (int argc, const char **argv) {
                 } else {
                     _pam_log (LOG_ERR,
                         "skip invalid server: %s (getaddrinfo: %s)",
-                        *argv + 7, gai_strerror(rv));
+                        server_buf, gai_strerror(rv));
                 }
             } else {
                 _pam_log(LOG_ERR, "maximum number of servers (%d) exceeded, skipping",
@@ -270,6 +279,9 @@ int _pam_parse (int argc, const char **argv) {
     }
 
     if (tac_srv_key_no == 0) {
+        /* FIXME this should really be NULL
+           but watch out with breaking other code
+        */
         tac_srv_key[0] = "";
         tac_srv_key_no++;
     }

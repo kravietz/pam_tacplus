@@ -154,7 +154,7 @@ int tac_connect_single(struct addrinfo *server, char *key) {
 
     /* set current tac_secret */
     tac_encryption = 0;
-    if (key != NULL && strcmp(key, "") != 0) {
+    if (key != NULL && *key) {
         tac_encryption = 1;
         tac_secret = key;
     }
@@ -186,14 +186,14 @@ char *tac_ntop(const struct sockaddr *sa, size_t unused) {
                 str, INET_ADDRSTRLEN);
             snprintf(portstr, sizeof(portstr), ":%hu", 
             htons(((struct sockaddr_in *)sa)->sin_port));
-            strncat(str, portstr, sizeof(portstr));
+            strcat(str, portstr);
             break;
         case AF_INET6:
             inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
                 str, INET6_ADDRSTRLEN);
             snprintf(portstr, sizeof(portstr), ":%hu",
                 htons(((struct sockaddr_in6 *)sa)->sin6_port));
-            strncat(str, portstr, sizeof(portstr));
+            strcat(str, portstr);
             break;
         default:
             strncpy(str, "Unknown AF", INET6_ADDRSTRLEN);

@@ -111,7 +111,7 @@ int tac_read_wait(int fd, int timeout, int size, int *time_left) {
             }
         }
 
-        if (rc < 0 && errno == EINTR) {   // interrupt 
+        if (rc < 0 && errno == EINTR) {   /* interrupt */
             continue;
         }
 
