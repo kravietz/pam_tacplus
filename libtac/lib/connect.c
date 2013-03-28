@@ -67,7 +67,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
  *   >= 0 : valid fd
  *   <  0 : error status code, see LIBTAC_STATUS_...
  */
-int tac_connect_single(struct addrinfo *server, char *key) {
+int tac_connect_single(struct addrinfo *server, const char *key) {
     int retval = LIBTAC_STATUS_CONN_ERR; /* default retval */
     int fd = -1;
     int flags, rc;
@@ -83,6 +83,7 @@ int tac_connect_single(struct addrinfo *server, char *key) {
     }
 
     /* format server address into a string  for use in messages */
+    /* FIXME this leaks memory, ip is not free()d */
     ip = tac_ntop(server->ai_addr, 0);
 
     if((fd=socket(server->ai_family, server->ai_socktype, server->ai_protocol)) < 0) {
