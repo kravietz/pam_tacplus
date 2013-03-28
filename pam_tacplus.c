@@ -50,22 +50,6 @@
     #include "config.h"
 #endif
 
-/* support.c */
-extern struct addrinfo *tac_srv[TAC_PLUS_MAXSERVERS];
-extern char *tac_srv_key[TAC_PLUS_MAXSERVERS];
-extern int tac_srv_no;
-extern char *tac_service;
-extern char *tac_protocol;
-extern int _pam_parse (int argc, const char **argv);
-extern unsigned long _getserveraddr (char *serv);
-extern int tacacs_get_password (pam_handle_t * pamh, int flags
-    ,int ctrl, char **password);
-extern int converse (pam_handle_t * pamh, int nargs
-    ,struct pam_message **message
-    ,struct pam_response **response);
-extern void _pam_log (int err, const char *format,...);
-extern void *_xcalloc (size_t size);
-
 /* magic.c */
 extern u_int32_t magic();
 
