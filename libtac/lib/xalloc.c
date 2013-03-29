@@ -59,9 +59,11 @@ char *xstrdup(const char *s) {
 char *xstrcpy(char *dst, const char *src, size_t dst_size) {
     if (dst == NULL) {
         TACSYSLOG((LOG_ERR, "xstrcpy(): dst == NULL"));
+        abort();
     }
     if (src == NULL) {
         TACSYSLOG((LOG_ERR, "xstrcpy(): src == NULL"));
+        abort();
     }
     if (!dst_size)
         return NULL;
