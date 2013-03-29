@@ -37,31 +37,6 @@ char tac_service[64];
 char tac_protocol[64];
 char tac_prompt[64];
 
-/*
-    safe string copy, like strlcpy() really
-*/
-size_t xstrcpy(char *dst, const char *src, size_t dst_size) {
-    if (dst == NULL)
-        _pam_log(LOG_ERR, "xstrcpy(): dst == NULL");
-
-    if (src == NULL)
-        _pam_log(LOG_ERR, "xstrcpy(): src == NULL");
-
-    if (!dst_size)
-        return 0;
-
-    size_t s_len = strlen(src);
-
-    size_t n = s_len;
-    if (n >= dst_size)
-        n = dst_size - 1;
-
-    strncpy(dst, src, n);
-    dst[n] = 0;
-
-    return n;
-}
-
 void _pam_log(int err, const char *format,...) {
     char msg[256];
     va_list args;
@@ -72,6 +47,27 @@ void _pam_log(int err, const char *format,...) {
     syslog(err, "%s", msg);
     va_end(args);
     closelog();
+}
+
+/*
+    safe string copy that aborts when destination buffer is too small
+*/
+char *xstrcpy(char *dst, const char *src, size_t dst_size) {
+    if (dst == NULL)
+        _pam_log(LOG_ERR, "xstrcpy(): dst == NULL");
+
+    if (src == NULL)
+        _pam_log(LOG_ERR, "xstrcpy(): src == NULL");
+
+    if (!dst_size)
+        return NULL;
+
+    if (strlen(src) >= dst_size) {
+        _pam_log(LOG_ERR, "xstrcpy(): argument too long, aborting");
+		abort();
+	}
+
+    return strcpy(dst, src);
 }
 
 char *_pam_get_user(pam_handle_t *pamh) {
