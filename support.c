@@ -49,27 +49,6 @@ void _pam_log(int err, const char *format,...) {
     closelog();
 }
 
-/*
-    safe string copy that aborts when destination buffer is too small
-*/
-char *xstrcpy(char *dst, const char *src, size_t dst_size) {
-    if (dst == NULL)
-        _pam_log(LOG_ERR, "xstrcpy(): dst == NULL");
-
-    if (src == NULL)
-        _pam_log(LOG_ERR, "xstrcpy(): src == NULL");
-
-    if (!dst_size)
-        return NULL;
-
-    if (strlen(src) >= dst_size) {
-        _pam_log(LOG_ERR, "xstrcpy(): argument too long, aborting");
-		abort();
-	}
-
-    return strcpy(dst, src);
-}
-
 char *_pam_get_user(pam_handle_t *pamh) {
     int retval;
     char *user;

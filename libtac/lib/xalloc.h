@@ -27,7 +27,7 @@
 __BEGIN_DECLS
 extern void *xcalloc(size_t nmemb, size_t size);
 extern void *xrealloc(void *ptr, size_t size);
-extern char *xstrdup(char *s);
+extern char *xstrdup(const char *s);
 __END_DECLS
 
 #endif

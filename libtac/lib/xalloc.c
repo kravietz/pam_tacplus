@@ -41,7 +41,7 @@ void *xrealloc(void *ptr, size_t size) {
     return val;
 }
 
-char *xstrdup(char *s) {
+char *xstrdup(const char *s) {
     char *p;
     if (s == NULL) return NULL;
 
@@ -51,3 +51,26 @@ char *xstrdup(char *s) {
     }
     return p;
 }
+
+
+/*
+    safe string copy that aborts when destination buffer is too small
+*/
+char *xstrcpy(char *dst, const char *src, size_t dst_size) {
+    if (dst == NULL) {
+        TACSYSLOG((LOG_ERR, "xstrcpy(): dst == NULL"));
+    }
+    if (src == NULL) {
+        TACSYSLOG((LOG_ERR, "xstrcpy(): src == NULL"));
+    }
+    if (!dst_size)
+        return NULL;
+
+    if (strlen(src) >= dst_size) {
+        TACSYSLOG((LOG_ERR, "xstrcpy(): argument too long, aborting"));
+        abort();
+    }
+
+    return strcpy(dst, src);
+}
+
