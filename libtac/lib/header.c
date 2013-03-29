@@ -33,10 +33,11 @@ int session_id;
 int tac_encryption = 0;
 
 /* Pointer to TACACS+ shared secret string. */
-char *tac_secret = NULL;
+/* note: tac_secret will point to tacplus_server[i].key */
+const char *tac_secret = NULL;
 
-/* Pointer to TACACS+ shared login string. */
-char *tac_login = NULL; /* default is PAP */
+/* TACACS+ shared login string. */
+char tac_login[64]; /* default is PAP */
 
 /* priv_lvl */
 int tac_priv_lvl = TAC_PLUS_PRIV_LVL_MIN;

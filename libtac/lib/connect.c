@@ -67,7 +67,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
  *   >= 0 : valid fd
  *   <  0 : error status code, see LIBTAC_STATUS_...
  */
-int tac_connect_single(struct addrinfo *server, char *key) {
+int tac_connect_single(struct addrinfo *server, const char *key) {
     int retval = LIBTAC_STATUS_CONN_ERR; /* default retval */
     int fd = -1;
     int flags, rc;
@@ -75,7 +75,7 @@ int tac_connect_single(struct addrinfo *server, char *key) {
     struct timeval tv;
     socklen_t len;
     struct sockaddr_storage addr;
-    char *ip = NULL;
+    char *ip;
 
     if(server == NULL) {
         TACSYSLOG((LOG_ERR, "%s: no TACACS+ server defined", __FUNCTION__))
@@ -83,7 +83,7 @@ int tac_connect_single(struct addrinfo *server, char *key) {
     }
 
     /* format server address into a string  for use in messages */
-    ip = tac_ntop(server->ai_addr, 0);
+    ip = tac_ntop(server->ai_addr);
 
     if((fd=socket(server->ai_family, server->ai_socktype, server->ai_protocol)) < 0) {
         TACSYSLOG((LOG_ERR,"%s: socket creation error", __FUNCTION__))
@@ -159,8 +159,6 @@ int tac_connect_single(struct addrinfo *server, char *key) {
         tac_secret = key;
     }
 
-    free(ip);
-
     /* if valid fd, but error experienced after open, close fd */
     if ( fd >= 0 && retval < 0 ) {
         close(fd);
@@ -174,29 +172,32 @@ int tac_connect_single(struct addrinfo *server, char *key) {
 
 /* return value:
  *   ptr to char* with format IP address
- *   must be freed by caller
+ *   warning: returns a static buffer
+ *   (which some ppl don't like, but it's robust and at last no more memory leaks)
  */
-char *tac_ntop(const struct sockaddr *sa, size_t unused) {
-    char portstr[7];
-    char *str = (char *) xcalloc(1, INET6_ADDRSTRLEN+sizeof(portstr));
+char *tac_ntop(const struct sockaddr *sa) {
+    static char server_address[INET6_ADDRSTRLEN+16];
 
     switch(sa->sa_family) {
         case AF_INET:
             inet_ntop(AF_INET, &(((struct sockaddr_in *)sa)->sin_addr),
-                str, INET_ADDRSTRLEN);
-            snprintf(portstr, sizeof(portstr), ":%hu", 
-            htons(((struct sockaddr_in *)sa)->sin_port));
-            strcat(str, portstr);
+                server_address, INET_ADDRSTRLEN);
+
+            snprintf(server_address + strlen(server_address), 14, ":%hu", 
+                htons(((struct sockaddr_in *)sa)->sin_port));
             break;
+
         case AF_INET6:
             inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
-                str, INET6_ADDRSTRLEN);
-            snprintf(portstr, sizeof(portstr), ":%hu",
+                server_address, INET6_ADDRSTRLEN);
+
+            snprintf(server_address + strlen(server_address), 14, ":%hu",
                 htons(((struct sockaddr_in6 *)sa)->sin6_port));
-            strcat(str, portstr);
             break;
+
         default:
-            strncpy(str, "Unknown AF", INET6_ADDRSTRLEN);
+            strcpy(server_address, "Unknown AF");
     }
-    return str;
+    return server_address;
 } /* tac_ntop */
+
