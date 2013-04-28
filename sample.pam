@@ -1,6 +1,6 @@
 #%PAM-1.0
 auth       required     /lib/security/pam_tacplus.so debug server=1.1.1.1 server=2.2.2.2:49 secret=SAME-SECRET
-account    required     /lib/security/pam_tacplus.so debug secret=SAME-SECRET service=ppp protocol=lcp
+account    required     /lib/security/pam_tacplus.so debug service=ppp protocol=lcp
 account    sufficient   /lib/security/pam_exec.so /usr/local/bin/showenv.sh
 password   required     /lib/security/pam_cracklib.
 password   required     /lib/security/pam_pwdb.so shadow use_authtok

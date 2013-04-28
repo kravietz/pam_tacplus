@@ -42,7 +42,7 @@
 #endif
 
 /* address of server discovered by pam_sm_authenticate */
-static tacplus_server_t *active_server = NULL;
+static tacplus_server_t active_server;
 
 /* accounting task identifier */
 static short int task_id = 0;
@@ -265,7 +265,6 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
     int status = PAM_AUTH_ERR;
 
     user = pass = tty = r_addr = NULL;
-    active_server = NULL;
 
     ctrl = _pam_parse (argc, argv);
 
@@ -341,7 +340,8 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
                         /* OK, we got authenticated; save the server that
                            accepted us for pam_sm_acct_mgmt and exit the loop */
                         status = PAM_SUCCESS;
-                        active_server = &tac_srv[srv_i];
+                        active_server.addr = tac_srv[srv_i].addr;
+                        active_server.key = tac_srv[srv_i].key;
                         close(tac_fd);
 
                         if (ctrl & PAM_TAC_DEBUG)
@@ -357,7 +357,8 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
                 /* OK, we got authenticated; save the server that
                    accepted us for pam_sm_acct_mgmt and exit the loop */
                 status = PAM_SUCCESS;
-                active_server = &tac_srv[srv_i];
+                active_server.addr = tac_srv[srv_i].addr;
+                active_server.key = tac_srv[srv_i].key;
                 close(tac_fd);
 
                 if (ctrl & PAM_TAC_DEBUG)
@@ -444,13 +445,13 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
        by TACACS+; we cannot solely authorize user if it hasn't
        been authenticated or has been authenticated by method other
        than TACACS+ */
-    if(active_server->addr == NULL) {
+    if(active_server.addr == NULL) {
         _pam_log (LOG_ERR, "user not authenticated by TACACS+");
         return PAM_AUTH_ERR;
     }
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: active server is [%s]", __FUNCTION__,
-            tac_ntop(active_server->addr->ai_addr));
+            tac_ntop(active_server.addr->ai_addr));
 
     /* checks for specific data required by TACACS+, which should
        be supplied in command line  */
@@ -466,7 +467,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     tac_add_attrib(&attr, "service", tac_service);
     tac_add_attrib(&attr, "protocol", tac_protocol);
 
-    tac_fd = tac_connect_single(active_server->addr, active_server->key);
+    tac_fd = tac_connect_single(active_server.addr, active_server.key);
     if(tac_fd < 0) {
         _pam_log (LOG_ERR, "TACACS+ server unavailable");
         if(arep.msg != NULL)
