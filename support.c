@@ -24,41 +24,18 @@
 #define PAM_SM_SESSION
 /* #define PAM_SM_PASSWORD */
 
-#ifndef __linux__
-    #include <security/pam_appl.h>
-#endif
-#include <security/pam_modules.h>
-
+#include "support.h"
 #include "pam_tacplus.h"
-#include "libtac.h"
 
-struct addrinfo *tac_srv[TAC_PLUS_MAXSERVERS];
+#include <stdlib.h>
+#include <string.h>
+
+tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
 int tac_srv_no = 0;
-char *tac_srv_key[TAC_PLUS_MAXSERVERS];
-int tac_srv_key_no = 0;
-char *tac_service = NULL;
-char *tac_protocol = NULL;
-char *tac_prompt = NULL;
 
-/* libtac */
-extern char *tac_login;
-extern int tac_timeout;
-
-/*
-    FIXME using xcalloc() leaks memory for long-running programs that authenticate multiple times
-*/
-#ifndef xcalloc
-void *_xcalloc (size_t size) {
-    register void *val = calloc (1, size);
-    if (val == 0) {
-        syslog (LOG_ERR, "xcalloc: calloc(1,%u) failed", (unsigned) size);
-        abort();
-    }
-    return val;
-}
-#else
-#define _xcalloc xcalloc
-#endif
+char tac_service[64];
+char tac_protocol[64];
+char tac_prompt[64];
 
 void _pam_log(int err, const char *format,...) {
     char msg[256];
@@ -195,9 +172,16 @@ int tacacs_get_password (pam_handle_t * pamh, int flags
 
 int _pam_parse (int argc, const char **argv) {
     int ctrl = 0;
+    const char *current_secret = NULL;
 
     /* otherwise the list will grow with each call */
-    tac_srv_no = tac_srv_key_no = 0;
+    memset(tac_srv, 0, sizeof(tacplus_server_t) * TAC_PLUS_MAXSERVERS);
+    tac_srv_no = 0;
+
+    tac_service[0] = 0;
+    tac_protocol[0] = 0;
+    tac_prompt[0] = 0;
+    tac_login[0] = 0;
 
     for (ctrl = 0; argc-- > 0; ++argv) {
         if (!strcmp (*argv, "debug")) { /* all */
@@ -207,14 +191,11 @@ int _pam_parse (int argc, const char **argv) {
         } else if (!strcmp (*argv, "try_first_pass")) { 
             ctrl |= PAM_TAC_TRY_FIRST_PASS;
         } else if (!strncmp (*argv, "service=", 8)) { /* author & acct */
-            tac_service = (char *) _xcalloc (strlen (*argv + 8) + 1);
-            strcpy (tac_service, *argv + 8);
+            xstrcpy (tac_service, *argv + 8, sizeof(tac_service));
         } else if (!strncmp (*argv, "protocol=", 9)) { /* author & acct */
-            tac_protocol = (char *) _xcalloc (strlen (*argv + 9) + 1);
-            strcpy (tac_protocol, *argv + 9);
+            xstrcpy (tac_protocol, *argv + 9, sizeof(tac_protocol));
         } else if (!strncmp (*argv, "prompt=", 7)) { /* authentication */
-            tac_prompt = (char *) _xcalloc (strlen (*argv + 7) + 1);
-            strcpy (tac_prompt, *argv + 7);
+            xstrcpy (tac_prompt, *argv + 7, sizeof(tac_prompt));
             /* Replace _ with space */
             int chr;
             for (chr = 0; chr < strlen(tac_prompt); chr++) {
@@ -222,6 +203,8 @@ int _pam_parse (int argc, const char **argv) {
                     tac_prompt[chr] = ' ';
                 }
             }
+        } else if (!strncmp (*argv, "login=", 6)) {
+            xstrcpy (tac_login, *argv + 6, sizeof(tac_login));
         } else if (!strcmp (*argv, "acct_all")) {
             ctrl |= PAM_TAC_ACCT;
         } else if (!strncmp (*argv, "server=", 7)) { /* authen & acct */
@@ -247,7 +230,8 @@ int _pam_parse (int argc, const char **argv) {
                 }
                 if ((rv = getaddrinfo(server_buf, (port == NULL) ? "49" : port, &hints, &servers)) == 0) {
                     for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
-                        tac_srv[tac_srv_no] = server;
+                        tac_srv[tac_srv_no].addr = server;
+                        tac_srv[tac_srv_no].key = current_secret;
                         tac_srv_no++;
                     }
                 } else {
@@ -260,33 +244,41 @@ int _pam_parse (int argc, const char **argv) {
                     TAC_PLUS_MAXSERVERS);
             }
         } else if (!strncmp (*argv, "secret=", 7)) {
-            if(tac_srv_key_no < TAC_PLUS_MAXSERVERS) {
-                tac_srv_key[tac_srv_key_no] = (char *) _xcalloc (strlen (*argv + 7) + 1);
-                strcpy (tac_srv_key[tac_srv_key_no], *argv + 7);
-                tac_srv_key_no++;
-            } else {
-                _pam_log(LOG_ERR, "maximum number of secrets (%d) exceeded, skipping",
-                    TAC_PLUS_MAXSERVERS);
+            int i;
+
+            current_secret = *argv + 7;     /* points right into argv (which is const) */
+
+            /* if 'secret=' was given after a 'server=' parameter, fill in the current secret */
+            for(i = tac_srv_no-1; i >= 0; i--) {
+                if (tac_srv[i].key != NULL)
+                    break;
+
+                tac_srv[i].key = current_secret;
             }
         } else if (!strncmp (*argv, "timeout=", 8)) {
+            /* FIXME atoi() doesn't handle invalid numeric strings well */
             tac_timeout = atoi(*argv + 8);
-        } else if (!strncmp (*argv, "login=", 6)) {
-            tac_login = (char *) _xcalloc (strlen (*argv + 6) + 1);
-            strcpy (tac_login, *argv + 6);
+
+            if (tac_timeout < 0)
+                tac_timeout = 0;
         } else {
             _pam_log (LOG_WARNING, "unrecognized option: %s", *argv);
         }
     }
 
-    if (tac_srv_key_no == 0) {
-        /* FIXME this should really be NULL
-           but watch out with breaking other code
-        */
-        tac_srv_key[0] = "";
-        tac_srv_key_no++;
-    }
-    for (;tac_srv_key_no < tac_srv_no;tac_srv_key_no++) {
-        tac_srv_key[tac_srv_key_no] = tac_srv_key[0];
+    if (ctrl & PAM_TAC_DEBUG) {
+        int n;
+
+        _pam_log(LOG_DEBUG, "%d servers defined", tac_srv_no);
+
+        for(n = 0; n < tac_srv_no; n++) {
+            _pam_log(LOG_DEBUG, "server[%d] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr), tac_srv[n].key);
+        }
+
+        _pam_log(LOG_DEBUG, "tac_service='%s'", tac_service);
+        _pam_log(LOG_DEBUG, "tac_protocol='%s'", tac_protocol);
+        _pam_log(LOG_DEBUG, "tac_prompt='%s'", tac_prompt);
+        _pam_log(LOG_DEBUG, "tac_login='%s'", tac_login);
     }
 
     return ctrl;

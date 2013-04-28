@@ -19,6 +19,18 @@
  * See `CHANGES' file for revision history.
  */
 
+#ifndef PAM_TACPLUS_H
+#define PAM_TACPLUS_H
+
+/* define these before including PAM headers */
+#define PAM_SM_AUTH
+#define PAM_SM_ACCOUNT
+#define PAM_SM_SESSION
+/* #define PAM_SM_PASSWORD */
+
+#include <security/pam_appl.h>
+#include <security/pam_modules.h>
+
 /* pam_tacplus command line options */
 #define PAM_TAC_DEBUG 0x01
 #define PAM_TAC_ACCT  0x02 /* account on all specified servers */
@@ -31,5 +43,8 @@
 #define PAM_TAC_VPAT 8
 
 #ifndef PAM_EXTERN
-    #define PAM_EXTERN extern
+  #define PAM_EXTERN extern
 #endif
+
+#endif  /* PAM_TACPLUS_H */
+

@@ -23,7 +23,7 @@
 #include "xalloc.h"
 
 void *xcalloc(size_t nmemb, size_t size) {
-    register void *val = calloc(nmemb, size);
+    void *val = calloc(nmemb, size);
     if(val == 0) {
         TACSYSLOG((LOG_ERR, "%s: calloc(%u,%u) failed", __FUNCTION__,\
             (unsigned) nmemb, (unsigned) size))
@@ -33,7 +33,7 @@ void *xcalloc(size_t nmemb, size_t size) {
 }
 
 void *xrealloc(void *ptr, size_t size) {
-    register void *val = realloc(ptr, size);
+    void *val = realloc(ptr, size);
     if(val == 0) {
         TACSYSLOG((LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned) size))
         exit(1);
@@ -41,7 +41,7 @@ void *xrealloc(void *ptr, size_t size) {
     return val;
 }
 
-char *xstrdup(char *s) {
+char *xstrdup(const char *s) {
     char *p;
     if (s == NULL) return NULL;
 
@@ -51,3 +51,28 @@ char *xstrdup(char *s) {
     }
     return p;
 }
+
+
+/*
+    safe string copy that aborts when destination buffer is too small
+*/
+char *xstrcpy(char *dst, const char *src, size_t dst_size) {
+    if (dst == NULL) {
+        TACSYSLOG((LOG_ERR, "xstrcpy(): dst == NULL"));
+        abort();
+    }
+    if (src == NULL) {
+        TACSYSLOG((LOG_ERR, "xstrcpy(): src == NULL"));
+        abort();
+    }
+    if (!dst_size)
+        return NULL;
+
+    if (strlen(src) >= dst_size) {
+        TACSYSLOG((LOG_ERR, "xstrcpy(): argument too long, aborting"));
+        abort();
+    }
+
+    return strcpy(dst, src);
+}
+

@@ -19,21 +19,35 @@
  * See `CHANGES' file for revision history.
  */
 
-#ifndef __linux__
-    #include <security/pam_appl.h>
-#endif
+#ifndef PAM_TACPLUS_SUPPORT_H
+#define PAM_TACPLUS_SUPPORT_H
+
+#include "libtac.h"
+
 #include <security/pam_modules.h>
 
-/* support.c */
-extern int _pam_parse (int argc, const char **argv);
-extern unsigned long _resolve_name (char *serv);
-extern int tacacs_get_password (pam_handle_t * pamh, int flags
-    ,int ctrl, char **password);
-extern int converse (pam_handle_t * pamh, int nargs
-    ,struct pam_message **message
-    ,struct pam_response **response);
-extern void _pam_log (int err, const char *format,...);
-extern void *_xcalloc (size_t size);
-extern char *_pam_get_user(pam_handle_t *pamh);
-extern char *_pam_get_terminal(pam_handle_t *pamh);
-extern char *_pam_get_rhost(pam_handle_t *pamh);
+typedef struct {
+    struct addrinfo *addr;
+    const char *key;
+} tacplus_server_t;
+
+extern tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
+extern int tac_srv_no;
+
+extern char tac_service[64];
+extern char tac_protocol[64];
+extern char tac_prompt[64];
+
+int _pam_parse (int, const char **);
+unsigned long _resolve_name (char *);
+unsigned long _getserveraddr (char *serv);
+int tacacs_get_password (pam_handle_t *, int, int, char **);
+int converse (pam_handle_t *, int, const struct pam_message *, struct pam_response **);
+void _pam_log (int, const char *, ...);
+void *_xcalloc (size_t);
+char *_pam_get_user(pam_handle_t *);
+char *_pam_get_terminal(pam_handle_t *);
+char *_pam_get_rhost(pam_handle_t *);
+
+#endif  /* PAM_TACPLUS_SUPPORT_H */
+
