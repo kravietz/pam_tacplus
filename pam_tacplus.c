@@ -444,7 +444,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
        by TACACS+; we cannot solely authorize user if it hasn't
        been authenticated or has been authenticated by method other
        than TACACS+ */
-    if(active_server == NULL) {
+    if(active_server->addr == NULL) {
         _pam_log (LOG_ERR, "user not authenticated by TACACS+");
         return PAM_AUTH_ERR;
     }

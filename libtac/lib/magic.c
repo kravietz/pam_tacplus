@@ -23,21 +23,12 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
-
-#include "magic.h"
-
-#ifndef __linux__
-extern long mrand48 __P((void));
-extern void srand48 __P((long));
-#else
 #include <sys/stat.h>
 #include <fcntl.h>
 
-/* on Linux we use /dev/urandom as random numbers source 
-   I find it really cool :) */
-int rfd = -1;	/* /dev/urandom */
-#endif
+#include "magic.h"
 
+static int rfd = -1;	/* fd for /dev/urandom */
 static int magic_inited = 0;
 
 /*
@@ -50,24 +41,30 @@ static int magic_inited = 0;
 void
 magic_init()
 {
+    struct stat statbuf;
     long seed;
     struct timeval t;
 
     if (magic_inited)
         return;
 
-/* FIXME this should be ifdef HAVE_DEV_URANDOM + test for /dev/urandom in configure */
-#ifdef __linux__
-    rfd = open("/dev/urandom", O_RDONLY);
-    if(rfd != -1) 
-        return;
-#endif
-    /* if /dev/urandom fails, we try traditional method */
+    magic_inited = 1;
+
+    /*
+        try using /dev/urandom
+        also check that it's a character device
+        If it doesn't exist, fallback to other method
+    */
+
+    if (!lstat("/dev/urandom", &statbuf) && S_ISCHR(statbuf.st_mode)) {
+        rfd = open("/dev/urandom", O_RDONLY);
+        if (rfd >= 0)
+            return;
+    } 
+
     gettimeofday(&t, NULL);
     seed = gethostid() ^ t.tv_sec ^ t.tv_usec ^ getpid();
-    srand48(seed);
-
-    magic_inited = 1;
+    srandom(seed);
 }
 
 /*
@@ -78,43 +75,15 @@ magic()
 {
     magic_init();
 
-#ifdef __linux__
-    u_int32_t ret = 0;
-
     if(rfd > -1) {
+        u_int32_t ret;
+
         if (read(rfd, &ret, sizeof(ret)) < sizeof(ret)) {
-            /* on read() error, fallback to other method */
-            return (u_int32_t) mrand48();
+            /* on read() error fallback to other method */
+            return (u_int32_t)random();
         }
         return ret;
     }
-#endif
-    return (u_int32_t) mrand48();
+    return (u_int32_t)random();
 }
 
-#ifdef NO_DRAND48
-/*
- * Substitute procedures for those systems which don't have
- * drand48 et al.
- */
-
-double
-drand48()
-{
-    return (double)random() / (double)0x7fffffffL; /* 2**31-1 */
-}
-
-long
-mrand48()
-{
-    return random();
-}
-
-void
-srand48(seedval)
-long seedval;
-{
-    srandom((int)seedval);
-}
-
-#endif
