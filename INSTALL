@@ -7,6 +7,7 @@ If there is no ./configure create one with autotools:
 $ aclocal
 $ autoconf 
 $ autoheader 
+$ libtoolize
 $ automake --add-missing
 
 
