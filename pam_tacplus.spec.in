@@ -21,7 +21,7 @@ Packager: NRB
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Source Information
-Source0: http://downloads.sourceforge.net/project/tacplus/pam_tacplus/pam_tacplus-@VERSION@.tar.gz
+Source0: https://github.com/jeroennijhof/pam_tacplus/archive/@VERSION@.tar.gz
 
 # Dependency Information
 BuildRequires: gcc binutils pam-devel
@@ -34,6 +34,7 @@ PAM Tacacs+ module based on code produced by Pawel Krawczyk <pawel.krawczyk@hush
 %setup -q -a 0
 
 %build
+autoreconf -i
 ./configure
 make
 

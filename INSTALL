@@ -2,12 +2,9 @@
 pam_tacplus consists of the module code and `libtac' simple TACPLUS+ library.
 
 Simple `./configure' followed by `make' should compile both TACACS+ library and pam_tacplus module.
-If there is no ./configure create one with autotools:
+If there is no ./configure recreate one with autotools:
 
-$ aclocal
-$ autoconf 
-$ autoheader 
-$ automake --add-missing
+$ autoreconf -i
 
 
 You should get a `pam_tacplus.so' module, which is placed in
@@ -18,7 +15,7 @@ name of the proper service.
 This code is known to work on Linux, Solaris and AIX for now.
 
 
-Dec 22 2010
+Jul 1 2013
 Jeroen Nijhof <jeroen@jeroennijhof.nl>
 
 Pawel Krawczyk <pawel.krawczyk@hush.com>
