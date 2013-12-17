@@ -22,7 +22,7 @@
 #define PAM_SM_AUTH
 #define PAM_SM_ACCOUNT
 #define PAM_SM_SESSION
-/* #define PAM_SM_PASSWORD */
+#define PAM_SM_PASSWORD
 
 #include "support.h"
 #include "pam_tacplus.h"

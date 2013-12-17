@@ -10,6 +10,6 @@ Account:
 Password-Type: Primary
 Password:
  	sufficient			pam_tacplus.so
-Session-Type: Primary
+Session-Type: Additional
 Session:
-	sufficient			pam_tacplus.so
+	optional			pam_tacplus.so
