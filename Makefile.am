@@ -7,6 +7,7 @@
 ###########################################################################
 
 ACLOCAL_AMFLAGS = -I config
+AUTOMAKE_OPTIONS = subdir-objects
 
 moduledir = @libdir@
 module_LTLIBRARIES = pam_tacplus.la

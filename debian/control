@@ -2,8 +2,8 @@ Source: libpam-tacplus
 Section: admin
 Priority: extra
 Maintainer: Jeroen Nijhof <jeroen@jeroennijhof.nl>
-Build-Depends: debhelper (>= 9), libpam-dev
-Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 9), libpam-dev, dh-autoreconf
+Standards-Version: 3.9.5
 Homepage: https://github.com/jeroennijhof/pam_tacplus
 
 Package: libpam-tacplus

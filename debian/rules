@@ -10,7 +10,7 @@
 SHELL := sh -e
 
 %:
-	dh  $@
+	dh  $@ --with autoreconf
 
 override_dh_clean:
 	rm -f config.status config.log
