@@ -1,5 +1,5 @@
 /* pam_tacplus.c - PAM interface for TACACS+ protocol.
- * 
+ *
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
@@ -77,20 +77,20 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 
     /* this is no longer needed */
     tac_free_attrib(&attr);
-        
+
     if(retval < 0) {
         _pam_log (LOG_WARNING, "%s: send %s accounting failed (task %hu)",
-            __FUNCTION__, 
+            __FUNCTION__,
             tac_acct_flag2str(type),
             task_id);
         close(tac_fd);
         return -1;
     }
-        
+
     struct areply re;
     if( tac_acct_read(tac_fd, &re) != TAC_PLUS_ACCT_STATUS_SUCCESS ) {
         _pam_log (LOG_WARNING, "%s: accounting %s failed (task %hu)",
-            __FUNCTION__, 
+            __FUNCTION__,
             tac_acct_flag2str(type),
             task_id);
 
@@ -118,7 +118,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
     char *r_addr = NULL;
     char *typemsg;
     int status = PAM_SESSION_ERR;
-  
+
     typemsg = tac_acct_flag2str(type);
     ctrl = _pam_parse (argc, argv);
 
@@ -127,15 +127,15 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
             , __FUNCTION__, typemsg, PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: tac_srv_no=%d", __FUNCTION__, tac_srv_no);
-  
+
     if ((user = _pam_get_user(pamh)) == NULL)
         return PAM_USER_UNKNOWN;
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: username [%s] obtained", __FUNCTION__, user);
-  
+
     tty = _pam_get_terminal(pamh);
-    if(!strncmp(tty, "/dev/", 5)) 
+    if(!strncmp(tty, "/dev/", 5))
         tty += 5;
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: tty [%s] obtained", __FUNCTION__, tty);
@@ -169,11 +169,11 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
     if(!(ctrl & PAM_TAC_ACCT)) {
     /* normal mode, send packet to the first available server */
         int srv_i = 0;
-                  
+
         status = PAM_SESSION_ERR;
         while ((status == PAM_SESSION_ERR) && (srv_i < tac_srv_no)) {
             int tac_fd;
-                                  
+
             tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key);
             if(tac_fd < 0) {
                 _pam_log(LOG_WARNING, "%s: error sending %s (fd)",
@@ -194,7 +194,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
                     __FUNCTION__, typemsg);
             } else {
                 status = PAM_SUCCESS;
-                if (ctrl & PAM_TAC_DEBUG) 
+                if (ctrl & PAM_TAC_DEBUG)
                     syslog(LOG_DEBUG, "%s: [%s] for [%s] sent",
                         __FUNCTION__, typemsg,user);
             }
@@ -204,11 +204,11 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
     } else {
         /* send packet to all servers specified */
         int srv_i;
-                  
+
         status = PAM_SESSION_ERR;
         for(srv_i = 0; srv_i < tac_srv_no; srv_i++) {
             int tac_fd;
-                                  
+
             tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key);
             if(tac_fd < 0) {
                 _pam_log(LOG_WARNING, "%s: error sending %s (fd)",
@@ -228,7 +228,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
                     __FUNCTION__, typemsg);
             } else {
                 status = PAM_SUCCESS;
-                if (ctrl & PAM_TAC_DEBUG) 
+                if (ctrl & PAM_TAC_DEBUG)
                     syslog(LOG_DEBUG, "%s: [%s] for [%s] sent",
                         __FUNCTION__, typemsg,user);
             }
@@ -242,16 +242,16 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
         signal(SIGHUP, SIG_DFL);
     }
     return status;
-}                               
+}
 
 
 /* Main PAM functions */
 
 /* authenticates user on remote TACACS+ server
  * returns PAM_SUCCESS if the supplied username and password
- * pair is valid 
+ * pair is valid
  */
-PAM_EXTERN 
+PAM_EXTERN
 int pam_sm_authenticate (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
@@ -277,7 +277,7 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: user [%s] obtained", __FUNCTION__, user);
-  
+
     /* uwzgledniac PAM_DISALLOW_NULL_AUTHTOK */
 
     retval = tacacs_get_password (pamh, flags, ctrl, &pass);
@@ -381,8 +381,8 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
 }    /* pam_sm_authenticate */
 
 
-/* no-op function to satisfy PAM authentication module */ 
-PAM_EXTERN 
+/* no-op function to satisfy PAM authentication module */
+PAM_EXTERN
 int pam_sm_setcred (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
@@ -400,7 +400,7 @@ int pam_sm_setcred (pam_handle_t * pamh, int flags,
  * his permission to access requested service
  * returns PAM_SUCCESS if the service is allowed
  */
-PAM_EXTERN 
+PAM_EXTERN
 int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
@@ -413,7 +413,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     int tac_fd;
 
     user = tty = r_addr = NULL;
-  
+
     /* this also obtains service name for authorization
        this should be normally performed by pam_get_item(PAM_SERVICE)
        but since PAM service names are incompatible TACACS+
@@ -424,15 +424,15 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: called (pam_tacplus v%u.%u.%u)"
             , __FUNCTION__, PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
-  
+
     if ((user = _pam_get_user(pamh)) == NULL)
         return PAM_USER_UNKNOWN;
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: username obtained [%s]", __FUNCTION__, user);
- 
+
     tty = _pam_get_terminal(pamh);
-    if(!strncmp(tty, "/dev/", 5)) 
+    if(!strncmp(tty, "/dev/", 5))
         tty += 5;
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: tty obtained [%s]", __FUNCTION__, tty);
@@ -440,7 +440,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     r_addr = _pam_get_rhost(pamh);
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: rhost obtained [%s]", __FUNCTION__, r_addr);
-  
+
     /* checks if user has been successfully authenticated
        by TACACS+; we cannot solely authorize user if it hasn't
        been authenticated or has been authenticated by method other
@@ -480,7 +480,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     retval = tac_author_send(tac_fd, user, tty, r_addr, attr);
 
     tac_free_attrib(&attr);
-  
+
     if(retval < 0) {
         _pam_log (LOG_ERR, "error getting authorization");
         if(arep.msg != NULL)
@@ -492,7 +492,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: sent authorization request", __FUNCTION__);
-  
+
     tac_author_read(tac_fd, &arep);
 
     if(arep.status != AUTHOR_STATUS_PASS_ADD &&
@@ -508,9 +508,9 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: user [%s] successfully authorized", __FUNCTION__, user);
-  
+
     status = PAM_SUCCESS;
-  
+
     attr = arep.attr;
     while (attr != NULL)  {
         char attribute[attr->attr_len];
@@ -565,30 +565,30 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
 /* accounting packets may be directed to any TACACS+ server,
  * independent from those used for authentication and authorization;
  * it may be also directed to all specified servers
- */  
-PAM_EXTERN 
+ */
+PAM_EXTERN
 int pam_sm_open_session (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
     task_id=(short int) magic();
-    return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_START, NULL); 
+    return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_START, NULL);
 }    /* pam_sm_open_session */
 
 /* sends STOP accounting request to the remote TACACS+ server
  * returns PAM error only if the request was refused or there
  * were problems connection to the server
  */
-PAM_EXTERN 
+PAM_EXTERN
 int pam_sm_close_session (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
-    return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_STOP, NULL); 
+    return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_STOP, NULL);
 }    /* pam_sm_close_session */
 
 
 #ifdef PAM_SM_PASSWORD
-/* no-op function for future use */ 
-PAM_EXTERN 
+/* no-op function for future use */
+PAM_EXTERN
 int pam_sm_chauthtok (pam_handle_t * pamh, int flags,
     int argc, const char **argv) {
 
