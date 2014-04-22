@@ -16,9 +16,10 @@ See the included file: COPYING for copyright information.
 ])
 AC_INIT(pam_tacplus, 1.3.8, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
 AC_CONFIG_AUX_DIR(config)
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([pam_tacplus.c])
 AC_CONFIG_HEADER([config.h])
+AC_CONFIG_MACRO_DIR([config])
 
 dnl --------------------------------------------------------------------
 dnl Checks for programs.
