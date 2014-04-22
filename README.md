@@ -2,9 +2,9 @@
 
 This PAM module support the following functions:
 
-	* authentication
-	* authorization (account management)
-	* accounting (session management)
+* authentication
+* authorization (account management)
+* accounting (session management)
 
 All are performed using TACACS+ protocol [1], designed by Cisco Systems.
 This is remote AAA protocol, supported by most Cisco hardware. 
@@ -15,44 +15,19 @@ encrypted. This module is an attempt to provide most useful part of
 TACACS+ functionality to applications using the PAM interface on Linux.
 
 
-## Recognized options:
+### Recognized options:
 
 | Option             | Management group | Description |
 |------------------- | ---------------- | ----------- |
-| debug              | ALL |                    output debugging information via
-                                         syslog(3); note, that the debugging
-                                        is heavy, including passwords! |
-					
-| secret=STRING      | ALL |                    can be specified more than once;
-                                        secret key used to encrypt/decrypt
-                                        packets sent/received from the server |
-
-| server=HOSTNAME     | auth, session |          can be specified more than once;
-  server=IP_ADDR                          adds a TACACS+ server to the servers
-  server=HOSTNAME:PORT                    list |
-  server=IP_ADDR:PORT
-
-| timeout=INT         | ALL |                   connection timeout in seconds
-                                        default is 5 seconds |
-
-| login=STRING        | auth |                    TACACS+ authentication service,
-                                        this can be "pap", "chap" or "login"
-                                        at the moment. Default is pap. |
-
-| prompt=STRING       | auth |                    Custom password prompt. If you want
-                                        to use a space use '_' character
-                                        instead. |
-
-| acct_all            | session |                 if multiple servers are supplied,
-                                        pam_tacplus will send accounting
-                                        start/stop packets to all servers
-                                        on the list |
-
-| service             | account, session |       TACACS+ service for authorization
-                                        and accounting |
-
-| protocol            | account, session |       TACACS+ protocol for authorization
-                                         and accounting |
+| debug | ALL | output debugging information via syslog(3); note, that the debugging is heavy, including passwords! |
+| secret=STRING | ALL | can be specified more than once; secret key used to encrypt/decrypt packets sent/received from the server |
+| server=HOSTNAME server=IP_ADDR server=HOSTNAME:PORT server=IP_ADDR:PORT | auth, session | can be specified more than once; adds a TACACS+ server to the servers list |
+| timeout=INT | ALL | connection timeout in seconds default is 5 seconds |
+| login=STRING | auth | TACACS+ authentication service, this can be "pap", "chap" or "login" at the moment. Default is pap. |
+| prompt=STRING | auth | Custom password prompt. If you want to use a space use '_' character instead. |
+| acct_all | session | if multiple servers are supplied, pam_tacplus will send accounting start/stop packets to all servers on the list |
+| service | account, session | TACACS+ service for authorization and accounting |
+| protocol | account, session | TACACS+ protocol for authorization and accounting |
 
 The last two items are widely described in TACACS+ draft [1]. They are
 required by the server, but it will work if they don't match the real
@@ -60,7 +35,14 @@ service authorized :)
 During PAM account the AV pairs returned by the TACACS+ servers are made available to the
 PAM environment, so you can use i.e. pam_exec.so to do something with these AV pairs.
 
-## Example configuration:
+### Basic installation:
+This project is using autotools for building, so please run autoreconf first.
+```
+$ autoreconf -i
+$ ./configure && make && sudo make install
+```
+
+### Example configuration:
 
 ```
 #%PAM-1.0
@@ -72,7 +54,7 @@ password   required	/lib/security/pam_pwdb.so shadow use_authtok
 session    required	/lib/security/pam_tacplus.so debug server=1.1.1.1 server=2.2.2.2 secret=SECRET-1 secret=SECRET-2 service=ppp protocol=lcp
 ```
 
-## More on server lists:
+### More on server lists:
 
 1. Having more that one TACACS+ server defined for given management group
 has following effects on authentication:
@@ -112,10 +94,11 @@ authorization.
 	  on all of them at the same time
 
 
-## Short introduction to PAM via TACACS+:
+### Short introduction to PAM via TACACS+:
 
 This diagram should show general idea of how the whole process looks:
 
+```
                                               +-----+
           Authen -user/pass valid?----------> | T S |
         /                                     | A e |
@@ -126,6 +109,7 @@ This diagram should show general idea of how the whole process looks:
   Application                                 +-----+
 
   *Client Host*          *Network*           *Server Host*
+```
 
 Consider `login' application:
 
@@ -150,16 +134,15 @@ Consider `login' application:
 7. When user logs out, pam_sm_close_session() sends STOP packet to the
    server. The whole session is closed.
 
-## Limitations:
+### Limitations:
 
 Many of them for now :)
 
-	* only subset of TACACS+ protocol is supported; it's enough for
-	  most need, though
-	* utilize PAM_SERVICE item obtained from PAM for TACACS+ services
-	* clean options and configuration code
+* only subset of TACACS+ protocol is supported; it's enough for most need, though
+* utilize PAM_SERVICE item obtained from PAM for TACACS+ services
+* clean options and configuration code
 		
-## Authors:
+### Authors:
 
 Pawel Krawczyk <pawel.krawczyk@hush.com>
 http://ipsec.pl
