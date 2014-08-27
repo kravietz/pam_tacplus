@@ -59,6 +59,14 @@ AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket])
 
 dnl --------------------------------------------------------------------
+dnl Switch for pam module dir
+AC_ARG_ENABLE([pamdir], [AS_HELP_STRING([--enable-pamdir],
+              [Location to install the pam module ($libdir/security)])],
+              [pamdir=$enableval], [pamdir=$libdir/security])
+AC_SUBST(pamdir)
+
+
+dnl --------------------------------------------------------------------
 dnl Generate made files
 AC_CONFIG_FILES([Makefile
                  pam_tacplus.spec])

@@ -9,12 +9,14 @@
 ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = subdir-objects
 
-moduledir = @libdir@
-module_LTLIBRARIES = pam_tacplus.la
-pam_tacplus_la_SOURCES = pam_tacplus.h \
-pam_tacplus.c \
-support.h \
-support.c \
+libtac_includedir = $(includedir)/libtac
+libtac_include_HEADERS = \
+libtac/include/tacplus.h \
+libtac/include/libtac.h \
+libtac/include/cdefs.h
+
+lib_LTLIBRARIES = libtac.la
+libtac_la_SOURCES = \
 libtac/lib/acct_r.c \
 libtac/lib/acct_s.c \
 libtac/lib/attrib.c \
@@ -37,12 +39,19 @@ libtac/lib/read_wait.c \
 libtac/lib/version.c \
 libtac/lib/xalloc.c \
 libtac/lib/xalloc.h \
-libtac/include/tacplus.h \
-libtac/include/libtac.h \
-libtac/include/cdefs.h
+$(libtac_include_HEADERS)
+libtac_la_CFLAGS = $(AM_CFLAGS) -Ilibtac/include
+libtac_la_LDFLAGS = -version-info 0:0:0 -shared
 
+moduledir = @pamdir@
+module_LTLIBRARIES = pam_tacplus.la
+pam_tacplus_la_SOURCES = pam_tacplus.h \
+pam_tacplus.c \
+support.h \
+support.c
 pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -Ilibtac/include
 pam_tacplus_la_LDFLAGS = -module -avoid-version
+pam_tacplus_la_LIBADD = libtac.la
 
 EXTRA_DIST = pam_tacplus.spec sample.pam
 
@@ -52,11 +61,8 @@ MAINTAINERCLEANFILES = Makefile.in config.h.in configure aclocal.m4 \
 
 
 install-data-hook:
-	-rm $(DESTDIR)$(libdir)/pam_tacplus.la
-	-rm $(DESTDIR)$(libdir)/pam_tacplus.a
-	-rm $(DESTDIR)$(libdir)/pam_tacplus.so
-	${INSTALL} -d $(DESTDIR)$(libdir)/security
-	${INSTALL} -m 755 .libs/pam_tacplus.so $(DESTDIR)$(libdir)/security
+	rm -f $(DESTDIR)$(pamdir)/pam_tacplus.la
+	rm -f $(DESTDIR)$(pamdir)/pam_tacplus.a
 	${INSTALL} -d $(DESTDIR)$(docdir)
 	${INSTALL} -m 644 sample.pam $(DESTDIR)$(docdir)
 
