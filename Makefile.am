@@ -53,12 +53,14 @@ pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -Ilibtac/include
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 
-EXTRA_DIST = pam_tacplus.spec sample.pam
+EXTRA_DIST = pam_tacplus.spec sample.pam libtac.pc.in
 
 MAINTAINERCLEANFILES = Makefile.in config.h.in configure aclocal.m4 \
                        config/config.guess  config/config.sub  config/depcomp \
                        config/install-sh config/ltmain.sh config/missing
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libtac.pc
 
 install-data-hook:
 	rm -f $(DESTDIR)$(pamdir)/pam_tacplus.la
