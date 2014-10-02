@@ -50,6 +50,14 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
+AX_CFLAGS_WARN_ALL()
+AX_CHECK_COMPILE_FLAG(["-fstack-protector-all"], [AX_APPEND_FLAG(["-fstack-protector-all"],[CFLAGS])], [])
+AX_CHECK_COMPILE_FLAG(["-Wl,-z,relro"], [AX_APPEND_FLAG(["-Wl,-z,relro"],[CFLAGS])], [])
+AX_CHECK_COMPILE_FLAG(["-Wl,-z,now"], [AX_APPEND_FLAG(["-Wl,-z,now"],[CFLAGS])], [])
+AX_CHECK_COMPILE_FLAG(["-fPIE"], [AX_APPEND_FLAG(["-fPIE"],[CFLAGS])], [])
+AX_CHECK_COMPILE_FLAG(["-pie"], [AX_APPEND_FLAG(["-pie"],[CFLAGS])], [])
+AX_APPEND_FLAG(["-O3"],[CFLAGS])
+AX_APPEND_FLAG(["-D_FORTIFY_SOURCE=2"],[CFLAGS])
 
 dnl --------------------------------------------------------------------
 dnl Checks for library functions.
