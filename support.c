@@ -131,7 +131,7 @@ int tacacs_get_password (pam_handle_t * pamh, int flags
          /* set up conversation call */
          msg.msg_style = PAM_PROMPT_ECHO_OFF;
 
-         if (!tac_prompt) {
+         if (!tac_prompt[0]) {
              msg.msg = "Password: ";
          } else {
              msg.msg = tac_prompt;
