@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@/libtac
 
-Name: libtac 
+Name: libtac
 Description: A TACACS+ protocol implementation
 URL: https://github.com/jeroennijhof/pam_tacplus
 Version: @VERSION@
