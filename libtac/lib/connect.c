@@ -50,7 +50,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
         TACSYSLOG((LOG_ERR, "%s: no TACACS+ servers defined", __FUNCTION__))
     } else {
         for ( tries = 0; tries < servers; tries++ ) {   
-            if((fd=tac_connect_single(server[tries], key[tries])) >= 0 ) {
+            if((fd=tac_connect_single(server[tries], key[tries], NULL)) >= 0 ) {
                 /* tac_secret was set in tac_connect_single on success */
                 break;
             }
@@ -67,7 +67,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
  *   >= 0 : valid fd
  *   <  0 : error status code, see LIBTAC_STATUS_...
  */
-int tac_connect_single(struct addrinfo *server, const char *key) {
+int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo *srcaddr) {
     int retval = LIBTAC_STATUS_CONN_ERR; /* default retval */
     int fd = -1;
     int flags, rc;
@@ -98,6 +98,15 @@ int tac_connect_single(struct addrinfo *server, const char *key) {
         TACSYSLOG((LOG_ERR, "%s: cannot set socket non blocking",\
             __FUNCTION__))
         return LIBTAC_STATUS_CONN_ERR;
+    }
+
+    /* bind if source address got explicity defined */
+    if (srcaddr) {
+        if (bind(fd, srcaddr->ai_addr, srcaddr->ai_addrlen) < 0) {
+            TACSYSLOG((LOG_ERR, "%s: Failed to bind source address: %s",
+                __FUNCTION__, strerror(errno)))
+            return LIBTAC_STATUS_CONN_ERR;
+        }
     }
 
     rc = connect(fd, server->ai_addr, server->ai_addrlen);
