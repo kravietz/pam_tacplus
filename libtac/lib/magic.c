@@ -77,8 +77,10 @@ magic()
 
     if(rfd > -1) {
         u_int32_t ret;
+        int nb_read = read(rfd, &ret, sizeof(ret));
+        close(rfd);
 
-        if (read(rfd, &ret, sizeof(ret)) < sizeof(ret)) {
+        if (nb_read < sizeof(ret)) {
             /* on read() error fallback to other method */
             return (u_int32_t)random();
         }
