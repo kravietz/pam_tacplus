@@ -80,6 +80,9 @@ magic()
         int nb_read = read(rfd, &ret, sizeof(ret));
         close(rfd);
 
+        // Reset magic_inited
+        magic_inited = 0;
+
         if (nb_read < sizeof(ret)) {
             /* on read() error fallback to other method */
             return (u_int32_t)random();
