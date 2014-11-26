@@ -6,7 +6,7 @@
 ##
 ###########################################################################
 
-ACLOCAL_AMFLAGS = -I config
+ACLOCAL_AMFLAGS = -I config 
 AUTOMAKE_OPTIONS = subdir-objects
 
 libtac_includedir = $(includedir)/libtac

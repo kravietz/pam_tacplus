@@ -15,6 +15,7 @@ AC_COPYRIGHT([
 See the included file: COPYING for copyright information.
 ])
 AC_INIT(pam_tacplus, 1.3.9, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
+
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([pam_tacplus.c])
@@ -51,15 +52,21 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
-AX_CFLAGS_WARN_ALL()
-AX_CHECK_COMPILE_FLAG(["-fstack-protector-all"], [AX_APPEND_FLAG(["-fstack-protector-all"],[CFLAGS])], [])
-AX_CHECK_COMPILE_FLAG(["-Wl,-z,relro"], [AX_APPEND_FLAG(["-Wl,-z,relro"],[CFLAGS])], [])
-AX_CHECK_COMPILE_FLAG(["-Wl,-z,now"], [AX_APPEND_FLAG(["-Wl,-z,now"],[CFLAGS])], [])
-AX_CHECK_COMPILE_FLAG(["-fPIE"], [AX_APPEND_FLAG(["-fPIE"],[CFLAGS])], [])
-AX_CHECK_COMPILE_FLAG(["-pie"], [AX_APPEND_FLAG(["-pie"],[CFLAGS])], [])
-AX_APPEND_FLAG(["-O3"],[CFLAGS])
-AX_APPEND_FLAG(["-Wall"],[CFLAGS])
-AX_APPEND_FLAG(["-D_FORTIFY_SOURCE=2"],[CFLAGS])
+
+for flag in -fstack-protector-all -Wl,-z,relro -Wl,-z,relro -Wl,-z,now -fPIE -pie -D_FORTIFY_SOURCE=2; do
+	my_save_cflags="$CFLAGS"
+	CFLAGS=$flag
+	AC_MSG_CHECKING([whether CC supports $flag])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+	    [AC_MSG_RESULT([yes])]
+	    [AM_CFLAGS="$AM_CFLAGS $flag"]
+	    [AM_LDFLAGS="$AM_LDFLAGS $flag"],
+	    [AC_MSG_RESULT([no])]
+	)
+	CFLAGS="$my_save_cflags"
+	AC_SUBST([AM_CFLAGS])
+	AC_SUBST([AM_LDFLAGS])
+done
 
 dnl --------------------------------------------------------------------
 dnl Checks for library functions.
