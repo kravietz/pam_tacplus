@@ -58,6 +58,7 @@ AX_CHECK_COMPILE_FLAG(["-Wl,-z,now"], [AX_APPEND_FLAG(["-Wl,-z,now"],[CFLAGS])],
 AX_CHECK_COMPILE_FLAG(["-fPIE"], [AX_APPEND_FLAG(["-fPIE"],[CFLAGS])], [])
 AX_CHECK_COMPILE_FLAG(["-pie"], [AX_APPEND_FLAG(["-pie"],[CFLAGS])], [])
 AX_APPEND_FLAG(["-O3"],[CFLAGS])
+AX_APPEND_FLAG(["-Wall"],[CFLAGS])
 AX_APPEND_FLAG(["-D_FORTIFY_SOURCE=2"],[CFLAGS])
 
 dnl --------------------------------------------------------------------

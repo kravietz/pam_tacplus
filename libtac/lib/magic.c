@@ -28,8 +28,7 @@
 
 #include "magic.h"
 
-static int rfd = -1;	/* fd for /dev/urandom */
-static int magic_inited = 0;
+static int magic_initialised = 0;
 
 /*
  * magic_init - Initialize the magic number generator.
@@ -45,26 +44,25 @@ magic_init()
     long seed;
     struct timeval t;
 
-    if (magic_inited)
+    if (magic_initialised)
         return;
 
-    magic_inited = 1;
-
-    /*
-        try using /dev/urandom
-        also check that it's a character device
-        If it doesn't exist, fallback to other method
-    */
-
+    // try to initialise seed from urandom
     if (!lstat("/dev/urandom", &statbuf) && S_ISCHR(statbuf.st_mode)) {
-        rfd = open("/dev/urandom", O_RDONLY);
-        if (rfd >= 0)
-            return;
-    } 
+        int rfd = open("/dev/urandom", O_RDONLY);
+        if(rfd > 0) {
+            int nb_read = read(rfd, &seed, sizeof(seed));
+            close(rfd);
+        }
+    }
 
+    // add the deterministic data in case urandom failed
     gettimeofday(&t, NULL);
-    seed = gethostid() ^ t.tv_sec ^ t.tv_usec ^ getpid();
+    seed ^= gethostid() ^ t.tv_sec ^ t.tv_usec ^ getpid();
+
+    // finally seed the PRNG
     srandom(seed);
+    magic_initialised = 1;
 }
 
 /*
@@ -73,19 +71,9 @@ magic_init()
 u_int32_t
 magic()
 {
-    magic_init();
+    if(!magic_initialised)
+        magic_init();
 
-    if(rfd > -1) {
-        u_int32_t ret;
-        int nb_read = read(rfd, &ret, sizeof(ret));
-        close(rfd);
-
-        if (nb_read < sizeof(ret)) {
-            /* on read() error fallback to other method */
-            return (u_int32_t)random();
-        }
-        return ret;
-    }
     return (u_int32_t)random();
 }
 
