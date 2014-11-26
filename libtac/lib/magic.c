@@ -52,6 +52,7 @@ magic_init()
         int rfd = open("/dev/urandom", O_RDONLY);
         if(rfd > 0) {
             int nb_read = read(rfd, &seed, sizeof(seed));
+            close(rfd);
         }
     }
 
