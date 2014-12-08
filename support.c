@@ -259,8 +259,11 @@ int _pam_parse (int argc, const char **argv) {
             /* FIXME atoi() doesn't handle invalid numeric strings well */
             tac_timeout = atoi(*argv + 8);
 
-            if (tac_timeout < 0)
+            if (tac_timeout < 0) {
                 tac_timeout = 0;
+            } else { 
+                tac_readtimeout_enable = 1;
+            }
         } else {
             _pam_log (LOG_WARNING, "unrecognized option: %s", *argv);
         }
