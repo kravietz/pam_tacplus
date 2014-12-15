@@ -211,7 +211,7 @@ int _pam_parse (int argc, const char **argv) {
             if(tac_srv_no < TAC_PLUS_MAXSERVERS) { 
                 struct addrinfo hints, *servers, *server;
                 int rv;
-                char *port, server_buf[256];
+                char *close_bracket, *server_name, *port, server_buf[256];
 
                 memset(&hints, 0, sizeof hints);
                 hints.ai_family = AF_UNSPEC;  /* use IPv4 or IPv6, whichever */
@@ -223,12 +223,19 @@ int _pam_parse (int argc, const char **argv) {
                 }
                 strcpy(server_buf, *argv + 7);
 
-                port = strchr(server_buf, ':');
+                if (*server_buf == '[' && (close_bracket = strchr(server_buf, ']')) != NULL) { /* Check for URI syntax */
+                    server_name = server_buf + 1;
+                    port = strchr(close_bracket, ':');
+                    *close_bracket = '\0';
+                } else { /* Fall back to traditional syntax */
+                    server_name = server_buf;
+                    port = strchr(server_buf, ':');
+                }
                 if (port != NULL) {
                     *port = '\0';
-					port++;
+                    port++;
                 }
-                if ((rv = getaddrinfo(server_buf, (port == NULL) ? "49" : port, &hints, &servers)) == 0) {
+                if ((rv = getaddrinfo(server_name, (port == NULL) ? "49" : port, &hints, &servers)) == 0) {
                     for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
                         tac_srv[tac_srv_no].addr = server;
                         tac_srv[tac_srv_no].key = current_secret;
@@ -237,7 +244,7 @@ int _pam_parse (int argc, const char **argv) {
                 } else {
                     _pam_log (LOG_ERR,
                         "skip invalid server: %s (getaddrinfo: %s)",
-                        server_buf, gai_strerror(rv));
+                        server_name, gai_strerror(rv));
                 }
             } else {
                 _pam_log(LOG_ERR, "maximum number of servers (%d) exceeded, skipping",
