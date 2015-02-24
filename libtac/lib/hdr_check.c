@@ -35,8 +35,8 @@ char *_tac_check_header(HDR *th, int type) {
             "%s: unrelated reply, type %d, expected %d",\
             __FUNCTION__, th->type, type))
         return protocol_err_msg;
-    } else if((th->seq_no != 2) && (th->seq_no != 4)) {
-        TACSYSLOG((LOG_ERR, "%s: not a reply - seq_no %d != {2,4}",\
+    } else if (1 == (th->seq_no % 2)) {
+        TACSYSLOG((LOG_ERR, "%s: not a reply - seq_no %d not even",\
             __FUNCTION__, th->seq_no))
         return protocol_err_msg;
     } /* else if(ntohl(th->session_id) != session_id) {

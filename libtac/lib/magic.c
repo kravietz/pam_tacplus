@@ -63,14 +63,16 @@ magic_init()
     magic_initialised = 1;
 }
 
+#include <pthread.h>
 /*
  * magic - Returns the next magic number.
  */
 u_int32_t
 magic()
 {
-    if(!magic_initialised)
-        magic_init();
+    static pthread_once_t magic_control = PTHREAD_ONCE_INIT;
+    
+    pthread_once(&magic_control, &magic_init);
 
     return (u_int32_t)random();
 }

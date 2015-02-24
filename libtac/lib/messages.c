@@ -20,6 +20,7 @@
  */
 
 char *protocol_err_msg = "(Protocol error)";
+char *authen_syserr_msg = "(Authentication system error)";
 char *author_ok_msg = "(Service granted)";
 char *author_fail_msg = "(Service not allowed)";
 char *author_err_msg = "(Service not allowed. Server error)";
