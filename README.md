@@ -1,3 +1,5 @@
+[![Analysis Status](https://scan.coverity.com/projects/5499/badge.svg)](https://scan.coverity.com/projects/5499)
+
 # pam_tacplus
 
 This PAM module support the following functions:
