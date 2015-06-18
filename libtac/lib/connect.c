@@ -86,7 +86,8 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
     ip = tac_ntop(server->ai_addr);
 
     if((fd=socket(server->ai_family, server->ai_socktype, server->ai_protocol)) < 0) {
-        TACSYSLOG((LOG_ERR,"%s: socket creation error", __FUNCTION__))
+        TACSYSLOG((LOG_ERR,"%s: socket creation error: %s", __FUNCTION__,
+            strerror(errno)))
         return LIBTAC_STATUS_CONN_ERR;
     }
 
