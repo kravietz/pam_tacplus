@@ -98,6 +98,7 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
     if( fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1 ) {
         TACSYSLOG((LOG_ERR, "%s: cannot set socket non blocking",\
             __FUNCTION__))
+        close(fd)
         return LIBTAC_STATUS_CONN_ERR;
     }
 
@@ -106,6 +107,7 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
         if (bind(fd, srcaddr->ai_addr, srcaddr->ai_addrlen) < 0) {
             TACSYSLOG((LOG_ERR, "%s: Failed to bind source address: %s",
                 __FUNCTION__, strerror(errno)))
+            close(fd)
             return LIBTAC_STATUS_CONN_ERR;
         }
     }
@@ -115,6 +117,7 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
     if((rc == -1) && (errno != EINPROGRESS) && (errno != 0)) {
         TACSYSLOG((LOG_ERR,\
             "%s: connection to %s failed: %m", __FUNCTION__, ip))
+        close(fd)
         return LIBTAC_STATUS_CONN_ERR;
     }
 
