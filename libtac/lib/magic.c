@@ -34,14 +34,12 @@ static int magic_initialised = 0;
  * magic_init - Initialize the magic number generator.
  *
  * Attempts to compute a random number seed which will not repeat.
- * The current method uses the current hostid, current process ID
- * and current time, currently.
  */
 void
 magic_init()
 {
     struct stat statbuf;
-    long seed;
+    long seed = 0;
     struct timeval t;
 
     if (magic_initialised)
@@ -56,7 +54,7 @@ magic_init()
         }
     }
 
-    // add the deterministic data in case urandom failed
+    // fallback
     gettimeofday(&t, NULL);
     seed ^= gethostid() ^ t.tv_sec ^ t.tv_usec ^ getpid();
 
