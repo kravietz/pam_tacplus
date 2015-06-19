@@ -236,8 +236,6 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: user [%s] obtained", __FUNCTION__, user);
 
-    /* uwzgledniac PAM_DISALLOW_NULL_AUTHTOK */
-
     retval = tacacs_get_password (pamh, flags, ctrl, &pass);
     if (retval != PAM_SUCCESS || pass == NULL || *pass == '\0') {
         _pam_log(LOG_ERR, "unable to obtain password");
