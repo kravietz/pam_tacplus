@@ -48,7 +48,7 @@ magic_init()
     // try to initialise seed from urandom
     if (!lstat("/dev/urandom", &statbuf) && S_ISCHR(statbuf.st_mode)) {
         int rfd = open("/dev/urandom", O_RDONLY);
-        if(rfd > 0) {
+        if(rfd >= 0) {
             int nb_read = read(rfd, &seed, sizeof(seed));
             close(rfd);
         }
