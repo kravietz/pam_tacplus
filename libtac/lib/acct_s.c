@@ -78,7 +78,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     tb.flags=(u_char) type;
     tb.authen_method=tac_authen_method;
     tb.priv_lvl=tac_priv_lvl;
-    if (tac_login == NULL || !*tac_login) {
+    if (!*tac_login) {
         /* default to PAP */
         tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
     } else {

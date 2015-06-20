@@ -63,7 +63,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 
     tb.authen_method = tac_authen_method;
     tb.priv_lvl = tac_priv_lvl;
-    if (tac_login == NULL) {
+    if (!*tac_login) {
         /* default to PAP */
         tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
     } else {

@@ -51,7 +51,7 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
     th=_tac_req_header(TAC_PLUS_AUTHEN, 0);
 
     /* set some header options */
-    if (tac_login != NULL && !strcmp(tac_login,"login")) {
+    if (!strcmp(tac_login,"login")) {
         th->version = TAC_PLUS_VER_0;
     } else {
         th->version = TAC_PLUS_VER_1;
@@ -62,7 +62,7 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
         __FUNCTION__, user, tty, r_addr, \
         (tac_encryption) ? "yes" : "no"))        
         
-    if (tac_login != NULL && !strcmp(tac_login,"chap")) {
+    if (!strcmp(tac_login,"chap")) {
         chal_len = strlen(chal);
         mdp_len = sizeof(u_char) + strlen(pass) + chal_len;
         mdp = (u_char *) xcalloc(1, mdp_len);
@@ -90,7 +90,7 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
     /* fill the body of message */
     tb.action = TAC_PLUS_AUTHEN_LOGIN;
     tb.priv_lvl = tac_priv_lvl;
-    if (tac_login == NULL || !*tac_login) {
+    if (!*tac_login) {
         /* default to PAP */
         tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
     } else {
