@@ -148,7 +148,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
 
     /* checks for specific data required by TACACS+, which should
        be supplied in command line  */
-    if(tac_service == NULL || *tac_service == '\0') {
+    if(*tac_service == '\0') {
         _pam_log (LOG_ERR, "ACC: TACACS+ service type not configured");
         return PAM_AUTH_ERR;
     }
@@ -475,7 +475,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
 
     /* checks for specific data required by TACACS+, which should
        be supplied in command line  */
-    if(tac_service == NULL || !*tac_service) {
+    if(!*tac_service) {
         _pam_log (LOG_ERR, "SM: TACACS+ service type not configured");
         return PAM_AUTH_ERR;
     }
