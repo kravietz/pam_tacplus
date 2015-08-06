@@ -41,7 +41,7 @@ libtac/lib/xalloc.c \
 libtac/lib/xalloc.h \
 $(libtac_include_HEADERS)
 libtac_la_CFLAGS = $(AM_CFLAGS) -Ilibtac/include
-libtac_la_LDFLAGS = -version-info 1:0:0 -shared
+libtac_la_LDFLAGS = -version-info 2:0:0 -shared
 
 moduledir = @pamdir@
 module_LTLIBRARIES = pam_tacplus.la

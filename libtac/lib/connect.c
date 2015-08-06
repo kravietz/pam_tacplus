@@ -50,7 +50,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
         TACSYSLOG((LOG_ERR, "%s: no TACACS+ servers defined", __FUNCTION__))
     } else {
         for ( tries = 0; tries < servers; tries++ ) {   
-            if((fd=tac_connect_single(server[tries], key[tries], NULL)) >= 0 ) {
+            if((fd=tac_connect_single(server[tries], key[tries], NULL, tac_timeout)) >= 0 ) {
                 /* tac_secret was set in tac_connect_single on success */
                 break;
             }
@@ -67,7 +67,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
  *   >= 0 : valid fd
  *   <  0 : error status code, see LIBTAC_STATUS_...
  */
-int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo *srcaddr) {
+int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo *srcaddr, int timeout) {
     int retval = LIBTAC_STATUS_CONN_ERR; /* default retval */
     int fd = -1;
     int flags, rc;
@@ -128,7 +128,7 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
     FD_SET(fd, &writefds);
 
     /* set timeout seconds */
-    tv.tv_sec = tac_timeout;
+    tv.tv_sec = timeout;
     tv.tv_usec = 0;
 
     /* check if socket is ready for read and write */
