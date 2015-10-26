@@ -136,6 +136,7 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
 
     /* timeout */
     if ( rc == 0 ) {
+        close(fd);
         return LIBTAC_STATUS_CONN_TIMEOUT;
     }
 
@@ -143,6 +144,7 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
     if ( rc < 0 ) {
         TACSYSLOG((LOG_ERR,\
             "%s: connection failed with %s: %m", __FUNCTION__, ip))
+        close(fd);
         return LIBTAC_STATUS_CONN_ERR;
     }
 
@@ -151,6 +153,7 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
     if(getpeername(fd, (struct sockaddr*)&addr, &len) == -1) {
         TACSYSLOG((LOG_ERR,\
             "%s: connection failed with %s: %m", __FUNCTION__, ip))
+        close(fd);
         return LIBTAC_STATUS_CONN_ERR;
     }
 
@@ -158,6 +161,7 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
     if(fcntl(fd, F_SETFL, flags) == -1) {
         TACSYSLOG((LOG_ERR, "%s: cannot restore socket flags: %m",\
              __FUNCTION__)) 
+        close(fd);
         return LIBTAC_STATUS_CONN_ERR;
     }
 
