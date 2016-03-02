@@ -82,6 +82,8 @@ AC_ARG_ENABLE([pamdir], [AS_HELP_STRING([--enable-pamdir],
               [pamdir=$enableval], [pamdir=$libdir/security])
 AC_SUBST(pamdir)
 
+AC_ARG_ENABLE(doc, AS_HELP_STRING([--disable-doc], [do not build docs]))
+AM_CONDITIONAL(DOC, test "x$enable_doc" != "xno")
 
 dnl --------------------------------------------------------------------
 dnl Generate made files
