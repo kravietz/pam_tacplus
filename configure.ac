@@ -53,7 +53,9 @@ AC_C_CONST
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
-for flag in -fstack-protector-all -Wl,-z,relro -Wl,-z,now -fPIE -pie -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2; do
+AC_ARG_ENABLE(am-ldcflags, AS_HELP_STRING([--disable-am-ldcflags], [do not add various 'AM_CFLAGS/AM_LDFLAGS']))
+if test "x$enable_am_ldcflags" != "xno"; then
+   for flag in -fstack-protector-all -Wl,-z,relro -Wl,-z,now -fPIE -pie -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2; do
 	my_save_cflags="$CFLAGS"
 	CFLAGS=$flag
 	AC_MSG_CHECKING([whether CC supports $flag])
@@ -64,9 +66,10 @@ for flag in -fstack-protector-all -Wl,-z,relro -Wl,-z,now -fPIE -pie -U_FORTIFY_
 	    [AC_MSG_RESULT([no])]
 	)
 	CFLAGS="$my_save_cflags"
-	AC_SUBST([AM_CFLAGS])
-	AC_SUBST([AM_LDFLAGS])
-done
+    done
+    AC_SUBST([AM_CFLAGS])
+    AC_SUBST([AM_LDFLAGS])
+fi
 
 dnl --------------------------------------------------------------------
 dnl Checks for library functions.
