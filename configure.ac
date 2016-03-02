@@ -53,7 +53,7 @@ AC_C_CONST
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
-for flag in -fstack-protector-all -Wl,-z,relro -Wl,-z,now -fPIE -pie -D_FORTIFY_SOURCE=2; do
+for flag in -fstack-protector-all -Wl,-z,relro -Wl,-z,now -fPIE -pie -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2; do
 	my_save_cflags="$CFLAGS"
 	CFLAGS=$flag
 	AC_MSG_CHECKING([whether CC supports $flag])
