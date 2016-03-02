@@ -6,7 +6,7 @@
 ##
 ###########################################################################
 
-ACLOCAL_AMFLAGS = -I config 
+ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = subdir-objects
 
 libtac_includedir = $(includedir)/libtac
@@ -40,7 +40,7 @@ libtac/lib/version.c \
 libtac/lib/xalloc.c \
 libtac/lib/xalloc.h \
 $(libtac_include_HEADERS)
-libtac_la_CFLAGS = $(AM_CFLAGS) -Ilibtac/include
+libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include
 libtac_la_LDFLAGS = -version-info 2:0:0 -shared
 
 moduledir = @pamdir@
@@ -49,7 +49,7 @@ pam_tacplus_la_SOURCES = pam_tacplus.h \
 pam_tacplus.c \
 support.h \
 support.c
-pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -Ilibtac/include
+pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 
@@ -66,5 +66,5 @@ install-data-hook:
 	rm -f $(DESTDIR)$(pamdir)/pam_tacplus.la
 	rm -f $(DESTDIR)$(pamdir)/pam_tacplus.a
 	${INSTALL} -d $(DESTDIR)$(docdir)
-	${INSTALL} -m 644 sample.pam $(DESTDIR)$(docdir)
+	${INSTALL} -m 644 $(top_srcdir)/sample.pam $(DESTDIR)$(docdir)
 
