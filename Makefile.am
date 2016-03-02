@@ -63,8 +63,6 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libtac.pc
 
 install-data-hook:
-	rm -f $(DESTDIR)$(pamdir)/pam_tacplus.la
-	rm -f $(DESTDIR)$(pamdir)/pam_tacplus.a
 	${INSTALL} -d $(DESTDIR)$(docdir)
 	${INSTALL} -m 644 $(top_srcdir)/sample.pam $(DESTDIR)$(docdir)
 
