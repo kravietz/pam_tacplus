@@ -34,7 +34,7 @@
  *             LIBTAC_STATUS_ASSEMBLY_ERR
  */
 int tac_authen_send(int fd, const char *user, char *pass, char *tty,
-    char *r_addr) {
+    char *r_addr, u_char action) {
 
     HDR *th;    /* TACACS+ packet header */
     struct authen_start tb;     /* message body */
@@ -88,11 +88,11 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
     token_len = strlen(token);
 
     /* fill the body of message */
-    tb.action = TAC_PLUS_AUTHEN_LOGIN;
+    tb.action = action;
     tb.priv_lvl = tac_priv_lvl;
     if (!*tac_login) {
         /* default to PAP */
-        tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
+        tb.authen_type = TAC_PLUS_AUTHEN_CHPASS == action ? TAC_PLUS_AUTHEN_TYPE_ASCII : TAC_PLUS_AUTHEN_TYPE_PAP;
     } else {
         if (!strcmp(tac_login,"chap")) {
             tb.authen_type = TAC_PLUS_AUTHEN_TYPE_CHAP;
@@ -168,3 +168,5 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret))
     return ret;
 }    /* tac_authen_send */
+
+

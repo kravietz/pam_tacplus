@@ -75,7 +75,9 @@ struct tac_attrib {
 struct areply {
     struct tac_attrib *attr;
     char *msg;
-    int status;
+    int status : 8;
+    int flags : 8;
+    int seq_no : 8;
 };
 
 #ifndef TAC_PLUS_MAXSERVERS		
@@ -130,9 +132,10 @@ int tac_connect_single(struct addrinfo *, const char *, struct addrinfo *, int);
 char *tac_ntop(const struct sockaddr *);
 
 int tac_authen_send(int, const char *, char *, char *,
-    char *);
-int tac_authen_read(int);
-int tac_cont_send(int, char *);
+    char *, u_char);
+int tac_authen_read(int, struct areply *);
+int tac_cont_send_seq(int, char *, int);
+#define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)
 HDR *_tac_req_header(u_char, int);
 void _tac_crypt(u_char *, HDR *, int);
 u_char *_tac_md5_pad(int, HDR *);
