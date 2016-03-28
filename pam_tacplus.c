@@ -712,16 +712,11 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags,
 
     syslog(LOG_DEBUG, "%s(flags=%d, argc=%d)", __func__, flags, argc);
 
-    if ( /*(ctrl & (PAM_TAC_TRY_FIRST_PASS | PAM_TAC_USE_FIRST_PASS))
-        &&*/ (pam_get_item(pamh, PAM_OLDAUTHTOK, &pam_pass) == PAM_SUCCESS)
+    if (   (pam_get_item(pamh, PAM_OLDAUTHTOK, &pam_pass) == PAM_SUCCESS)
         && (pam_pass != NULL) ) {
          if ((pass = strdup(pam_pass)) == NULL)
               return PAM_BUF_ERR;
-    } else if ((ctrl & PAM_TAC_USE_FIRST_PASS)) {
-         _pam_log(LOG_WARNING, "no forwarded password");
-         return PAM_PERM_DENIED;
-    }
-    else {
+    } else {
         pass = strdup("");
     }
     
@@ -751,7 +746,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags,
         if (ctrl & PAM_TAC_DEBUG)
             syslog(LOG_DEBUG, "%s: trying srv %d", __FUNCTION__, srv_i );
 
-        tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key, NULL);
+        tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key, NULL, tac_timeout);
         if (tac_fd < 0) {
             _pam_log(LOG_ERR, "connection failed srv %d: %m", srv_i);
             continue;
