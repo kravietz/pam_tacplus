@@ -239,12 +239,14 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
     retval = tacacs_get_password (pamh, flags, ctrl, &pass);
     if (retval != PAM_SUCCESS || pass == NULL || *pass == '\0') {
         _pam_log(LOG_ERR, "unable to obtain password");
+        free(pass);
         return PAM_CRED_INSUFFICIENT;
     }
 
     retval = pam_set_item (pamh, PAM_AUTHTOK, pass);
     if (retval != PAM_SUCCESS) {
         _pam_log(LOG_ERR, "unable to set password");
+        free(pass);
         return PAM_CRED_INSUFFICIENT;
     }
 
@@ -718,8 +720,12 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags,
         pass = strdup("");
     }
     
-    if ((user = _pam_get_user(pamh)) == NULL)
+    if ((user = _pam_get_user(pamh)) == NULL) {
+        if(pass) {
+                free(pass);
+        }
         return PAM_USER_UNKNOWN;
+    }
     
     if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: user [%s] obtained", __FUNCTION__, user);
