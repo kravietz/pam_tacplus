@@ -68,7 +68,7 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
     sprintf(buf, "%hu", task_id);
     tac_add_attrib(&attr, "task_id", buf);
     tac_add_attrib(&attr, "service", tac_service);
-    if(tac_protocol != NULL && tac_protocol[0] != '\0')
+    if(tac_protocol[0] != '\0')
       tac_add_attrib(&attr, "protocol", tac_protocol);
     if (cmd != NULL) {
         tac_add_attrib(&attr, "cmd", cmd);
@@ -152,7 +152,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv,
         _pam_log (LOG_ERR, "ACC: TACACS+ service type not configured");
         return PAM_AUTH_ERR;
     }
-    if(tac_protocol == NULL || *tac_protocol == '\0') {
+    if(*tac_protocol == '\0') {
         _pam_log (LOG_ERR, "ACC: TACACS+ protocol type not configured (IGNORED)");
     }
 
@@ -560,12 +560,12 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
         _pam_log (LOG_ERR, "SM: TACACS+ service type not configured");
         return PAM_AUTH_ERR;
     }
-    if(tac_protocol == NULL || !*tac_protocol) {
+    if(!*tac_protocol) {
         _pam_log (LOG_ERR, "SM: TACACS+ protocol type not configured (IGNORED)");
     }
 
     tac_add_attrib(&attr, "service", tac_service);
-    if(tac_protocol != NULL && tac_protocol[0] != '\0')
+    if(tac_protocol[0] != '\0')
       tac_add_attrib(&attr, "protocol", tac_protocol);
 
     tac_fd = tac_connect_single(active_server.addr, active_server.key, NULL, tac_timeout);
