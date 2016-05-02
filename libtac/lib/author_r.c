@@ -107,7 +107,7 @@ int tac_author_read(int fd, struct areply *re) {
     packet_read = read(fd, tb, len_from_header);
     if (packet_read < len_from_header) {
         TACSYSLOG((LOG_ERR,\
-            "%s: short reply body, read %d of %d: %m", __FUNCTION__,\
+            "%s: short reply body, read %d of %d", __FUNCTION__,\
             packet_read, len_from_header))
         re->msg = xstrdup(author_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_BODY;
