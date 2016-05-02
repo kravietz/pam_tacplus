@@ -176,11 +176,6 @@ int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo
         tac_secret = key;
     }
 
-    /* if valid fd, but error experienced after open, close fd */
-    if ( fd >= 0 && retval < 0 ) {
-        close(fd);
-    }
-
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d (fd=%d)",\
         __FUNCTION__, retval < 0 ? retval:0, fd))
     return retval;
