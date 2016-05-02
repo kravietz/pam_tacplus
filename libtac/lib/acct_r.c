@@ -36,6 +36,7 @@ int tac_acct_read(int fd, struct areply *re) {
     HDR th;
     struct acct_reply *tb = NULL;
     int len_from_header, r, len_from_body;
+    ssize_t packet_read;
     char *msg = NULL;
     int timeleft;
     re->attr = NULL; /* unused */
@@ -51,11 +52,11 @@ int tac_acct_read(int fd, struct areply *re) {
         return re->status;
     }
 
-    r=read(fd, &th, TAC_PLUS_HDR_SIZE);
-    if(r < TAC_PLUS_HDR_SIZE) {
+    packet_read = read(fd, &th, TAC_PLUS_HDR_SIZE);
+    if(packet_read  < TAC_PLUS_HDR_SIZE) {
         TACSYSLOG((LOG_ERR,\
             "%s: short reply header, read %d of %d: %m", __FUNCTION__,\
-            r, TAC_PLUS_HDR_SIZE))
+            packet_read, TAC_PLUS_HDR_SIZE))
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_HDR;
         free(tb);
@@ -74,6 +75,15 @@ int tac_acct_read(int fd, struct areply *re) {
     }
 
     len_from_header=ntohl(th.datalength);
+    if (len_from_header > packet_read) {
+        TACSYSLOG((LOG_ERR,\
+            "%s: length declared in the packet %d does not match actual packet size %d",\
+            __FUNCTION__,\
+            len_from_header, packet_read))
+        re->status=LIBTAC_STATUS_SHORT_HDR;
+        free(tb);
+        return re->status;
+    }
     tb=(struct acct_reply *) xcalloc(1, len_from_header);
 
     /* read reply packet body */

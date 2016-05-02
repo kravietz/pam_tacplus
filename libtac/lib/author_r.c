@@ -82,6 +82,15 @@ int tac_author_read(int fd, struct areply *re) {
     }
 
     len_from_header = ntohl(th.datalength);
+    if (len_from_header > packet_read) {
+        TACSYSLOG((LOG_ERR,\
+            "%s: length declared in the packet %d does not match actual packet size %d",\
+            __FUNCTION__,\
+            len_from_header, packet_read))
+        re->status = LIBTAC_STATUS_PROTOCOL_ERR;
+        free(tb);
+        return re->status;
+    }
     tb = (struct author_reply *) xcalloc(1, len_from_header);
 
     /* read reply packet body */
