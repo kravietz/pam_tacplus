@@ -18,6 +18,13 @@
  * See `CHANGES' file for revision history.
  */
 
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
+
+/* if OpenSSL library is available this legacy code will not be compiled in */
+#if !defined(HAVE_OPENSSL_RAND_H) && !defined(HAVE_LIBCRYPTO)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -77,3 +84,4 @@ magic()
     return (u_int32_t)random();
 }
 
+#endif

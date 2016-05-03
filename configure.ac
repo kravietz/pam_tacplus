@@ -14,7 +14,7 @@ AC_PREREQ(2.59)
 AC_COPYRIGHT([
 See the included file: COPYING for copyright information.
 ])
-AC_INIT(pam_tacplus, 1.3.9, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
+AC_INIT(pam_tacplus, 1.4.0, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
 
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE([foreign])
@@ -35,6 +35,8 @@ dnl --------------------------------------------------------------------
 dnl Checks for libraries.
 AC_CHECK_LIB(pam, pam_start)
 AC_CHECK_LIB(tac, tac_connect)
+AC_CHECK_LIB(crypto, MD5_Init)
+AC_CHECK_LIB(crypto, RAND_pseudo_bytes)
 
 case "$host" in
 	sparc-* | sparc64-*)
@@ -44,7 +46,7 @@ esac
 dnl --------------------------------------------------------------------
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h syslog.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h syslog.h unistd.h openssl/md5.h openssl/rand.h])
 AC_CHECK_HEADER(security/pam_appl.h, [], [AC_MSG_ERROR([PAM libraries missing. Install with "yum install pam-devel" or "apt-get install libpam-dev".])] )
 
 dnl --------------------------------------------------------------------

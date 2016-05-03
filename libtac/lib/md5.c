@@ -18,6 +18,13 @@
  * See `CHANGES' file for revision history.
  */
 
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
+
+/* if OpenSSL library is available this legacy code will not be compiled in */
+#if !defined(HAVE_OPENSSL_MD5_H) && !defined(HAVE_LIBCRYPTO)
+
 #include <string.h>
 #include "md5.h"
 
@@ -263,3 +270,4 @@ static void Transform ( UINT4 *buf, UINT4 *in) {
     buf[3] += d;
 }
 
+#endif

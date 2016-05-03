@@ -21,7 +21,16 @@
 
 #include "libtac.h"
 #include "xalloc.h"
-#include "md5.h"
+
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
+
+#if defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO)
+# include <openssl/md5.h>
+#else
+# include "md5.h"
+#endif
 
 /* Produce MD5 pseudo-random pad for TACACS+ encryption.
    Use data from packet header and secret, which
@@ -37,9 +46,9 @@ u_char *_tac_md5_pad(int len, HDR *hdr)  {
     /* make pseudo pad */
     n = (int)(len/16)+1;  /* number of MD5 runs */
     bufsize = sizeof(hdr->session_id) + strlen(tac_secret) + sizeof(hdr->version)
-        + sizeof(hdr->seq_no) + MD5_LEN + 10;
+        + sizeof(hdr->seq_no) + MD5_LBLOCK + 10;
     buf = (u_char *) xcalloc(1, bufsize);
-    pad = (u_char *) xcalloc(n, MD5_LEN);
+    pad = (u_char *) xcalloc(n, MD5_LBLOCK);
 
     for (i=0; i<n; i++) {
         /* MD5_1 = MD5{session_id, secret, version, seq_no}
@@ -58,15 +67,15 @@ u_char *_tac_md5_pad(int len, HDR *hdr)  {
 
         /* append previous pad if this is not the first run */
         if (i) {
-            bcopy(pad+((i-1)*MD5_LEN), buf+bp, MD5_LEN);
-            bp+=MD5_LEN;
+            bcopy(pad+((i-1)*MD5_LBLOCK), buf+bp, MD5_LBLOCK);
+            bp+=MD5_LBLOCK;
         }
   
-        MD5Init(&mdcontext);
-        MD5Update(&mdcontext, buf, bp);
-        MD5Final(pad+pp, &mdcontext);
+        MD5_Init(&mdcontext);
+        MD5_Update(&mdcontext, buf, bp);
+        MD5_Final(pad+pp, &mdcontext);
    
-        pp += MD5_LEN;
+        pp += MD5_LBLOCK;
     }
 
     free(buf);

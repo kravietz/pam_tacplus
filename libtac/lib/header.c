@@ -21,7 +21,16 @@
 
 #include "libtac.h"
 #include "xalloc.h"
-#include "magic.h"
+
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
+
+#if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
+# include <openssl/rand.h>
+#else
+# include "magic.h"
+#endif
 
 /* Miscellaneous variables that are global, because we need
  * store their values between different functions and connections.
@@ -72,8 +81,13 @@ HDR *_tac_req_header(u_char type, int cont_session) {
     th->encryption=TAC_PLUS_ENCRYPTED_FLAG;
  
     /* make session_id from pseudo-random number */
-    if (!cont_session)
+    if (!cont_session) {
+#if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
+        RAND_pseudo_bytes((unsigned char *) &session_id, sizeof(session_id));
+#else
         session_id = magic();
+#endif
+    }
     th->session_id = htonl(session_id);
 
     return th;
