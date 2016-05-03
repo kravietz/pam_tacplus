@@ -1,0 +1,138 @@
+.TH TACC 1
+.SH NAME
+tacc \- simple TACACS+ client and login program
+.SH SYNOPSIS
+.B tacc
+[-TRAVh] [-qwn] [-u \fIusername\fR] [-p \fIpassword\fR] [-s \fIserver\fR]
+[-k \fIsecret\fR] [-c \fI'command'\fR] [--username=\fIusername\fR]
+[--password=\fIpassword\fR] [--server=\fIserver\fR] [--secret=\fIsecret\fR]
+[--command=\fI'command'\fR | --exec=\fI'command'\fR] [--quiet | --silent]
+[--no-wtmp] [--no-encrypt]
+.PP
+.B tacc
+\fIusername\fR 
+.SH DESCRIPTION
+.B tacc
+is simple TACACS+ client, designed mainly for two purposes:
+.TP
+.B command line mode
+sending arbitrary TACACS+ requests from command line
+.TP
+.B login mode
+sending authentication and authorization requests for username
+supplied in command line and password read from standard input;
+in this case \fBtacc\fR is working in "dumb" mode and compiled-in
+defaults are used
+.PP
+\fBtacc\fR will run in either command line mode or login mode depending 
+on parameters passed from command line. When there's only one non-option
+(i.e. not starting with "\-") parameter, \fBtacc\fR will run in login mode.
+Otherwise, it will parse other parameters described below. Any data not
+explicitly set from command line will be set to default, compiled in
+value.
+.SH "COMMAND LINE OPTIONS" 
+Options specifying action to be performed. At least one is required.
+.TP
+.I "\-T, \-\-authenticate"
+perform authentication of username and password supplied with
+\-u and \-p options
+.TP
+.I "\-R, \-\-authorize"
+request authorization for particular service (in current version
+this is limited to service \fBppp\fR and protocol \fBip\fR)
+.TP
+.I "\-A, \-\-account"
+send accounting requests on session beginning and end
+.ip "Data\ options"
+.TP
+.I "\-h, \-\-help"
+display brief listing of options and exit
+.TP
+.I "\-V, \-\-version"
+display program name, program version and exit
+
+.PP
+Options for passing various data to the program. Only \fB\-u\fR is required.
+If any of other options is not specified, the compiled-in defaul is used.
+
+.TP
+.I "\-u, \-\-username"
+username for authentication, authorization and accounting
+.TP
+.I "\-p, \-\-password"
+password for authentication; if not specified from command line,
+prompt is displayed and password is read from standard input
+.TP
+.I "\-s, \-\-server"
+TACACS+ server address, either IP address or host name; this option
+can be given up to two times, specifying primary and secondary servers
+.TP
+.I "\-k, \-\-secret"
+shared secret used to encrypt and decrypt packets exchanged with
+TACACS+ server
+.TP
+.I "\-c, \-\-command, \-\-exec"
+command to execute after successful performing all specified actions;
+this usually starts PPP or SLIP driver
+
+.PP
+Options modifying program's behaviour.
+
+.TP
+.I "\-q, \-\-quiet, \-\-silent"
+supresses displaying informational and error messages to standard
+output, but still report errors to syslog(3)
+.TP
+.I "\-w, \-\-no\-wtmp"
+supresses writing accounting records to local wtmp(5) files
+.TP
+.I "\-n, \-\-no\-encrypt"
+disables encryption of packets sent to TACACS+ server
+
+.SH "LOGIN MODE"
+In this mode \fBtacc\fR will accept only one parameter, the \fIusername\fR,
+as passed from \fIgetty\fR style programs. It is intended for use as
+replacement for \fIlogin\fR program in \fIgetty\fR configuration file.
+In login mode \fBtacc\fR will use compiled in defaults for server address,
+secret key and command to run after successful authentication and
+authorization. It will also prompt for password and read it from standard
+input, like the \fIlogin\fR program.
+
+.SH LIMITATIONS
+In current version there is no other way to change login mode parameters
+than changing them in the source file and recompiling \fBtacc\fR. It also
+does not implement the full TACACS+ specification, only the subset of
+TACACS+ required to perform PAP authentication, IP authorization
+and start/stop accounting.
+.PP
+There are also some limitations in information sent in accounting packets,
+caused by the fact that \fBtacc\fR doesn't perform PPP connection itself,
+but only spawns \fIpppd\fR to handle the PPP protocol. Because of this
+\fBtacc\fR has no idea on how many data was exchanged with the peer. 
+
+.SH "EXIT CODE"
+\fBtacc\fR returns the following codes at exit:
+.TP
+.B 0
+to indicate success
+.TP
+.B 1
+to indicate authentication failure or remote server error
+.TP
+.B 2
+to indicate local error
+
+.SH "SEE ALSO"
+.TP
+.I ftp://ftp-eng.cisco.com/tacplus/
+CISCO archive with latest versions of TACACS+ specification, API and
+server source code
+.TP
+.I TAC_PLUS Developer's Kit
+distributed with TACACS+ server source code
+.TP
+.I http://ceti.com.pl/~kravietz/progs/tacacs.html
+more information on \fBtacc\fR and TACACS+ support for \fIpppd\fR
+
+.SH AUTHOR
+Pawel Krawczyk <kravietz@ceti.com.pl>

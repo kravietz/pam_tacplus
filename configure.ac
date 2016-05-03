@@ -37,6 +37,7 @@ AC_CHECK_LIB(pam, pam_start)
 AC_CHECK_LIB(tac, tac_connect)
 AC_CHECK_LIB(crypto, MD5_Init)
 AC_CHECK_LIB(crypto, RAND_pseudo_bytes)
+AC_CHECK_LIB(util, logwtmp)
 
 case "$host" in
 	sparc-* | sparc64-*)
@@ -78,7 +79,7 @@ dnl Checks for library functions.
 AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket])
+AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp])
 
 dnl --------------------------------------------------------------------
 dnl Switch for pam module dir
