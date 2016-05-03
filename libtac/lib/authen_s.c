@@ -19,9 +19,21 @@
  * See `CHANGES' file for revision history.
  */
 
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
+
 #include "libtac.h"
 #include "xalloc.h"
-#include "md5.h"
+
+#if defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO)
+# include <openssl/md5.h>
+#ifndef MD5_LEN
+# define MD5_LEN MD5_LBLOCK
+#endif
+#else
+# include "md5.h"
+#endif
 
 /* this function sends a packet do TACACS+ server, asking
  * for validation of given username and password
@@ -69,9 +81,15 @@ int tac_authen_send(int fd, const char *user, char *pass, char *tty,
         mdp[0] = 5;
         memcpy(&mdp[1], pass, strlen(pass));
         memcpy(mdp + strlen(pass) + 1, chal, chal_len);
-        MD5Init(&mdcontext);
-        MD5Update(&mdcontext, mdp, mdp_len);
-        MD5Final((u_char *) digest, &mdcontext);
+#if defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO)
+        MD5_Init(&mdcontext);
+		MD5_Update(&mdcontext, mdp, mdp_len);
+		MD5_Final((u_char *) digest, &mdcontext);
+#else
+		MD5Init(&mdcontext);
+		MD5Update(&mdcontext, mdp, mdp_len);
+		MD5Final((u_char *) digest, &mdcontext);
+#endif
         free(mdp);
         token = (char*) xcalloc(1, sizeof(u_char) + 1 + chal_len + MD5_LEN);
         token[0] = 5;
