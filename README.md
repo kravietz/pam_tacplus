@@ -136,6 +136,25 @@ Consider `login' application:
 7. When user logs out, pam_sm_close_session() sends STOP packet to the
    server. The whole session is closed.
 
+### TACACS+ client program
+The library comes with a simple TACACS+ client program `tacc` which can be used for testing as well as simple scripting. Sample usage:
+
+```
+tacc --authenticate --authorize --account --username test1
+    --password test1 --server localhost --remote 1.1.1.1
+    --secret test1 --service ppp --protocol ip
+```
+This configuration runs full AAA round (authentication, authorization and accounting). The `server` and `secret` option specify server connection parameters and all remaining options supply data specific to TACACS+ protocol. The `tac_plus` daemon (found in `tacacs+` package in Debian and Ubuntu) can be used for testing with the following example configuration:
+```
+key = test1
+user = test1 {
+    global = cleartext "test1"
+    service = ppp protocol = ip {
+            addr=8.8.8.8
+    }
+}
+```
+
 ### Limitations:
 
 Many of them for now :)
@@ -147,6 +166,6 @@ Many of them for now :)
 ### Authors:
 
 Pawel Krawczyk <pawel.krawczyk@hush.com>
-http://ipsec.pl
+https://ipsec.pl/
 
 Jeroen Nijhof <jeroen@jeroennijhof.nl>
