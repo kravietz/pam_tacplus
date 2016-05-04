@@ -478,16 +478,14 @@ void showusage(char *progname) {
 
 	printf("%s -- simple TACACS+ client and login, version %u.%u.%u\n",
 			progname, tac_ver_major, tac_ver_minor, tac_ver_patch);
-	printf("Copyright 1997-98 by Pawel Krawczyk <pawel.krawczyk@hush.com>\n");
-	printf("usage: %s option [option, ...]\n", progname);
+	printf("Copyright 1997-2016 by Pawel Krawczyk <pawel.krawczyk@hush.com>\n");
+	printf("Usage: %s option [option, ...]\n\n", progname);
 	printf(" Action:\n");
-	printf(
-			"  -T, --authenticate  perform authentication with username and password\n");
-	printf(
-			"  -R, --authorize     perform authorization for requested service\n");
+	printf("  -T, --authenticate  perform authentication with username and password\n");
+	printf("  -R, --authorize     perform authorization for requested service\n");
 	printf("  -A, --account       account session beginning and end\n");
 	printf("  -h, --help          display this help and exit\n");
-	printf("  -V, --version       display version number and exit\n");
+	printf("  -V, --version       display version number and exit\n\n");
 	printf(" Data:\n");
 	printf("  -u, --username      remote user name\n");
 	printf("  -p, --password      remote user password\n");
@@ -496,15 +494,15 @@ void showusage(char *progname) {
 	printf("  -S, --service       requested service (e.g. ppp)\n");
 	printf("  -P, --protocol      requested protocl (e.g. ip)\n");
 	printf("  -k, --secret        server encryption key\n");
-	printf(
-			"  -c, --command      command to execute after successful AAA\n");
-	printf("       --exec         alias for --command\n");
+	printf("  -c, --command       command to execute after successful AAA\n");
+	printf("       --exec         alias for --command\n\n");
 	printf(" Modifiers:\n");
-	printf(
-			"  -q, --quiet        don't display messages to screen (but still\n");
+	printf("  -q, --quiet         don't display messages to screen (but still\n");
 	printf("      --silent        report them via syslog(3))\n");
 	printf("  -w, --no-wtmp       don't write records to wtmp(5)\n");
-	printf("  -n, --no-encrypt    don't encrypt AAA packets sent to servers\n");
+	printf("  -n, --no-encrypt    don't encrypt AAA packets sent to servers\n\n");
+    printf("Example usage:\n\n");
+    printf("  tacc -TRA -u test1 -p test1 -s localhost -r 1.1.1.1 -k test1 -S ppp -P ip\n");
 
 	exit(EXIT_ERR);
 }
