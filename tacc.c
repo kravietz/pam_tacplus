@@ -80,30 +80,41 @@ char *user = NULL; /* global, because of signal handler */
 /* command line options */
 static struct option long_options[] = {
 /* operation */
-{ "authenticate", no_argument, NULL, 'T' }, { "authorize", no_argument, NULL,
-		'R' }, { "account", no_argument, NULL, 'A' }, { "version", no_argument,
-NULL, 'V' }, { "help", no_argument, NULL, 'h' },
+    { "authenticate", no_argument, NULL, 'T' },
+    { "authorize", no_argument, NULL, 'R' },
+    { "account", no_argument, NULL, 'A' },
+    { "version", no_argument, NULL, 'V' },
+    { "help", no_argument, NULL, 'h' },
 
 /* data */
-{ "username", required_argument, NULL, 'u' }, { "remote", required_argument,
-		NULL, 'r' }, { "password", required_argument,
-NULL, 'p' }, { "server", required_argument, NULL, 's' }, { "secret",
-required_argument, NULL, 'k' }, { "command", required_argument, NULL, 'c' }, {
-		"exec", required_argument, NULL, 'c' },
+    { "username", required_argument, NULL, 'u' },
+    { "remote", required_argument, NULL, 'r' },
+    { "password", required_argument, NULL, 'p' },
+    { "server", required_argument, NULL, 's' },
+    { "secret", required_argument, NULL, 'k' },
+    { "command", required_argument, NULL, 'c' },
+    { "exec", required_argument, NULL, 'c' },
+    { "service", required_argument, NULL, 'S' },
+    { "protocol", required_argument, NULL, 'P' },
+    { "remote", required_argument, NULL, 'r' },
 
 /* modifiers */
-{ "quiet", no_argument, NULL, 'q' }, { "silent", no_argument, NULL, 'q' }, {
-		"no-wtmp", no_argument, NULL, 'w' }, { "no-encrypt", no_argument, NULL,
-		'n' }, { 0, 0, 0, 0 } };
+    { "quiet", no_argument, NULL, 'q' },
+    { "silent", no_argument, NULL, 'q' },
+    { "no-wtmp", no_argument, NULL, 'w' },
+    { "no-encrypt", no_argument, NULL, 'n' },
+    { 0, 0, 0, 0 } };
 
 /* command line letters */
-char *opt_string = "TRAVhu:p:s:k:c:qr:wn";
+char *opt_string = "TRAVhu:p:s:k:c:qr:wnS:P:";
 
 int main(int argc, char **argv) {
 	char *pass = NULL;
 	char *tty;
 	char *command = NULL;
 	char *remote_addr = NULL;
+    char *service = NULL;
+    char *protocol = NULL;
 	struct addrinfo *tac_server;
 	char *tac_server_name = NULL;
 	char *tac_secret = NULL;
@@ -174,6 +185,12 @@ int main(int argc, char **argv) {
 			case 'c':
 				command = optarg;
 				break;
+			case 'S':
+				service = optarg;
+				break;
+			case 'P':
+				protocol = optarg;
+				break;
 			case 'q':
 				quiet = 1;
 				break;
@@ -194,7 +211,22 @@ int main(int argc, char **argv) {
 	}
 
 	if (user == NULL) {
-		printf("error: usernae is required.\n");
+		printf("error: username is required.\n");
+		exit(EXIT_ERR);
+	}
+
+	if (remote_addr == NULL) {
+		printf("error: remote address is required.\n");
+		exit(EXIT_ERR);
+	}
+
+	if (service == NULL) {
+		printf("error: service is required.\n");
+		exit(EXIT_ERR);
+	}
+
+	if (protocol == NULL) {
+		printf("error: protocol is required.\n");
 		exit(EXIT_ERR);
 	}
 
@@ -290,7 +322,7 @@ int main(int argc, char **argv) {
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, user, tty, 0, attr);
+		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, user, tty, remote_addr, attr);
 
 		ret = tac_acct_read(tac_fd, &arep);
 		if(ret == 0) {
@@ -373,7 +405,7 @@ int main(int argc, char **argv) {
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, user, tty, 0, attr);
+		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, user, tty, remote_addr, attr);
 		ret = tac_acct_read(tac_fd, &arep);
 		if (ret == 0) {
 			if (!quiet)
@@ -448,34 +480,29 @@ void showusage(char *progname) {
 			progname, tac_ver_major, tac_ver_minor, tac_ver_patch);
 	printf("Copyright 1997-98 by Pawel Krawczyk <pawel.krawczyk@hush.com>\n");
 	printf("usage: %s option [option, ...]\n", progname);
-	printf("       %s username\n", progname);
-	printf("When started with username as the only parameter, %s will use\n",
-			progname);
-	printf(
-			"compiled-in default values for server address and secret. It will\n");
-	printf("also display prompt and read password from standard input.\n");
-	printf("Otherwise, the following options are accepted in command line:\n");
 	printf(" Action:\n");
 	printf(
-			"  -T, --authenticate  perform authentication of username and password\n");
+			"  -T, --authenticate  perform authentication with username and password\n");
 	printf(
 			"  -R, --authorize     perform authorization for requested service\n");
 	printf("  -A, --account       account session beginning and end\n");
 	printf("  -h, --help          display this help and exit\n");
 	printf("  -V, --version       display version number and exit\n");
 	printf(" Data:\n");
-	printf("  -u, --username      user's name\n");
-	printf("  -p, --password      user's password\n");
-	printf("  -s, --server        server's IP address or FQDN\n");
-	printf("  -r, --remote        remote client's IP address for accounting\n");
-	printf("  -k, --secret        shared secret to encrypt packets\n");
+	printf("  -u, --username      remote user name\n");
+	printf("  -p, --password      remote user password\n");
+	printf("  -s, --server        server IP address or FQDN\n");
+	printf("  -r, --remote        remote client's IP address\n");
+	printf("  -S, --service       requested service (e.g. ppp)\n");
+	printf("  -P, --protocol      requested protocl (e.g. ip)\n");
+	printf("  -k, --secret        server encryption key\n");
 	printf(
-			"  -c, --command       command to execute after success in all of\n");
-	printf("      --exec           specified actions\n");
+			"  -c, --command      command to execute after successful AAA\n");
+	printf("       --exec         alias for --command\n");
 	printf(" Modifiers:\n");
 	printf(
-			"  -q, --quiet         don't display messages to screen (but still\n");
-	printf("      --silent         report them via syslog(3))\n");
+			"  -q, --quiet        don't display messages to screen (but still\n");
+	printf("      --silent        report them via syslog(3))\n");
 	printf("  -w, --no-wtmp       don't write records to wtmp(5)\n");
 	printf("  -n, --no-encrypt    don't encrypt AAA packets sent to servers\n");
 
