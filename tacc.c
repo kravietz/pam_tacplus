@@ -274,8 +274,8 @@ int main(int argc, char **argv) {
 	if (do_author) {
 		/* authorize user */
 		struct tac_attrib *attr = NULL;
-		tac_add_attrib(&attr, "service", "ppp");
-		tac_add_attrib(&attr, "protocol", "lcp");
+		tac_add_attrib(&attr, "service", service);
+		tac_add_attrib(&attr, "protocol", protocol);
 
 		tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
 		if (tac_fd < 0) {
@@ -312,8 +312,8 @@ int main(int argc, char **argv) {
 		RAND_pseudo_bytes((unsigned char *) &task_id, sizeof(task_id));
 		sprintf(buf, "%hu", task_id);
 		tac_add_attrib(&attr, "task_id", buf);
-		tac_add_attrib(&attr, "service", "ppp");
-		tac_add_attrib(&attr, "protocol", "lcp");
+		tac_add_attrib(&attr, "service", service);
+		tac_add_attrib(&attr, "protocol", protocol);
 
 		tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
 		if (tac_fd < 0) {
