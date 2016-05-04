@@ -60,11 +60,11 @@ int tac_author_read(int fd, struct areply *re) {
         return re->status;
     }
 
-    r = read(fd, &th, TAC_PLUS_HDR_SIZE);
-    if(r < TAC_PLUS_HDR_SIZE) {
+    packet_read = read(fd, &th, TAC_PLUS_HDR_SIZE);
+    if(packet_read < TAC_PLUS_HDR_SIZE) {
         TACSYSLOG((LOG_ERR,\
-            "%s: short reply header, read %d of %d: %m", __FUNCTION__,\
-            r, TAC_PLUS_HDR_SIZE))
+            "%s: short reply header, read %ld of %d: %m", __FUNCTION__,\
+            packet_read, TAC_PLUS_HDR_SIZE))
         re->msg = xstrdup(author_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_HDR;
         free(tb);
@@ -84,7 +84,7 @@ int tac_author_read(int fd, struct areply *re) {
     len_from_header = ntohl(th.datalength);
     if (len_from_header > packet_read) {
         TACSYSLOG((LOG_ERR,\
-            "%s: length declared in the packet %d does not match actual packet size %d",\
+            "%s: length declared in the packet %d does not match actual packet size %ld",\
             __FUNCTION__,\
             len_from_header, packet_read))
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
@@ -107,7 +107,7 @@ int tac_author_read(int fd, struct areply *re) {
     packet_read = read(fd, tb, len_from_header);
     if (packet_read < len_from_header) {
         TACSYSLOG((LOG_ERR,\
-            "%s: short reply body, read %d of %d", __FUNCTION__,\
+            "%s: short reply body, read %ld of %d", __FUNCTION__,\
             packet_read, len_from_header))
         re->msg = xstrdup(author_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_BODY;
