@@ -38,7 +38,8 @@
 int tac_authen_read(int fd, struct areply *re) {
     HDR th;
     struct authen_reply *tb = NULL;
-    int len_from_header, r, len_from_body;
+    int r;
+    unsigned int len_from_header, len_from_body;
     ssize_t packet_read;
     char *msg = NULL;
     int timeleft;
