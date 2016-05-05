@@ -516,6 +516,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     int tac_fd;
 
     user = tty = r_addr = NULL;
+    memset(&arep, 0, sizeof(arep));
 
     /* this also obtains service name for authorization
        this should be normally performed by pam_get_item(PAM_SERVICE)
