@@ -41,7 +41,8 @@
 int tac_author_read(int fd, struct areply *re) {
     HDR th;
     struct author_reply *tb = NULL;
-    int len_from_header, r, len_from_body;
+    unsigned int len_from_header, len_from_body;
+    int r;
     ssize_t packet_read;
     u_char *pktp = NULL;
     char *msg = NULL;
