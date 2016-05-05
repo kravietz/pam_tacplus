@@ -77,7 +77,7 @@ int tac_acct_read(int fd, struct areply *re) {
     len_from_header=ntohl(th.datalength);
     if (len_from_header > packet_read) {
         TACSYSLOG((LOG_ERR,\
-            "%s: length declared in the packet %d does not match actual packet size %d",\
+            "%s: length declared in the packet %d does not match actual packet size %ld",\
             __FUNCTION__,\
             len_from_header, packet_read))
         re->status=LIBTAC_STATUS_SHORT_HDR;
