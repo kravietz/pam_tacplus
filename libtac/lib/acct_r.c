@@ -35,7 +35,8 @@
 int tac_acct_read(int fd, struct areply *re) {
     HDR th;
     struct acct_reply *tb = NULL;
-    int len_from_header, r, len_from_body;
+    unsigned int len_from_header, len_from_body;
+    int r;
     ssize_t packet_read;
     char *msg = NULL;
     int timeleft;

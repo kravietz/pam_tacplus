@@ -21,6 +21,12 @@ Description: TACACS+ protocol library
  This library implemenents the fundamentls of the TACACS+ protocol and supports
  authentication, authorization (account management) and accounting (session management).
 
+Package: libtac2-bin
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: TACACS+ client program
+ Simple command-line client for TACACS+ testing and scripting
+
 Package: libtac-dev
 Section: libdevel
 Architecture: any
