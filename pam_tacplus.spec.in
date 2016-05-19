@@ -42,13 +42,16 @@ make
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
 mkdir -p $RPM_BUILD_ROOT/%{_lib}/security
+mkdir -p $RPM_BUILD_ROOT/usr/local/lib/security
 
 install -m 755 .libs/pam_tacplus.so \
                $RPM_BUILD_ROOT/%{_lib}/security/
-
+install -m 755 .libs/libtac.so \
+              $RPM_BUILD_ROOT/usr/local/lib/security/
 install -m 644 sample.pam $RPM_BUILD_ROOT/etc/pam.d/tacacs
 
 chmod 755 $RPM_BUILD_ROOT/%{_lib}/security/*.so*
+chmod 755 $RPM_BUILD_ROOT/usr/local/lib/security/
 
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
@@ -56,8 +59,9 @@ chmod 755 $RPM_BUILD_ROOT/%{_lib}/security/*.so*
 %files
 %defattr(-,root,root)
 %attr(0755,root,root) /%{_lib}/security/*.so*
+%attr(0755,root,root) /usr/local/lib/security/*.so*
 %attr(0644,root,root) %config(noreplace) /etc/pam.d/tacacs
-%doc AUTHORS COPYING README ChangeLog
+%doc AUTHORS COPYING README.md ChangeLog
 
 %changelog
 * Thu Feb  2 2012 - Jeroen <jeroen@jeroennijhof.nl>
