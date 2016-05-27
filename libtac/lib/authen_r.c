@@ -78,11 +78,11 @@ int tac_authen_read(int fd, struct areply *re) {
     re->seq_no = th.seq_no;
  
     len_from_header = ntohl(th.datalength);
-    if (len_from_header > TAC_MAC_PACKET_SIZE) {
+    if (len_from_header > TAC_PLUS_MAX_PACKET_SIZE) {
         TACSYSLOG((LOG_ERR,\
             "%s: length declared in the packet %d exceeds max packet size %ld",\
             __FUNCTION__,\
-            len_from_header, TAC_MAC_PACKET_SIZE))
+            len_from_header, TAC_PLUS_MAX_PACKET_SIZE))
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
         free(tb);
         return re->status;

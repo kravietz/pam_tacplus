@@ -76,7 +76,7 @@ int tac_acct_read(int fd, struct areply *re) {
     }
 
     len_from_header=ntohl(th.datalength);
-    if (len_from_header > TAC_PLUS_MAX_PACKET_SIZE)
+    if (len_from_header > TAC_PLUS_MAX_PACKET_SIZE) {
         TACSYSLOG((LOG_ERR,\
             "%s: length declared in the packet %d exceeds max packet size %ld",\
             __FUNCTION__,\

@@ -456,7 +456,7 @@ void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
 
 	ret = tac_authen_read(tac_fd, &arep);
 
-	if (ret == 0) {
+	if (ret != TAC_PLUS_AUTHEN_STATUS_PASS) {
 		if (!quiet)
 			printf("Authentication FAILED: %s\n", arep.msg);
 		syslog(LOG_ERR, "authentication failed for %s: %s", user, arep.msg);
