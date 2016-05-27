@@ -84,6 +84,10 @@ struct areply {
 #define TAC_PLUS_MAXSERVERS 8
 #endif
 
+#ifndef TAC_PLUS_MAX_PACKET_SIZE
+#define TAC_PLUS_MAX_PACKET_SIZE 128*1024 /* bytes */
+#endif
+
 #ifndef TAC_PLUS_PORT
 #define	TAC_PLUS_PORT 49
 #endif
