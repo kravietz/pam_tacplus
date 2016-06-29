@@ -280,7 +280,7 @@ int pam_sm_authenticate (pam_handle_t * pamh, int flags,
         }
         communicating = 1;
         while (communicating) {
-            struct areply re = { .attr = NULL, .msg = NULL, status = 0, flags = 0 };
+            struct areply re = { .attr = NULL, .msg = NULL, .status = 0, .flags = 0 };
             struct pam_message conv_msg = { .msg_style = 0, .msg = NULL };
             struct pam_response *resp = NULL;
 
