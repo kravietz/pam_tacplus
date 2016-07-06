@@ -576,6 +576,7 @@ int pam_sm_acct_mgmt (pam_handle_t * pamh, int flags,
     tac_add_attrib(&attr, "service", tac_service);
     if(tac_protocol[0] != '\0')
       tac_add_attrib(&attr, "protocol", tac_protocol);
+    tac_add_attrib_pair(&attr, "cmd", '*', "");
 
     tac_fd = tac_connect_single(active_server.addr, active_server.key, NULL, tac_timeout);
     if(tac_fd < 0) {
