@@ -28,6 +28,10 @@
 
 #if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
 # include <openssl/rand.h>
+#elif defined(HAVE_LINUX_RANDOM_H)
+# include <linux/random.h>
+#elif defined(HAVE_SYS_RANDOM_H)
+# include <sys/random.h>
 #else
 # include "magic.h"
 #endif
@@ -83,8 +87,13 @@ HDR *_tac_req_header(u_char type, int cont_session) {
     /* make session_id from pseudo-random number */
     if (!cont_session) {
 #if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
+    	// the preferred way is to use OpenSSL abstraction as we are linking it anyway for MD5
         RAND_pseudo_bytes((unsigned char *) &session_id, sizeof(session_id));
+#elif defined(HAVE_LINUX_RANDOM_H) || defined(HAVE_SYS_RANDOM_H)
+        // getrandom is the recommended way of accessing /dev/urandom on Linux/OpenBSD
+        getrandom((void *) &session_id, sizeof(session_id), GRND_NONBLOCK);
 #else
+        // if everything fails use the legacy code
         session_id = magic();
 #endif
     }
