@@ -45,8 +45,8 @@
  *             LIBTAC_STATUS_WRITE_TIMEOUT
  *             LIBTAC_STATUS_ASSEMBLY_ERR
  */
-int tac_authen_send(int fd, const char *user, char *pass, char *tty,
-    char *r_addr, u_char action) {
+int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
+    const char *r_addr, u_char action) {
 
     HDR *th;    /* TACACS+ packet header */
     struct authen_start tb;     /* message body */

@@ -132,11 +132,11 @@ extern int tac_readtimeout_enable;
 extern int tac_timeout;
 
 int tac_connect(struct addrinfo **, char **, int);
-int tac_connect_single(struct addrinfo *, const char *, struct addrinfo *, int);
+int tac_connect_single(const struct addrinfo *, const char *, struct addrinfo *, int);
 char *tac_ntop(const struct sockaddr *);
 
-int tac_authen_send(int, const char *, char *, char *,
-    char *, u_char);
+int tac_authen_send(int, const char *, const char *, const char *,
+    const char *, u_char);
 int tac_authen_read(int, struct areply *);
 int tac_cont_send_seq(int, char *, int);
 #define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)

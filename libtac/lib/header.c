@@ -33,6 +33,7 @@
 #  include <linux/random.h>
 # elif defined(HAVE_SYS_RANDOM_H)
 #  include <sys/random.h>
+# endif
 #else
 # include "magic.h"
 #endif

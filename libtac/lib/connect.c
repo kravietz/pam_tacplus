@@ -67,7 +67,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
  *   >= 0 : valid fd
  *   <  0 : error status code, see LIBTAC_STATUS_...
  */
-int tac_connect_single(struct addrinfo *server, const char *key, struct addrinfo *srcaddr, int timeout) {
+int tac_connect_single(const struct addrinfo *server, const char *key, struct addrinfo *srcaddr, int timeout) {
     int retval = LIBTAC_STATUS_CONN_ERR; /* default retval */
     int fd = -1;
     int flags, rc;
