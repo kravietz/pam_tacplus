@@ -97,7 +97,7 @@ static struct option long_options[] = {
     { "service", required_argument, NULL, 'S' },
     { "protocol", required_argument, NULL, 'P' },
     { "remote", required_argument, NULL, 'r' },
-	{ "login", required_argument, NULL, "L" },
+	{ "login", required_argument, NULL, 'L' },
 
 /* modifiers */
     { "quiet", no_argument, NULL, 'q' },
