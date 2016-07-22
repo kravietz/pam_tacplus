@@ -97,6 +97,7 @@ static struct option long_options[] = {
     { "service", required_argument, NULL, 'S' },
     { "protocol", required_argument, NULL, 'P' },
     { "remote", required_argument, NULL, 'r' },
+	{ "login", required_argument, NULL, "L" },
 
 /* modifiers */
     { "quiet", no_argument, NULL, 'q' },
@@ -106,7 +107,7 @@ static struct option long_options[] = {
     { 0, 0, 0, 0 } };
 
 /* command line letters */
-char *opt_string = "TRAVhu:p:s:k:c:qr:wnS:P:";
+char *opt_string = "TRAVhu:p:s:k:c:qr:wnS:P:L:";
 
 int main(int argc, char **argv) {
 	char *pass = NULL;
@@ -172,6 +173,10 @@ int main(int argc, char **argv) {
 				break;
 			case 'r':
 				remote_addr = optarg;
+				break;
+			case 'L':
+				// tac_login is a global variable initialized in libtac
+				strncpy(tac_login, optarg, sizeof(tac_login));
 				break;
 			case 'p':
 				pass = optarg;
@@ -493,6 +498,7 @@ void showusage(char *progname) {
 	printf("  -r, --remote        remote client's IP address\n");
 	printf("  -S, --service       requested service (e.g. ppp)\n");
 	printf("  -P, --protocol      requested protocl (e.g. ip)\n");
+	printf("  -L, --login         TACACS+ login mode (e.g. chap, login)\n");
 	printf("  -k, --secret        server encryption key\n");
 	printf("  -c, --command       command to execute after successful AAA\n");
 	printf("       --exec         alias for --command\n\n");
