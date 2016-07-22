@@ -56,7 +56,7 @@ int tac_acct_read(int fd, struct areply *re) {
     packet_read = read(fd, &th, TAC_PLUS_HDR_SIZE);
     if(packet_read  < TAC_PLUS_HDR_SIZE) {
         TACSYSLOG((LOG_ERR,\
-            "%s: short reply header, read %d of %d: %m", __FUNCTION__,\
+            "%s: short reply header, read %l of %d: %m", __FUNCTION__,\
             packet_read, TAC_PLUS_HDR_SIZE))
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_HDR;
