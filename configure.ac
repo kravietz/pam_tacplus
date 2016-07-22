@@ -80,7 +80,7 @@ dnl Checks for library functions.
 AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp])
+AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp getrandom])
 
 dnl --------------------------------------------------------------------
 dnl Switch for pam module dir
