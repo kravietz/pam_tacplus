@@ -132,7 +132,7 @@ int tac_author_read(int fd, struct areply *re) {
     pktp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
 
     /* cycle through the arguments supplied in the packet */
-    for (unsigned int r = 0; r < tb->arg_cnt; r++) {
+    for (unsigned int r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT; r++) {
         if (len_from_body > packet_read || ((void *)pktp - (void *) tb) > packet_read) {
             TACSYSLOG((LOG_ERR,\
                 "%s: arguments supplied in packet seem to exceed its size",\

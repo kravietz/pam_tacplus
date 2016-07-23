@@ -88,6 +88,10 @@ struct areply {
 #define TAC_PLUS_MAX_PACKET_SIZE 128000 /* bytes */
 #endif
 
+#ifndef TAC_PLUS_MAX_ARGCOUNT
+#define TAC_PLUS_MAX_ARGCOUNT 100 /* maximum number of arguments passed in packet */
+#endif
+
 #ifndef TAC_PLUS_PORT
 #define	TAC_PLUS_PORT 49
 #endif
