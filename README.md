@@ -1,48 +1,46 @@
 [![Analysis Status](https://scan.coverity.com/projects/5499/badge.svg)](https://scan.coverity.com/projects/5499)
 
-# pam_tacplus
+# TACACS+ client toolkit
 
-This PAM module support the following functions:
+This repository contains three modules that are typically used to perform requests to a TACACS+ server:
+
+* `libtac` - core TACACS+ client library
+* `pam_tacplus` - [PAM][] module for authenticating users against TACACS+
+* `tacc` - a simple command-line TACACS+ client
+
+The following core TACACS+ functions are supported:
 
 * authentication
 * authorization (account management)
 * accounting (session management)
 
-All are performed using TACACS+ protocol [1], designed by Cisco Systems.
-This is remote AAA protocol, supported by most Cisco hardware. 
-A free TACACS+ server is available [2], which I'm using without any
-major problems for about a year. Advantages of TACACS+ is that all
-(unlike RADIUS) packets exchanged with the authentication server are
-encrypted. This module is an attempt to provide most useful part of
-TACACS+ functionality to applications using the PAM interface on Linux.
+The [TACACS+][] protocol was designed by Cisco Systems back in 90's and was intended to provide simple means of validating users connecting to simple network routers (e.g. over PPP) against a central authentication server. The router can send queries about authentication (validate user credentials), authorization (entitlement for requested service) and accounting (marking the start and end of user's session). The server can respond with either simple yes/no response, or send back attributes, such as text of a password prompt, effectively instructing the router to present it to the user and send back the obtained password.
 
+Unlike RADIUS, which was designed for similar purposes, the TACACS+ protocol offers basic packet encryption but, as with most crypto designed back then, it's [not secure](http://www.openwall.com/articles/TACACS+-Protocol-Security) and definitely should not be used over untrusted networks.
+
+This package has been successfully used with free [tac_plus][] TACACS+ server on variety of operating systems.
 
 ### Recognized options:
 
 | Option             | Management group | Description |
 |------------------- | ---------------- | ----------- |
-| debug | ALL | output debugging information via syslog(3); note, that the debugging is heavy, including passwords! |
-| secret=STRING | ALL | can be specified more than once; secret key used to encrypt/decrypt packets sent/received from the server |
-| server=HOSTNAME server=IP_ADDR server=HOSTNAME:PORT server=IP_ADDR:PORT | auth, session | can be specified more than once; adds a TACACS+ server to the servers list |
-| timeout=INT | ALL | connection timeout in seconds default is 5 seconds |
-| login=STRING | auth | TACACS+ authentication service, this can be "pap", "chap" or "login" at the moment. Default is pap. |
-| prompt=STRING | auth | Custom password prompt. If you want to use a space use '_' character instead. |
-| acct_all | session | if multiple servers are supplied, pam_tacplus will send accounting start/stop packets to all servers on the list |
-| service | account, session | TACACS+ service for authorization and accounting |
-| protocol | account, session | TACACS+ protocol for authorization and accounting |
+| `debug` | ALL | output debugging information via syslog(3); note, that the debugging is heavy, including passwords! |
+| `secret` | ALL | *string* can be specified more than once; secret key used to encrypt/decrypt packets sent/received from the server |
+| `server` | auth, session | *string* hostname, IP or hostname:port, can be specified more than once |
+| `timeout` | ALL | *integer* connection timeout in seconds; default is 5 seconds |
+| `login` | auth | TACACS+ authentication service, this can be *pap*, *chap* or *login*; default is *pap* |
+| `prompt` | auth | *string* custom password prompt; use `_` instead of spaces  |
+| `acct_all` | session | if multiple servers are supplied, pam\_tacplus will send accounting start/stop packets to all servers on the list |
+| `service` | account, session | *string* TACACS+ service for authorization and accounting |
+| `protocol` | account, session | *string* TACACS+ protocol for authorization and accounting |
 
-The last two items are widely described in TACACS+ draft [1]. They are
-required by the server, but it will work if they don't match the real
-service authorized :)
-During PAM account the AV pairs returned by the TACACS+ servers are made available to the
-PAM environment, so you can use i.e. pam_exec.so to do something with these AV pairs.
+Semantics of these options only makes sense in the context of the [TACACS+][] specification - for example, a dial-up router might request *ppp* service with protocol *ip* for their users, authenticating them with *pap* protocol which reflects the typical usage of TACACS+ back in 90's. These values however do not really need to match the actual service offered by your server as the TACACS+ server only cares about the service and protocol fields matching what it has in its configuration.
 
 ### Basic installation:
-This project is using autotools for building, so please run autoreconf first.
+The code uses standard GNU autotools:
 ```
-$ autoreconf -i
+$ ./auto.sh
 $ ./configure && make && sudo make install
-```
 
 ### Example configuration:
 
@@ -62,7 +60,7 @@ session    required	/lib/security/pam_tacplus.so debug server=1.1.1.1 server=2.2
 has following effects on authentication:
 
  	* if the first server on the list is unreachable or failing
-	  pam_tacplus will try to authenticate the user against the other
+	  pam\_tacplus will try to authenticate the user against the other
 	  servers until it succeeds
 
 	* the `first_hit' option has been deprecated
@@ -116,52 +114,59 @@ This diagram should show general idea of how the whole process looks:
 Consider `login' application:
 
 1. Login accepts username and password from the user.
-2. Login calls PAM function pam_authenticate() to verify if the
+2. Login calls PAM function pam\_authenticate() to verify if the
    supplied username/password pair is valid.
-3. PAM loads pam_tacplus module (as defined in /etc/pam.d/login)
-   and calls pam_sm_authenticate() function supplied by this module.
+3. PAM loads pam\_tacplus module (as defined in /etc/pam.d/login)
+   and calls pam\_sm\_authenticate() function supplied by this module.
 4. This function sends an encrypted packet to the TACACS+ server.
    The packet contains username and password to verify. TACACS+ server
    replied with either positive or negative response. If the reponse
-   is negative, the whole thing is over ;)
-5. PAM calls another function from pam_tacplus - pam_sm_acct_mgmt().
+   is negative, the whole thing is over
+5. PAM calls another function from pam\_tacplus - pam\_sm\_acct\_mgmt().
    This function is expected to verify whether the user is allowed
    to get the service he's requesting (in this case: unix shell).
    The function again verifies the permission on TACACS+ server. Assume
    the server granted the user with requested service.
 6. Before user gets the shell, PAM calls one another function from
-   pam_tacplus - pam_sm_open_session(). This results in sending an
+   pam\_tacplus - pam\_sm\_open\_session(). This results in sending an
    accounting START packet to the server. Among other things it contains
    the terminal user loggen in on and the time session started.
-7. When user logs out, pam_sm_close_session() sends STOP packet to the
+7. When user logs out, pam\_sm\_close\_session() sends STOP packet to the
    server. The whole session is closed.
 
 ### TACACS+ client program
 The library comes with a simple TACACS+ client program `tacc` which can be used for testing as well as simple scripting. Sample usage:
 
 ```
-tacc --authenticate --authorize --account --username test1
-    --password test1 --server localhost --remote 1.1.1.1
-    --secret test1 --service ppp --protocol ip
+tacc --authenticate --authorize --account --username user1
+    --password pass1 --server localhost --remote 1.1.1.1
+    --secret enckey1 --service ppp --protocol ip --login pap
 ```
 This configuration runs full AAA round (authentication, authorization and accounting). The `server` and `secret` option specify server connection parameters and all remaining options supply data specific to TACACS+ protocol. The `tac_plus` daemon (found in `tacacs+` package in Debian and Ubuntu) can be used for testing with the following example configuration:
 ```
-key = test1
-user = test1 {
-    global = cleartext "test1"
+key = enckey1
+user = user1 {
+    global = cleartext "pass1"
     service = ppp protocol = ip {
             addr=8.8.8.8
     }
 }
 ```
 
+For debugging run the `tac_plus` server with the following options - the `-d 512` will debug encryption, for other values see `man 8 tac_plus`:
+
+```
+tac_plus -C /etc/tacacs+/tac_plus.conf -G -g -d 512
+```
+
 ### Limitations:
 
-Many of them for now :)
-
 * only subset of TACACS+ protocol is supported; it's enough for most need, though
-* utilize PAM_SERVICE item obtained from PAM for TACACS+ services
-* clean options and configuration code
+* `tacc` does not support password prompts and other interactive protocol features
+
+[TACACS+]: https://tools.ietf.org/html/draft-grant-tacacs-02
+[tac_plus]: http://www.pro-bono-publico.de/projects/tac_plus.html
+[PAM]: https://en.wikipedia.org/wiki/Pluggable_authentication_module
 		
 ### Authors:
 
