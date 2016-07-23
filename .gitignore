@@ -25,4 +25,8 @@ stamp-h1
 *.la
 *.c.swp
 *.h.swp
+.autotools
+.cproject
+.project
+.settings/
 
