@@ -1,6 +1,6 @@
 [![Analysis Status](https://scan.coverity.com/projects/5499/badge.svg)](https://scan.coverity.com/projects/5499)
 [![Github Releases](https://img.shields.io/github/downloads/atom/atom/latest/total.svg?maxAge=2592000)](https://github.com/jeroennijhof/pam_tacplus/archive/master.zip)
-[![GitHub release](https://img.shields.io/github/release/v1.4.1/rubidium.svg?maxAge=2592000)](https://github.com/jeroennijhof/pam_tacplus/releases/tag/v1.4.1)
+[![GitHub release](https://img.shields.io/github/release/qubyte/rubidium.svg?maxAge=2592000)](https://github.com/jeroennijhof/pam_tacplus/releases/tag/v1.4.1)
 
 # TACACS+ client toolkit
 
