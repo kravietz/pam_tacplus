@@ -1,5 +1,5 @@
 /* read_wait.c - Wait for data to read on a fd.
- * 
+ *
  * Copyright (C) 2011, Darren Besler (dbesler@beehive.mb.ca)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ static int delta_msecs(struct timeval *newer, struct timeval *older) {
     }
 
     deltasecs = newer->tv_sec - older->tv_sec;
-    deltausecs = newer->tv_usec - older->tv_usec;
+
     if ( newer->tv_usec < older->tv_usec ) {
         deltasecs--;
         deltausecs = (1000000+newer->tv_usec) - older->tv_usec;
@@ -77,7 +77,7 @@ int tac_read_wait(int fd, int timeout, int size, int *time_left) {
 
     gettimeofday(&start, NULL);
 
-    /* setup for read timeout. 
+    /* setup for read timeout.
     *   will use poll() as it provides greatest compatibility
     *   vs setsockopt(SO_RCVTIMEO) which isn't supported on Solaris
     */
