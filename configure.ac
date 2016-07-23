@@ -14,7 +14,7 @@ AC_PREREQ(2.59)
 AC_COPYRIGHT([
 See the included file: COPYING for copyright information.
 ])
-AC_INIT(pam_tacplus, 1.4.0, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
+AC_INIT(pam_tacplus, 1.4.1, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
 
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE([foreign])

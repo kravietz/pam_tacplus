@@ -1,3 +1,10 @@
+libpam-tacplus (1.4.1-1) unstable; urgency=low
+
+  * Added a simple TACACS+ command-line client (tacc)
+  * Numerous fixes and clean-ups
+
+ -- Pawel Krawczyk <pawel.krawczyk@hush.com>  Sat, 23 Jul 2016 08:11:00 +0100
+
 libpam-tacplus (1.3.8-2) unstable; urgency=low
 
   * Added postinst and prerm scripts for pam-auth-update. Closes: #739274
