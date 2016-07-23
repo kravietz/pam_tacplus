@@ -5,7 +5,7 @@
 This repository contains three modules that are typically used to perform requests to a TACACS+ server:
 
 * `libtac` - core TACACS+ client library
-* `pam_tacplus` - [PAM][] module for authenticating users against TACACS+
+* `pam_tacplus` - [PAM](https://en.wikipedia.org/wiki/Pluggable_authentication_module) module for authenticating users against TACACS+
 * `tacc` - a simple command-line TACACS+ client
 
 The following core TACACS+ functions are supported:
@@ -14,7 +14,7 @@ The following core TACACS+ functions are supported:
 * authorization (account management)
 * accounting (session management)
 
-The [TACACS+][] protocol was designed by Cisco Systems back in 90's and was intended to provide simple means of validating users connecting to simple network routers (e.g. over PPP) against a central authentication server. The router can send queries about authentication (validate user credentials), authorization (entitlement for requested service) and accounting (marking the start and end of user's session). The server can respond with either simple yes/no response, or send back attributes, such as text of a password prompt, effectively instructing the router to present it to the user and send back the obtained password.
+The [TACACS+](https://tools.ietf.org/html/draft-grant-tacacs-02) protocol was designed by Cisco Systems back in 90's and was intended to provide simple means of validating users connecting to simple network routers (e.g. over PPP) against a central authentication server. The router can send queries about authentication (validate user credentials), authorization (entitlement for requested service) and accounting (marking the start and end of user's session). The server can respond with either simple yes/no response, or send back attributes, such as text of a password prompt, effectively instructing the router to present it to the user and send back the obtained password.
 
 Unlike RADIUS, which was designed for similar purposes, the TACACS+ protocol offers basic packet encryption but, as with most crypto designed back then, it's [not secure](http://www.openwall.com/articles/TACACS+-Protocol-Security) and definitely should not be used over untrusted networks.
 
@@ -34,7 +34,7 @@ This package has been successfully used with free [tac_plus][] TACACS+ server on
 | `service` | account, session | *string* TACACS+ service for authorization and accounting |
 | `protocol` | account, session | *string* TACACS+ protocol for authorization and accounting |
 
-Semantics of these options only makes sense in the context of the [TACACS+][] specification - for example, a dial-up router might request *ppp* service with protocol *ip* for their users, authenticating them with *pap* protocol which reflects the typical usage of TACACS+ back in 90's. These values however do not really need to match the actual service offered by your server as the TACACS+ server only cares about the service and protocol fields matching what it has in its configuration.
+Semantics of these options only makes sense in the context of the [TACACS+](https://tools.ietf.org/html/draft-grant-tacacs-02) specification - for example, a dial-up router might request *ppp* service with protocol *ip* for their users, authenticating them with *pap* protocol which reflects the typical usage of TACACS+ back in 90's. These values however do not really need to match the actual service offered by your server as the TACACS+ server only cares about the service and protocol fields matching what it has in its configuration.
 
 ### Basic installation:
 The code uses standard GNU autotools:
@@ -163,10 +163,6 @@ tac_plus -C /etc/tacacs+/tac_plus.conf -G -g -d 512
 
 * only subset of TACACS+ protocol is supported; it's enough for most need, though
 * `tacc` does not support password prompts and other interactive protocol features
-
-[TACACS+]: https://tools.ietf.org/html/draft-grant-tacacs-02
-[tac_plus]: http://www.pro-bono-publico.de/projects/tac_plus.html
-[PAM]: https://en.wikipedia.org/wiki/Pluggable_authentication_module
 		
 ### Authors:
 
