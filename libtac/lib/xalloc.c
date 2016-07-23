@@ -23,56 +23,57 @@
 #include "xalloc.h"
 
 void *xcalloc(size_t nmemb, size_t size) {
-    void *val = calloc(nmemb, size);
-    if(val == 0) {
-        TACSYSLOG((LOG_ERR, "%s: calloc(%u,%u) failed", __FUNCTION__,\
-            (unsigned) nmemb, (unsigned) size))
-        exit(1);
-    }
-    return val;
+	void *val = calloc(nmemb, size);
+	if (val == 0) {
+		TACSYSLOG(
+				(LOG_ERR, "%s: calloc(%u,%u) failed", __FUNCTION__, (unsigned) nmemb, (unsigned) size))
+		exit(1);
+	}
+	return val;
 }
 
 void *xrealloc(void *ptr, size_t size) {
-    void *val = realloc(ptr, size);
-    if(val == 0) {
-        TACSYSLOG((LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned) size))
-        exit(1);
-    }
-    return val;
+	void *val = realloc(ptr, size);
+	if (val == 0) {
+		TACSYSLOG(
+				(LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned) size))
+		exit(1);
+	}
+	return val;
 }
 
 char *xstrdup(const char *s) {
-    char *p;
-    if (s == NULL) return NULL;
+	char *p;
+	if (s == NULL)
+		return NULL;
 
-    if ( (p = strdup(s)) == NULL ) {
-        TACSYSLOG((LOG_ERR, "%s: strdup(%s) failed: %m", __FUNCTION__, s))
-        exit(1);
-    }
-    return p;
+	if ((p = strdup(s)) == NULL) {
+		TACSYSLOG((LOG_ERR, "%s: strdup(%s) failed: %m", __FUNCTION__, s))
+		exit(1);
+	}
+	return p;
 }
 
-
 /*
-    safe string copy that aborts when destination buffer is too small
-*/
+ safe string copy that aborts when destination buffer is too small
+ */
 char *xstrcpy(char *dst, const char *src, size_t dst_size) {
-    if (dst == NULL) {
-        TACSYSLOG((LOG_ERR, "xstrcpy(): dst == NULL"));
-        abort();
-    }
-    if (src == NULL) {
-        TACSYSLOG((LOG_ERR, "xstrcpy(): src == NULL"));
-        abort();
-    }
-    if (!dst_size)
-        return NULL;
+	if (dst == NULL) {
+		TACSYSLOG((LOG_ERR, "xstrcpy(): dst == NULL"));
+		abort();
+	}
+	if (src == NULL) {
+		TACSYSLOG((LOG_ERR, "xstrcpy(): src == NULL"));
+		abort();
+	}
+	if (!dst_size)
+		return NULL;
 
-    if (strlen(src) >= dst_size) {
-        TACSYSLOG((LOG_ERR, "xstrcpy(): argument too long, aborting"));
-        abort();
-    }
+	if (strlen(src) >= dst_size) {
+		TACSYSLOG((LOG_ERR, "xstrcpy(): argument too long, aborting"));
+		abort();
+	}
 
-    return strcpy(dst, src);
+	return strcpy(dst, src);
 }
 

@@ -62,7 +62,8 @@ unsigned long getservername(char *serv);
 void showusage(char *progname);
 void showversion(char *progname);
 void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
-		const char *user, const char *pass, const char *tty, const char *remote_addr);
+		const char *user, const char *pass, const char *tty,
+		const char *remote_addr);
 void timeout_handler(int signum);
 
 #define	EXIT_OK		0
@@ -78,33 +79,29 @@ flag quiet = 0;
 char *user = NULL; /* global, because of signal handler */
 
 /* command line options */
-static struct option long_options[] = {
-/* operation */
-    { "authenticate", no_argument, NULL, 'T' },
-    { "authorize", no_argument, NULL, 'R' },
-    { "account", no_argument, NULL, 'A' },
-    { "version", no_argument, NULL, 'V' },
-    { "help", no_argument, NULL, 'h' },
+static struct option long_options[] =
+		{
+		/* operation */
+		{ "authenticate", no_argument, NULL, 'T' }, { "authorize", no_argument,
+				NULL, 'R' }, { "account", no_argument, NULL, 'A' }, { "version",
+				no_argument, NULL, 'V' }, { "help", no_argument, NULL, 'h' },
 
-/* data */
-    { "username", required_argument, NULL, 'u' },
-    { "remote", required_argument, NULL, 'r' },
-    { "password", required_argument, NULL, 'p' },
-    { "server", required_argument, NULL, 's' },
-    { "secret", required_argument, NULL, 'k' },
-    { "command", required_argument, NULL, 'c' },
-    { "exec", required_argument, NULL, 'c' },
-    { "service", required_argument, NULL, 'S' },
-    { "protocol", required_argument, NULL, 'P' },
-    { "remote", required_argument, NULL, 'r' },
-	{ "login", required_argument, NULL, 'L' },
+		/* data */
+		{ "username", required_argument, NULL, 'u' }, { "remote",
+				required_argument, NULL, 'r' }, { "password", required_argument,
+				NULL, 'p' }, { "server", required_argument, NULL, 's' }, {
+				"secret", required_argument, NULL, 'k' }, { "command",
+				required_argument, NULL, 'c' }, { "exec", required_argument,
+				NULL, 'c' }, { "service", required_argument, NULL, 'S' }, {
+				"protocol", required_argument, NULL, 'P' }, { "remote",
+				required_argument, NULL, 'r' }, { "login", required_argument,
+				NULL, 'L' },
 
-/* modifiers */
-    { "quiet", no_argument, NULL, 'q' },
-    { "silent", no_argument, NULL, 'q' },
-    { "no-wtmp", no_argument, NULL, 'w' },
-    { "no-encrypt", no_argument, NULL, 'n' },
-    { 0, 0, 0, 0 } };
+		/* modifiers */
+		{ "quiet", no_argument, NULL, 'q' },
+				{ "silent", no_argument, NULL, 'q' }, { "no-wtmp", no_argument,
+						NULL, 'w' }, { "no-encrypt", no_argument, NULL, 'n' }, {
+						0, 0, 0, 0 } };
 
 /* command line letters */
 char *opt_string = "TRAVhu:p:s:k:c:qr:wnS:P:L:";
@@ -114,8 +111,8 @@ int main(int argc, char **argv) {
 	char *tty;
 	char *command = NULL;
 	char *remote_addr = NULL;
-    char *service = NULL;
-    char *protocol = NULL;
+	char *service = NULL;
+	char *protocol = NULL;
 	struct addrinfo *tac_server;
 	char *tac_server_name = NULL;
 	char *tac_secret = NULL;
@@ -328,10 +325,11 @@ int main(int argc, char **argv) {
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, user, tty, remote_addr, attr);
+		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, user, tty, remote_addr,
+				attr);
 
 		ret = tac_acct_read(tac_fd, &arep);
-		if(ret == 0) {
+		if (ret == 0) {
 			if (!quiet)
 				printf("Accounting: START failed: %s\n", arep.msg);
 			syslog(LOG_INFO, "TACACS+ accounting start failed: %s", arep.msg);
@@ -347,7 +345,7 @@ int main(int argc, char **argv) {
 	/* log in local utmp */
 #ifdef HAVE_LOGWTMP
 	if (log_wtmp)
-	logwtmp(tty, user, "dialup");
+		logwtmp(tty, user, "dialup");
 #endif
 
 	if (command != NULL) {
@@ -411,7 +409,8 @@ int main(int argc, char **argv) {
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, user, tty, remote_addr, attr);
+		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, user, tty, remote_addr,
+				attr);
 		ret = tac_acct_read(tac_fd, &arep);
 		if (ret == 0) {
 			if (!quiet)
@@ -428,7 +427,7 @@ int main(int argc, char **argv) {
 	/* logout from utmp */
 #ifdef HAVE_LOGWTMP
 	if (log_wtmp)
-	logwtmp(tty, "", "");
+		logwtmp(tty, "", "");
 #endif
 
 	exit(EXIT_OK);
@@ -439,7 +438,8 @@ void sighandler(int sig) {
 }
 
 void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
-		const char *user, const char *pass, const char *tty, const char *remote_addr) {
+		const char *user, const char *pass, const char *tty,
+		const char *remote_addr) {
 	int tac_fd;
 	char *msg;
 	int ret;
@@ -454,7 +454,8 @@ void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
 
 	/* start authentication */
 
-	if (tac_authen_send(tac_fd, user, pass, tty, remote_addr, TAC_PLUS_AUTHEN_LOGIN) < 0) {
+	if (tac_authen_send(tac_fd, user, pass, tty, remote_addr,
+			TAC_PLUS_AUTHEN_LOGIN) < 0) {
 		if (!quiet)
 			printf("Error sending query to TACACS+ server\n");
 		exit(EXIT_ERR);
@@ -487,8 +488,10 @@ void showusage(char *progname) {
 	printf("Copyright 1997-2016 by Pawel Krawczyk <pawel.krawczyk@hush.com>\n");
 	printf("Usage: %s option [option, ...]\n\n", progname);
 	printf(" Action:\n");
-	printf("  -T, --authenticate  perform authentication with username and password\n");
-	printf("  -R, --authorize     perform authorization for requested service\n");
+	printf(
+			"  -T, --authenticate  perform authentication with username and password\n");
+	printf(
+			"  -R, --authorize     perform authorization for requested service\n");
 	printf("  -A, --account       account session beginning and end\n");
 	printf("  -h, --help          display this help and exit\n");
 	printf("  -V, --version       display version number and exit\n\n");
@@ -504,12 +507,15 @@ void showusage(char *progname) {
 	printf("  -c, --command       command to execute after successful AAA\n");
 	printf("       --exec         alias for --command\n\n");
 	printf(" Modifiers:\n");
-	printf("  -q, --quiet         don't display messages to screen (but still\n");
+	printf(
+			"  -q, --quiet         don't display messages to screen (but still\n");
 	printf("      --silent        report them via syslog(3))\n");
 	printf("  -w, --no-wtmp       don't write records to wtmp(5)\n");
-	printf("  -n, --no-encrypt    don't encrypt AAA packets sent to servers\n\n");
-    printf("Example usage:\n\n");
-    printf("  tacc -TRA -u test1 -p test1 -s localhost -r 1.1.1.1 -k test1 -S ppp -P ip\n");
+	printf(
+			"  -n, --no-encrypt    don't encrypt AAA packets sent to servers\n\n");
+	printf("Example usage:\n\n");
+	printf(
+			"  tacc -TRA -u test1 -p test1 -s localhost -r 1.1.1.1 -k test1 -S ppp -P ip\n");
 
 	exit(EXIT_ERR);
 }

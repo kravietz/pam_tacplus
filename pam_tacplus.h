@@ -43,7 +43,7 @@
 #define PAM_TAC_VPAT 8
 
 #ifndef PAM_EXTERN
-  #define PAM_EXTERN extern
+#define PAM_EXTERN extern
 #endif
 
 #endif  /* PAM_TACPLUS_H */
