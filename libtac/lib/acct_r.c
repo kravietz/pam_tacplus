@@ -1,5 +1,5 @@
 /* acct_r.c - Read accounting reply from server.
- * 
+ *
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
@@ -38,7 +38,7 @@ int tac_acct_read(int fd, struct areply *re) {
     size_t ulen_from_header, len_from_body;
     ssize_t spacket_read;
     char *msg = NULL;
-    int timeleft;
+	int timeleft = 0;
     re->attr = NULL; /* unused */
     re->msg = NULL;
 
@@ -133,7 +133,7 @@ int tac_acct_read(int fd, struct areply *re) {
     /* save status and clean up */
     if(tb->msg_len) {
         msg=(char *) xcalloc(1, tb->msg_len+1);
-        bcopy((u_char *) tb+TAC_ACCT_REPLY_FIXED_FIELDS_SIZE, msg, tb->msg_len); 
+        bcopy((u_char *) tb+TAC_ACCT_REPLY_FIXED_FIELDS_SIZE, msg, tb->msg_len);
         msg[(int)tb->msg_len] = '\0';
         re->msg = msg;      /* Freed by caller */
     }

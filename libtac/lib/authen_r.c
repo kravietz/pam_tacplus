@@ -1,5 +1,5 @@
 /* authen_r.c - Read authentication reply from server.
- * 
+ *
  * Copyright (C) 2010, Pawel Krawczyk <pawel.krawczyk@hush.com> and
  * Jeroen Nijhof <jeroen@jeroennijhof.nl>
  *
@@ -41,7 +41,7 @@ int tac_authen_read(int fd, struct areply *re) {
 	size_t len_from_header, len_from_body;
 	ssize_t spacket_read;
 	char *msg = NULL;
-	int timeleft;
+	int timeleft = 0;
 
 	memset(re, 0, sizeof(struct areply));
 
