@@ -1,5 +1,5 @@
 /* tacc.c  TACACS+ PAP authentication client
- * 
+ *
  * Copyright 1997-98 by Pawel Krawczyk <kravietz@ceti.com.pl>
  * Portions copyright (c) 1989 Carnegie Mellon University.
  *
@@ -19,7 +19,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <errno.h>
-#include <utmp.h> 
+#include <utmp.h>
 #include <sys/file.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -41,12 +41,12 @@
 
 /* if defined, given command will be run after
  * successful authentication and proper wtmp
- * entries will be made 
+ * entries will be made
  */
 #define DEFAULT_COMMAND "/usr/sbin/pppd -detach"
 
 /* message that will be displayed to user
- * before starting COMMAND 
+ * before starting COMMAND
  */
 #define COMMAND_MESSAGE "Starting PPP\n"
 
@@ -176,7 +176,8 @@ int main(int argc, char **argv) {
 				break;
 			case 'L':
 				// tac_login is a global variable initialized in libtac
-				strncpy(tac_login, optarg, sizeof(tac_login));
+				bzero(tac_login, sizeof(tac_login));
+				strncpy(tac_login, optarg, sizeof(tac_login) - 1);
 				break;
 			case 'p':
 				pass = optarg;
