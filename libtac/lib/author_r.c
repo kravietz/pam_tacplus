@@ -45,7 +45,7 @@ int tac_author_read(int fd, struct areply *re) {
     ssize_t packet_read;
     u_char *pktp = NULL;
     char *msg = NULL;
-    int timeleft;
+	int timeleft = 0;
     re->msg = NULL;
 
     bzero(re, sizeof(struct areply));
