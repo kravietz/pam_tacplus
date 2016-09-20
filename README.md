@@ -20,7 +20,7 @@ The [TACACS+](https://tools.ietf.org/html/draft-grant-tacacs-02) protocol was de
 
 Unlike RADIUS, which was designed for similar purposes, the TACACS+ protocol offers basic packet encryption but, as with most crypto designed back then, it's [not secure](http://www.openwall.com/articles/TACACS+-Protocol-Security) and definitely should not be used over untrusted networks.
 
-This package has been successfully used with free [tac_plus][] TACACS+ server on variety of operating systems.
+This package has been successfully used with free [tac_plus](http://www.shrubbery.net/tac_plus/) TACACS+ server on variety of operating systems.
 
 ### Recognized options:
 
