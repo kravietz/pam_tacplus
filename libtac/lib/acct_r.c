@@ -98,7 +98,7 @@ int tac_acct_read(int fd, struct areply *re) {
     }
 
     spacket_read = read(fd, tb, ulen_from_header);
-    if(spacket_read < ulen_from_header) {
+    if(spacket_read < (ssize_t) ulen_from_header) {
         TACSYSLOG((LOG_ERR,\
             "%s: short reply body, read %zd of %zu: %m",\
             __FUNCTION__,\

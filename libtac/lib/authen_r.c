@@ -96,7 +96,7 @@ int tac_authen_read(int fd, struct areply *re) {
 		return re->status;
 	}
 	spacket_read = read(fd, tb, len_from_header);
-	if (spacket_read < len_from_header) {
+	if (spacket_read < (ssize_t) len_from_header) {
 		TACSYSLOG(
 				(LOG_ERR, "%s: short reply body, read %zd of %zu: %m", __FUNCTION__, spacket_read, len_from_header))
 		re->msg = xstrdup(authen_syserr_msg);

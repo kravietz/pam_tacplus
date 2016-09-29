@@ -103,7 +103,7 @@ int tac_author_read(int fd, struct areply *re) {
 		return re->status;
 	}
 	packet_read = read(fd, tb, len_from_header);
-	if (packet_read < len_from_header) {
+	if (packet_read < (ssize_t) len_from_header) {
 		TACSYSLOG(
 				(LOG_ERR, "%s: short reply body, read %zd of %zu", __FUNCTION__, packet_read, len_from_header))
 		re->msg = xstrdup(author_syserr_msg);
@@ -131,7 +131,7 @@ int tac_author_read(int fd, struct areply *re) {
 	/* cycle through the arguments supplied in the packet */
 	for (unsigned int r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
 			r++) {
-		if (len_from_body > packet_read
+		if ((ssize_t) len_from_body > packet_read
 				|| ((void *) pktp - (void *) tb) > packet_read) {
 			TACSYSLOG(
 					(LOG_ERR, "%s: arguments supplied in packet seem to exceed its size", __FUNCTION__))
@@ -204,16 +204,16 @@ int tac_author_read(int fd, struct areply *re) {
 		 pktp points to current argument length */
 		for (unsigned int r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
 				r++) {
-			unsigned char buff[256];
-			unsigned char *sep;
-			unsigned char *value;
-			unsigned char sepchar = '=';
+			char buff[256];
+			char *sep;
+			char *value;
+			char sepchar = '=';
 
-			bcopy(argp, buff, (int) *pktp);
-			buff[(int) *pktp] = '\0';
-			sep = strchr((const char *) buff, '=');
+			bcopy(argp, buff, *pktp);
+			buff[*pktp] = '\0';
+			sep = strchr(buff, '=');
 			if (sep == NULL) {
-				sep = strchr((const char *) buff, '*');
+				sep = strchr(buff, '*');
 			}
 			if (sep == NULL) {
 				TACSYSLOG(

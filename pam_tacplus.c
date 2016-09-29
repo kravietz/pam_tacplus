@@ -307,8 +307,6 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 							"tacacs status: TAC_PLUS_AUTHEN_STATUS_PASS");
 
 				if (NULL != conv_msg.msg) {
-					int retval = -1;
-
 					conv_msg.msg_style = PAM_TEXT_INFO;
 					retval = converse(pamh, 1, &conv_msg, &resp);
 					if (PAM_SUCCESS == retval) {
@@ -337,8 +335,6 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 							"tacacs status: TAC_PLUS_AUTHEN_STATUS_FAIL");
 
 				if (NULL != conv_msg.msg) {
-					int retval = -1;
-
 					conv_msg.msg_style = PAM_ERROR_MSG;
 					retval = converse(pamh, 1, &conv_msg, &resp);
 					if (PAM_SUCCESS == retval) {
@@ -364,7 +360,6 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 							"tacacs status: TAC_PLUS_AUTHEN_STATUS_GETDATA");
 
 				if (NULL != conv_msg.msg) {
-					int retval = -1;
 					int echo_off = (0x1 == (re.flags & 0x1));
 
 					conv_msg.msg_style =
@@ -514,6 +509,9 @@ int pam_sm_setcred(pam_handle_t * pamh, int flags, int argc, const char **argv) 
 
 	int ctrl = _pam_parse(argc, argv);
 
+	pamh = pamh;
+	flags = flags;				/* unused */
+
 	if (ctrl & PAM_TAC_DEBUG)
 		syslog(LOG_DEBUG, "%s: called (pam_tacplus v%u.%u.%u)", __FUNCTION__,
 				PAM_TAC_VMAJ, PAM_TAC_VMIN, PAM_TAC_VPAT);
@@ -536,6 +534,8 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 	struct areply arep;
 	struct tac_attrib *attr = NULL;
 	int tac_fd;
+
+	flags = flags;				/* unused */
 
 	user = tty = r_addr = NULL;
 	memset(&arep, 0, sizeof(arep));
@@ -704,6 +704,8 @@ int pam_sm_open_session(pam_handle_t * pamh, int flags, int argc,
 #else
 	task_id=(short int) magic();
 #endif
+	flags = flags;				/* unused */
+
 	return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_START, NULL);
 } /* pam_sm_open_session */
 
@@ -714,6 +716,8 @@ int pam_sm_open_session(pam_handle_t * pamh, int flags, int argc,
 PAM_EXTERN
 int pam_sm_close_session(pam_handle_t * pamh, int flags, int argc,
 		const char **argv) {
+
+	flags = flags;				/* unused */
 
 	return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_STOP, NULL);
 } /* pam_sm_close_session */
@@ -825,8 +829,6 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 							"tacacs status: TAC_PLUS_AUTHEN_STATUS_PASS");
 
 				if (NULL != conv_msg.msg) {
-					int retval = -1;
-
 					conv_msg.msg_style = PAM_TEXT_INFO;
 					retval = converse(pamh, 1, &conv_msg, &resp);
 					if (PAM_SUCCESS == retval) {
@@ -856,8 +858,6 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 							"tacacs status: TAC_PLUS_AUTHEN_STATUS_FAIL");
 
 				if (NULL != conv_msg.msg) {
-					int retval = -1;
-
 					conv_msg.msg_style = PAM_ERROR_MSG;
 					retval = converse(pamh, 1, &conv_msg, &resp);
 					if (PAM_SUCCESS == retval) {
@@ -883,7 +883,6 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 							"tacacs status: TAC_PLUS_AUTHEN_STATUS_GETDATA");
 
 				if (NULL != conv_msg.msg) {
-					int retval = -1;
 					int echo_off = (0x1 == (re.flags & 0x1));
 
 					conv_msg.msg_style =

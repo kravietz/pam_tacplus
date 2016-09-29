@@ -8,6 +8,7 @@
 
 ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = subdir-objects
+AM_CFLAGS = -Wall -Wextra -Werror
 
 bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c

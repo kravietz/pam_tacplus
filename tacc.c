@@ -123,7 +123,6 @@ int main(int argc, char **argv) {
 #ifndef USE_SYSTEM
 	pid_t pid;
 #endif
-	char *msg;
 	struct areply arep;
 
 	/* options */
@@ -434,6 +433,8 @@ int main(int argc, char **argv) {
 }
 
 void sighandler(int sig) {
+	sig = sig;				/* unused */
+
 	TACDEBUG((LOG_DEBUG, "caught signal %d", sig));
 }
 
@@ -441,7 +442,6 @@ void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
 		const char *user, const char *pass, const char *tty,
 		const char *remote_addr) {
 	int tac_fd;
-	char *msg;
 	int ret;
 	struct areply arep;
 
@@ -549,6 +549,7 @@ unsigned long getservername(char *serv) {
 }
 
 void timeout_handler(int signum) {
-	syslog(LOG_ERR, "timeout reading password from user %s", user);
+	signum = signum;			/* unused */
 
+	syslog(LOG_ERR, "timeout reading password from user %s", user);
 }
