@@ -79,7 +79,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
 
     if(server == NULL) {
         TACSYSLOG((LOG_ERR, "%s: no TACACS+ server defined", __FUNCTION__))
-        return LIBTAC_STATUS_CONN_ERR;
+        goto bomb;
     }
 
     /* format server address into a string  for use in messages */
@@ -88,7 +88,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     if((fd=socket(server->ai_family, server->ai_socktype, server->ai_protocol)) < 0) {
         TACSYSLOG((LOG_ERR,"%s: socket creation error: %s", __FUNCTION__,
             strerror(errno)))
-        return LIBTAC_STATUS_CONN_ERR;
+        goto bomb;
     }
 
     /* get flags for restoration later */
@@ -99,7 +99,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         TACSYSLOG((LOG_ERR, "%s: cannot set socket non blocking",\
             __FUNCTION__))
         close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
+        goto bomb;
     }
 
     /* bind if source address got explicity defined */
@@ -108,7 +108,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
             TACSYSLOG((LOG_ERR, "%s: Failed to bind source address: %s",
                 __FUNCTION__, strerror(errno)))
             close(fd);
-            return LIBTAC_STATUS_CONN_ERR;
+            goto bomb;
         }
     }
 
@@ -118,7 +118,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         TACSYSLOG((LOG_ERR,\
             "%s: connection to %s failed: %m", __FUNCTION__, ip))
         close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
+        goto bomb;
     }
 
     /* set fds for select */
@@ -136,8 +136,9 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
 
     /* timeout */
     if ( rc == 0 ) {
+        retval = LIBTAC_STATUS_CONN_TIMEOUT;
         close(fd);
-        return LIBTAC_STATUS_CONN_TIMEOUT;
+        goto bomb;
     }
 
     /* some other error or interrupt before timeout */
@@ -145,7 +146,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         TACSYSLOG((LOG_ERR,\
             "%s: connection failed with %s: %m", __FUNCTION__, ip))
         close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
+        goto bomb;
     }
 
     /* check with getpeername if we have a valid connection */
@@ -154,7 +155,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         TACSYSLOG((LOG_ERR,\
             "%s: connection failed with %s: %m", __FUNCTION__, ip))
         close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
+        goto bomb;
     }
 
     /* restore flags on socket - flags was set only when fd >= 0 */
@@ -162,7 +163,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         TACSYSLOG((LOG_ERR, "%s: cannot restore socket flags: %m",\
              __FUNCTION__)) 
         close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
+        goto bomb;
     }
 
     /* connected ok */
@@ -176,6 +177,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         tac_secret = key;
     }
 
+bomb:
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d (fd=%d)",\
         __FUNCTION__, retval < 0 ? retval:0, fd))
     return retval;
