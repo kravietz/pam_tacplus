@@ -28,9 +28,6 @@
 
 #if defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO)
 # include <openssl/md5.h>
-#ifndef MD5_LEN
-# define MD5_LEN MD5_LBLOCK
-#endif
 #else
 # include "md5.h"
 #endif
@@ -55,7 +52,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 	int pkt_len = 0;
 	int ret = 0;
 	char *chal = "1234123412341234";
-	char digest[MD5_LEN];
+	char digest[MD5_LBLOCK];
 	char *token = NULL;
 	u_char *pkt = NULL, *mdp = NULL;
 	MD5_CTX mdcontext;
@@ -93,10 +90,10 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 		MD5Final((u_char *) digest, &mdcontext);
 #endif
 		free(mdp);
-		token = (char*) xcalloc(1, sizeof(u_char) + 1 + chal_len + MD5_LEN);
+		token = (char*) xcalloc(1, sizeof(u_char) + 1 + chal_len + MD5_LBLOCK);
 		token[0] = 5;
 		memcpy(&token[1], chal, chal_len);
-		memcpy(token + chal_len + 1, digest, MD5_LEN);
+		memcpy(token + chal_len + 1, digest, MD5_LBLOCK);
 	} else {
 		token = xstrdup(pass);
 	}
