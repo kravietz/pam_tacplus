@@ -36,18 +36,13 @@
    Use data from packet header and secret, which
    should be a global variable */
 u_char *_tac_md5_pad(int len, HDR *hdr)  {
-    int n, i, bufsize;
-    int bp = 0; /* buffer pointer */
-    int pp = 0; /* pad pointer */
+    unsigned i, n;
+    unsigned tac_secret_len = strlen(tac_secret);
     u_char *pad;
-    u_char *buf;
     MD5_CTX mdcontext;
 
     /* make pseudo pad */
-    n = (int)(len/16)+1;  /* number of MD5 runs */
-    bufsize = sizeof(hdr->session_id) + strlen(tac_secret) + sizeof(hdr->version)
-        + sizeof(hdr->seq_no) + MD5_LBLOCK + 10;
-    buf = (u_char *) xcalloc(1, bufsize);
+    n = (len + (MD5_LBLOCK - 1)) / MD5_LBLOCK;  /* number of MD5 runs */
     pad = (u_char *) xcalloc(n, MD5_LBLOCK);
 
     for (i=0; i<n; i++) {
@@ -55,30 +50,20 @@ u_char *_tac_md5_pad(int len, HDR *hdr)  {
            MD5_2 = MD5{session_id, secret, version, seq_no, MD5_1} */
 
         /* place session_id, key, version and seq_no in buffer */
-        bp = 0;
-        bcopy(&hdr->session_id, buf, sizeof(session_id));
-        bp += sizeof(session_id);
-        bcopy(tac_secret, buf+bp, strlen(tac_secret));
-        bp += strlen(tac_secret);
-        bcopy(&hdr->version, buf+bp, sizeof(hdr->version));
-        bp += sizeof(hdr->version);
-        bcopy(&hdr->seq_no, buf+bp, sizeof(hdr->seq_no));
-        bp += sizeof(hdr->seq_no);
+        MD5_Init(&mdcontext);
+        MD5_Update(&mdcontext, (const u_char *) &hdr->session_id, sizeof(session_id));
+        MD5_Update(&mdcontext, tac_secret, tac_secret_len);
+        MD5_Update(&mdcontext, &hdr->version, sizeof(hdr->version));
+        MD5_Update(&mdcontext, &hdr->seq_no, sizeof(hdr->seq_no));
 
         /* append previous pad if this is not the first run */
         if (i) {
-            bcopy(pad+((i-1)*MD5_LBLOCK), buf+bp, MD5_LBLOCK);
-            bp+=MD5_LBLOCK;
+            MD5_Update(&mdcontext, &pad[(i-1)*MD5_LBLOCK], MD5_LBLOCK);
         }
   
-        MD5_Init(&mdcontext);
-        MD5_Update(&mdcontext, buf, bp);
-        MD5_Final(pad+pp, &mdcontext);
-   
-        pp += MD5_LBLOCK;
+        MD5_Final(&pad[i*MD5_LBLOCK], &mdcontext);
     }
 
-    free(buf);
     return pad;
  
 }    /* _tac_md5_pad */
@@ -95,7 +80,7 @@ void _tac_crypt(u_char *buf, HDR *th, int length) {
         pad = _tac_md5_pad(length, th);
  
         for (i=0; i<length; i++) {
-            *(buf+i) ^= pad[i];
+            buf[i] ^= pad[i];
         }
   
         free(pad);
