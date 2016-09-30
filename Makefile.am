@@ -9,10 +9,12 @@
 ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = subdir-objects
 
+if TACC
 bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
 tacc_LDADD = libtac.la
 tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include
+endif
 
 libtac_includedir = $(includedir)/libtac
 libtac_include_HEADERS = \
