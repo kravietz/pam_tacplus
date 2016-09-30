@@ -36,8 +36,6 @@ libtac/lib/hdr_check.c \
 libtac/lib/header.c \
 libtac/lib/magic.c \
 libtac/lib/magic.h \
-libtac/lib/md5.c \
-libtac/lib/md5.h \
 libtac/lib/messages.c \
 libtac/lib/messages.h \
 libtac/lib/read_wait.c \
@@ -45,6 +43,11 @@ libtac/lib/version.c \
 libtac/lib/xalloc.c \
 libtac/lib/xalloc.h \
 $(libtac_include_HEADERS)
+if MY_MD5
+libtac_la_SOURCES += \
+libtac/lib/md5.c \
+libtac/lib/md5.h
+endif
 libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include
 libtac_la_LDFLAGS = -version-info 2:0:0 -shared
 
