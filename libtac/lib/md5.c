@@ -97,7 +97,7 @@ void MD5Init (MD5_CTX *mdContext) {
  account for the presence of each of the characters inBuf[0..inLen-1]
  in the message whose digest is being computed.
  */
-void MD5Update ( MD5_CTX *mdContext, unsigned char *inBuf,
+void MD5Update ( MD5_CTX *mdContext, const unsigned char *inBuf,
 		unsigned int inLen) {
 
 	UINT4 in[16];

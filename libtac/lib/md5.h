@@ -35,7 +35,7 @@ typedef struct {
 
 __BEGIN_DECLS
 void MD5Init __P((MD5_CTX*));
-void MD5Update __P((MD5_CTX*, unsigned char*, UINT4));
+void MD5Update __P((MD5_CTX*, const unsigned char*, UINT4));
 void MD5Final __P((unsigned char[], MD5_CTX*));
 __END_DECLS
 
