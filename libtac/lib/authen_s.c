@@ -32,6 +32,25 @@
 # include "md5.h"
 #endif
 
+/* assume digest points to a buffer MD5_LEN size */
+static void
+digest_chap(u_char digest[MD5_LBLOCK], uint8_t id,
+            const char *pass, unsigned pass_len,
+            const char *chal, unsigned chal_len) {
+
+    MD5_CTX mdcontext;
+
+    MD5_Init(&mdcontext);
+    /* multiple calls to MD5Update() is still much less overhead
+     * than allocating a buffer and marshalling contiguous data
+     * for a single call.
+     */
+    MD5_Update(&mdcontext, &id, sizeof(id));
+    MD5_Update(&mdcontext, (const u_char *)pass, pass_len);
+    MD5_Update(&mdcontext, (const u_char *)chal, chal_len);
+    MD5_Final(digest, &mdcontext);
+}
+
 /* this function sends a packet do TACACS+ server, asking
  * for validation of given username and password
  *
@@ -47,15 +66,14 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 
 	HDR *th; /* TACACS+ packet header */
 	struct authen_start tb; /* message body */
-	int user_len, port_len, chal_len, mdp_len, token_len, bodylength, w;
+	int user_len, pass_len, port_len, chal_len, token_len, bodylength, w;
 	int r_addr_len;
 	int pkt_len = 0;
 	int ret = 0;
 	char *chal = "1234123412341234";
-	char digest[MD5_LBLOCK];
 	char *token = NULL;
-	u_char *pkt = NULL, *mdp = NULL;
-	MD5_CTX mdcontext;
+	u_char *pkt = NULL;
+	const uint8_t id = 5;
 
 	th = _tac_req_header(TAC_PLUS_AUTHEN, 0);
 
@@ -73,36 +91,27 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 					__FUNCTION__, user, tty, r_addr,
 					(tac_encryption) ? "yes" : "no"))
 
-	if (!strcmp(tac_login, "chap")) {
-		chal_len = strlen(chal);
-		mdp_len = sizeof(u_char) + strlen(pass) + chal_len;
-		mdp = (u_char *) xcalloc(1, mdp_len);
-		mdp[0] = 5;
-		memcpy(&mdp[1], pass, strlen(pass));
-		memcpy(mdp + strlen(pass) + 1, chal, chal_len);
-#if defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO)
-		MD5_Init(&mdcontext);
-		MD5_Update(&mdcontext, mdp, mdp_len);
-		MD5_Final((u_char *) digest, &mdcontext);
-#else
-		MD5Init(&mdcontext);
-		MD5Update(&mdcontext, mdp, mdp_len);
-		MD5Final((u_char *) digest, &mdcontext);
-#endif
-		free(mdp);
-		token = (char*) xcalloc(1, sizeof(u_char) + 1 + chal_len + MD5_LBLOCK);
-		token[0] = 5;
-		memcpy(&token[1], chal, chal_len);
-		memcpy(token + chal_len + 1, digest, MD5_LBLOCK);
-	} else {
-		token = xstrdup(pass);
-	}
-
 	/* get size of submitted data */
 	user_len = strlen(user);
+	chal_len = strlen(chal);
+	pass_len = strlen(pass);
 	port_len = strlen(tty);
 	r_addr_len = strlen(r_addr);
-	token_len = strlen(token);
+
+	if (!strcmp(tac_login, "chap")) {
+		u_char digest[MD5_LBLOCK];
+
+		digest_chap(digest, id, pass, pass_len, chal, chal_len);
+
+		token_len = sizeof(id) + chal_len + sizeof(digest);
+		token = xcalloc(1, token_len);
+		token[0] = id;
+		memcpy(token + sizeof(id), chal, chal_len);
+		memcpy(token + sizeof(id) + chal_len, digest, sizeof(digest));
+	} else {
+		token = xstrdup(pass);
+		token_len = strlen(token);
+	}
 
 	/* fill the body of message */
 	tb.action = action;
