@@ -35,36 +35,27 @@
 /* Produce MD5 pseudo-random pad for TACACS+ encryption.
    Use data from packet header and secret, which
    should be a global variable */
-u_char *_tac_md5_pad(const HDR *hdr)  {
-    unsigned i, n, len = ntohl(hdr->datalength);
+static void _tac_md5_pad(const HDR *hdr,
+        u_char *new_digest, u_char *old_digest)  {
     unsigned tac_secret_len = strlen(tac_secret);
-    u_char *pad;
     MD5_CTX mdcontext;
 
-    /* make pseudo pad */
-    n = (len + (MD5_LBLOCK - 1)) / MD5_LBLOCK;  /* number of MD5 runs */
-    pad = (u_char *) xcalloc(n, MD5_LBLOCK);
+    /* MD5_1 = MD5{session_id, secret, version, seq_no}
+       MD5_2 = MD5{session_id, secret, version, seq_no, MD5_1} */
 
-    for (i=0; i<n; i++) {
-        /* MD5_1 = MD5{session_id, secret, version, seq_no}
-           MD5_2 = MD5{session_id, secret, version, seq_no, MD5_1} */
+    /* place session_id, key, version and seq_no in buffer */
+    MD5_Init(&mdcontext);
+    MD5_Update(&mdcontext, (const u_char *) &hdr->session_id, sizeof(session_id));
+    MD5_Update(&mdcontext, (const u_char *) tac_secret, tac_secret_len);
+    MD5_Update(&mdcontext, &hdr->version, sizeof(hdr->version));
+    MD5_Update(&mdcontext, &hdr->seq_no, sizeof(hdr->seq_no));
 
-        /* place session_id, key, version and seq_no in buffer */
-        MD5_Init(&mdcontext);
-        MD5_Update(&mdcontext, (const u_char *) &hdr->session_id, sizeof(session_id));
-        MD5_Update(&mdcontext, (const u_char *) tac_secret, tac_secret_len);
-        MD5_Update(&mdcontext, &hdr->version, sizeof(hdr->version));
-        MD5_Update(&mdcontext, &hdr->seq_no, sizeof(hdr->seq_no));
-
-        /* append previous pad if this is not the first run */
-        if (i) {
-            MD5_Update(&mdcontext, &pad[(i-1)*MD5_LBLOCK], MD5_LBLOCK);
-        }
-  
-        MD5_Final(&pad[i*MD5_LBLOCK], &mdcontext);
+    /* append previous pad if this is not the first run */
+    if (old_digest) {
+        MD5_Update(&mdcontext, old_digest, MD5_LBLOCK);
     }
 
-    return pad;
+    MD5_Final(new_digest, &mdcontext);
  
 }    /* _tac_md5_pad */
 
@@ -72,18 +63,25 @@ u_char *_tac_md5_pad(const HDR *hdr)  {
    each byte from buffer with according byte from pseudo-random
    pad. */
 void _tac_crypt(u_char *buf, const HDR *th) {
-    unsigned i, length = ntohl(th->datalength);
-    u_char *pad;
+    unsigned i, j, length = ntohl(th->datalength);
  
     /* null operation if no encryption requested */
-    if((tac_secret != NULL) && (th->encryption == TAC_PLUS_ENCRYPTED_FLAG)) {
-        pad = _tac_md5_pad(th);
+    if((tac_secret != NULL) && (th->encryption & TAC_PLUS_UNENCRYPTED_FLAG) != TAC_PLUS_UNENCRYPTED_FLAG) {
+        u_char digest[MD5_LBLOCK];
  
         for (i=0; i<length; i++) {
-            buf[i] ^= pad[i];
+            j = i % MD5_LBLOCK;
+
+            /* At the beginning of every block (16 bytes, i.e. the size
+             * of an MD5 digest), generate a new pad to XOR against.
+             * For the 2nd and all successive blocks, we prime it with
+             * the previous digest.
+             */
+            if (j == 0)
+                _tac_md5_pad(th, digest, ((i > 0) ? digest : NULL));
+
+            buf[i] ^= digest[i];
         }
-  
-        free(pad);
     } else {
         TACSYSLOG((LOG_WARNING, "%s: using no TACACS+ encryption", __FUNCTION__))
     }
