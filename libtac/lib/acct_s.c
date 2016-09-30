@@ -162,7 +162,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     }
         
     /* encrypt packet body  */
-    _tac_crypt(pkt, th, pkt_len);
+    _tac_crypt(pkt, th);
 
     /* write body */
     w=write(fd, pkt, pkt_len);

@@ -151,7 +151,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 	}
 
 	/* encrypt packet body  */
-	_tac_crypt(pkt, th, pkt_len);
+	_tac_crypt(pkt, th);
 
 	/* write body */
 	w = write(fd, pkt, pkt_len);

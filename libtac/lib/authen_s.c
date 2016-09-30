@@ -169,7 +169,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 	}
 
 	/* encrypt the body */
-	_tac_crypt(pkt, th, bodylength);
+	_tac_crypt(pkt, th);
 
 	w = write(fd, pkt, pkt_len);
 	if (w < 0 || w < pkt_len) {

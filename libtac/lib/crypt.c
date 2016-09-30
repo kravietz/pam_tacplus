@@ -35,8 +35,8 @@
 /* Produce MD5 pseudo-random pad for TACACS+ encryption.
    Use data from packet header and secret, which
    should be a global variable */
-u_char *_tac_md5_pad(int len, HDR *hdr)  {
-    unsigned i, n;
+u_char *_tac_md5_pad(const HDR *hdr)  {
+    unsigned i, n, len = ntohl(hdr->datalength);
     unsigned tac_secret_len = strlen(tac_secret);
     u_char *pad;
     MD5_CTX mdcontext;
@@ -52,7 +52,7 @@ u_char *_tac_md5_pad(int len, HDR *hdr)  {
         /* place session_id, key, version and seq_no in buffer */
         MD5_Init(&mdcontext);
         MD5_Update(&mdcontext, (const u_char *) &hdr->session_id, sizeof(session_id));
-        MD5_Update(&mdcontext, tac_secret, tac_secret_len);
+        MD5_Update(&mdcontext, (const u_char *) tac_secret, tac_secret_len);
         MD5_Update(&mdcontext, &hdr->version, sizeof(hdr->version));
         MD5_Update(&mdcontext, &hdr->seq_no, sizeof(hdr->seq_no));
 
@@ -71,13 +71,13 @@ u_char *_tac_md5_pad(int len, HDR *hdr)  {
 /* Perform encryption/decryption on buffer. This means simply XORing
    each byte from buffer with according byte from pseudo-random
    pad. */
-void _tac_crypt(u_char *buf, HDR *th, int length) {
-    int i;
+void _tac_crypt(u_char *buf, const HDR *th) {
+    unsigned i, length = ntohl(th->datalength);
     u_char *pad;
  
     /* null operation if no encryption requested */
     if((tac_secret != NULL) && (th->encryption == TAC_PLUS_ENCRYPTED_FLAG)) {
-        pad = _tac_md5_pad(length, th);
+        pad = _tac_md5_pad(th);
  
         for (i=0; i<length; i++) {
             buf[i] ^= pad[i];

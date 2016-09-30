@@ -113,7 +113,7 @@ int tac_author_read(int fd, struct areply *re) {
 	}
 
 	/* decrypt the body */
-	_tac_crypt((u_char *) tb, &th, len_from_header);
+	_tac_crypt((u_char *) tb, &th);
 
 	/* Convert network byte order to host byte order */
 	tb->msg_len = ntohs(tb->msg_len);
