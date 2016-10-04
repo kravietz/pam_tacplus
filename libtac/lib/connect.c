@@ -77,104 +77,106 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     struct sockaddr_storage addr;
     char *ip;
 
-    if(server == NULL) {
-        TACSYSLOG((LOG_ERR, "%s: no TACACS+ server defined", __FUNCTION__))
-        return LIBTAC_STATUS_CONN_ERR;
-    }
-
-    /* format server address into a string  for use in messages */
-    ip = tac_ntop(server->ai_addr);
-
-    if((fd=socket(server->ai_family, server->ai_socktype, server->ai_protocol)) < 0) {
-        TACSYSLOG((LOG_ERR,"%s: socket creation error: %s", __FUNCTION__,
-            strerror(errno)))
-        return LIBTAC_STATUS_CONN_ERR;
-    }
-
-    /* get flags for restoration later */
-    flags = fcntl(fd, F_GETFL, 0);
-
-    /* put socket in non blocking mode for timeout support */
-    if( fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1 ) {
-        TACSYSLOG((LOG_ERR, "%s: cannot set socket non blocking",\
-            __FUNCTION__))
-        close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
-    }
-
-    /* bind if source address got explicity defined */
-    if (srcaddr) {
-        if (bind(fd, srcaddr->ai_addr, srcaddr->ai_addrlen) < 0) {
-            TACSYSLOG((LOG_ERR, "%s: Failed to bind source address: %s",
-                __FUNCTION__, strerror(errno)))
-            close(fd);
-            return LIBTAC_STATUS_CONN_ERR;
+    do {
+        if(server == NULL) {
+            TACSYSLOG((LOG_ERR, "%s: no TACACS+ server defined", __FUNCTION__))
+            break;
         }
-    }
 
-    rc = connect(fd, server->ai_addr, server->ai_addrlen);
-    /* FIX this..for some reason errno = 0 on AIX... */
-    if((rc == -1) && (errno != EINPROGRESS) && (errno != 0)) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: connection to %s failed: %m", __FUNCTION__, ip))
-        close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
-    }
+        /* format server address into a string  for use in messages */
+        ip = tac_ntop(server->ai_addr);
 
-    /* set fds for select */
-    FD_ZERO(&readfds);
-    FD_ZERO(&writefds);
-    FD_SET(fd, &readfds);
-    FD_SET(fd, &writefds);
+        if((fd=socket(server->ai_family, server->ai_socktype, server->ai_protocol)) < 0) {
+            TACSYSLOG((LOG_ERR,"%s: socket creation error: %s", __FUNCTION__,
+                strerror(errno)))
+            break;
+        }
 
-    /* set timeout seconds */
-    tv.tv_sec = timeout;
-    tv.tv_usec = 0;
+        /* get flags for restoration later */
+        flags = fcntl(fd, F_GETFL, 0);
 
-    /* check if socket is ready for read and write */
-    rc = select(fd+1, &readfds, &writefds, NULL, &tv);
+        /* put socket in non blocking mode for timeout support */
+        if( fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1 ) {
+            TACSYSLOG((LOG_ERR, "%s: cannot set socket non blocking",\
+                __FUNCTION__))
+            close(fd);
+            break;
+        }
 
-    /* timeout */
-    if ( rc == 0 ) {
-        close(fd);
-        return LIBTAC_STATUS_CONN_TIMEOUT;
-    }
+        /* bind if source address got explicity defined */
+        if (srcaddr) {
+            if (bind(fd, srcaddr->ai_addr, srcaddr->ai_addrlen) < 0) {
+                TACSYSLOG((LOG_ERR, "%s: Failed to bind source address: %s",
+                    __FUNCTION__, strerror(errno)))
+                close(fd);
+                break;
+            }
+        }
 
-    /* some other error or interrupt before timeout */
-    if ( rc < 0 ) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: connection failed with %s: %m", __FUNCTION__, ip))
-        close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
-    }
+        rc = connect(fd, server->ai_addr, server->ai_addrlen);
+        /* FIX this..for some reason errno = 0 on AIX... */
+        if((rc == -1) && (errno != EINPROGRESS) && (errno != 0)) {
+            TACSYSLOG((LOG_ERR,\
+                "%s: connection to %s failed: %m", __FUNCTION__, ip))
+            close(fd);
+            break;
+        }
 
-    /* check with getpeername if we have a valid connection */
-    len = sizeof addr;
-    if(getpeername(fd, (struct sockaddr*)&addr, &len) == -1) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: connection failed with %s: %m", __FUNCTION__, ip))
-        close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
-    }
+        /* set fds for select */
+        FD_ZERO(&readfds);
+        FD_ZERO(&writefds);
+        FD_SET(fd, &readfds);
+        FD_SET(fd, &writefds);
 
-    /* restore flags on socket - flags was set only when fd >= 0 */
-    if(fcntl(fd, F_SETFL, flags) == -1) {
-        TACSYSLOG((LOG_ERR, "%s: cannot restore socket flags: %m",\
-             __FUNCTION__)) 
-        close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
-    }
+        /* set timeout seconds */
+        tv.tv_sec = timeout;
+        tv.tv_usec = 0;
 
-    /* connected ok */
-    TACDEBUG((LOG_DEBUG, "%s: connected to %s", __FUNCTION__, ip))
-    retval = fd;
+        /* check if socket is ready for read and write */
+        rc = select(fd+1, &readfds, &writefds, NULL, &tv);
 
-    /* set current tac_secret */
-    tac_encryption = 0;
-    if (key != NULL && *key) {
-        tac_encryption = 1;
-        tac_secret = key;
-    }
+        /* timeout */
+        if ( rc == 0 ) {
+            close(fd);
+            break;
+        }
+
+        /* some other error or interrupt before timeout */
+        if ( rc < 0 ) {
+            TACSYSLOG((LOG_ERR,\
+                "%s: connection failed with %s: %m", __FUNCTION__, ip))
+            close(fd);
+            break;
+        }
+
+        /* check with getpeername if we have a valid connection */
+        len = sizeof addr;
+        if(getpeername(fd, (struct sockaddr*)&addr, &len) == -1) {
+            TACSYSLOG((LOG_ERR,\
+                "%s: connection failed with %s: %m", __FUNCTION__, ip))
+            close(fd);
+            break;
+        }
+
+        /* restore flags on socket - flags was set only when fd >= 0 */
+        if(fcntl(fd, F_SETFL, flags) == -1) {
+            TACSYSLOG((LOG_ERR, "%s: cannot restore socket flags: %m",\
+                 __FUNCTION__)) 
+            close(fd);
+            break;
+        }
+
+        /* connected ok */
+        TACDEBUG((LOG_DEBUG, "%s: connected to %s", __FUNCTION__, ip))
+        retval = fd;
+
+        /* set current tac_secret */
+        tac_encryption = 0;
+        if (key != NULL && *key) {
+            tac_encryption = 1;
+            tac_secret = key;
+        }
+    } while (0);
 
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d (fd=%d)",\
         __FUNCTION__, retval < 0 ? retval:0, fd))
