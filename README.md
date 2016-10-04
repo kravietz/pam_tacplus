@@ -20,7 +20,7 @@ The [TACACS+](https://tools.ietf.org/html/draft-grant-tacacs-02) protocol was de
 
 Unlike RADIUS, which was designed for similar purposes, the TACACS+ protocol offers basic packet encryption but, as with most crypto designed back then, it's [not secure](http://www.openwall.com/articles/TACACS+-Protocol-Security) and definitely should not be used over untrusted networks.
 
-This package has been successfully used with free [tac_plus][] TACACS+ server on variety of operating systems.
+This package has been successfully used with free [tac_plus](http://www.shrubbery.net/tac_plus/) TACACS+ server on variety of operating systems.
 
 ### Recognized options:
 
@@ -43,9 +43,8 @@ The code uses standard GNU autotools:
 ```
 $ ./auto.sh
 $ ./configure && make && sudo make install
-
+```
 ### Example configuration:
-
 ```
 #%PAM-1.0
 auth       required     /lib/security/pam_tacplus.so debug server=1.1.1.1 secret=SECRET-1
@@ -85,15 +84,13 @@ authorization.
 	* normally, without the `acct_all' modifier, the extra servers
 	  on the list will be considered as backup servers, mostly like
 	  in point 1. i.e. they will be used only if the first server
-	  on the list will fail to accept our accounting packets
+	  on the list will fail to accept our accounting packets.
 
 	* with `acct_all' pam_tacplus will try to deliver the accounting
 	  packets to all servers on the list; failure of one of the servers
-	  will make it try another one
-
-	  this is useful when your have several accounting, billing or
+	  will make it try another one. This is useful when your have several accounting, billing or
 	  logging hosts and want to have the accounting information appear
-	  on all of them at the same time
+	  on all of them at the same time.
 
 
 ### Short introduction to PAM via TACACS+:
