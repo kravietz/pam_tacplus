@@ -106,11 +106,13 @@ int converse(pam_handle_t * pamh, int nargs, const struct pam_message *message,
 }
 
 /* stolen from pam_stress */
-int tacacs_get_password (pam_handle_t * pamh, int flags
-    ,int ctrl, char **password) {
+int tacacs_get_password (pam_handle_t * pamh, int flags,
+    int ctrl, char **password) {
 
     const void *pam_pass;
     char *pass = NULL;
+
+    flags = flags;				/* unused */
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: called", __FUNCTION__);
@@ -197,7 +199,7 @@ int _pam_parse (int argc, const char **argv) {
         } else if (!strncmp (*argv, "prompt=", 7)) { /* authentication */
             xstrcpy (tac_prompt, *argv + 7, sizeof(tac_prompt));
             /* Replace _ with space */
-            int chr;
+            unsigned chr;
             for (chr = 0; chr < strlen(tac_prompt); chr++) {
                 if (tac_prompt[chr] == '_') {
                     tac_prompt[chr] = ' ';
