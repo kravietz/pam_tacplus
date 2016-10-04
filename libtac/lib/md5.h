@@ -34,12 +34,19 @@ typedef struct {
 } MD5_CTX;
 
 __BEGIN_DECLS
-void MD5Init__P((MD5_CTX*));
-void MD5Update__P((MD5_CTX*, unsigned char*, UINT4));
-void MD5Final__P((unsigned char[], MD5_CTX*));
+void MD5Init __P((MD5_CTX*));
+void MD5Update __P((MD5_CTX*, unsigned char*, UINT4));
+void MD5Final __P((unsigned char[], MD5_CTX*));
 __END_DECLS
 
 #define MD5_LEN 16
+
+/* forward compatibility with openssl/md5.h */
+#define MD5_Init MD5Init
+#define MD5_Update MD5Update
+#define MD5_Final MD5Final
+
+#define MD5_LBLOCK	MD5_LEN
 
 #define __MD5_INCLUDE__
 #endif /* __MD5_INCLUDE__ */

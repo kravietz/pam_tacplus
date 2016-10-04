@@ -9,10 +9,12 @@
 ACLOCAL_AMFLAGS = -I config
 AUTOMAKE_OPTIONS = subdir-objects
 
+if TACC
 bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
 tacc_LDADD = libtac.la
 tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include
+endif
 
 libtac_includedir = $(includedir)/libtac
 libtac_include_HEADERS = \
@@ -36,8 +38,6 @@ libtac/lib/hdr_check.c \
 libtac/lib/header.c \
 libtac/lib/magic.c \
 libtac/lib/magic.h \
-libtac/lib/md5.c \
-libtac/lib/md5.h \
 libtac/lib/messages.c \
 libtac/lib/messages.h \
 libtac/lib/read_wait.c \
@@ -45,6 +45,11 @@ libtac/lib/version.c \
 libtac/lib/xalloc.c \
 libtac/lib/xalloc.h \
 $(libtac_include_HEADERS)
+if MY_MD5
+libtac_la_SOURCES += \
+libtac/lib/md5.c \
+libtac/lib/md5.h
+endif
 libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include
 libtac_la_LDFLAGS = -version-info 2:0:0 -shared
 
@@ -54,7 +59,7 @@ pam_tacplus_la_SOURCES = pam_tacplus.h \
 pam_tacplus.c \
 support.h \
 support.c
-pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include
+pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/libtac/lib
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 

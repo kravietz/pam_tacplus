@@ -19,7 +19,11 @@
  */
 
 #include "libtac.h"
-#include "md5.h"
+#if defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO)
+# include <openssl/md5.h>
+#else
+# include "md5.h"
+#endif
 
 /* this function sends a continue packet do TACACS+ server, asking
  * for validation of given password
