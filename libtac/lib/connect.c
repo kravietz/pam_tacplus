@@ -98,7 +98,6 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     if( fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1 ) {
         TACSYSLOG((LOG_ERR, "%s: cannot set socket non blocking",\
             __FUNCTION__))
-        close(fd);
         goto bomb;
     }
 
@@ -107,7 +106,6 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         if (bind(fd, srcaddr->ai_addr, srcaddr->ai_addrlen) < 0) {
             TACSYSLOG((LOG_ERR, "%s: Failed to bind source address: %s",
                 __FUNCTION__, strerror(errno)))
-            close(fd);
             goto bomb;
         }
     }
@@ -117,7 +115,6 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     if((rc == -1) && (errno != EINPROGRESS) && (errno != 0)) {
         TACSYSLOG((LOG_ERR,\
             "%s: connection to %s failed: %m", __FUNCTION__, ip))
-        close(fd);
         goto bomb;
     }
 
@@ -137,7 +134,6 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     /* timeout */
     if ( rc == 0 ) {
         retval = LIBTAC_STATUS_CONN_TIMEOUT;
-        close(fd);
         goto bomb;
     }
 
@@ -145,7 +141,6 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     if ( rc < 0 ) {
         TACSYSLOG((LOG_ERR,\
             "%s: connection failed with %s: %m", __FUNCTION__, ip))
-        close(fd);
         goto bomb;
     }
 
@@ -154,7 +149,6 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     if(getpeername(fd, (struct sockaddr*)&addr, &len) == -1) {
         TACSYSLOG((LOG_ERR,\
             "%s: connection failed with %s: %m", __FUNCTION__, ip))
-        close(fd);
         goto bomb;
     }
 
@@ -162,7 +156,6 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     if(fcntl(fd, F_SETFL, flags) == -1) {
         TACSYSLOG((LOG_ERR, "%s: cannot restore socket flags: %m",\
              __FUNCTION__)) 
-        close(fd);
         goto bomb;
     }
 
@@ -178,6 +171,9 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     }
 
 bomb:
+    if (retval < 0 && fd != -1)
+       close(fd);
+
     TACDEBUG((LOG_DEBUG, "%s: exit status=%d (fd=%d)",\
         __FUNCTION__, retval < 0 ? retval:0, fd))
     return retval;
