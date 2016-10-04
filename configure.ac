@@ -68,7 +68,6 @@ if test "x$enable_am_ldcflags" != "xno"; then
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 	    [AC_MSG_RESULT([yes])]
 	    [AM_CFLAGS="$AM_CFLAGS $flag"]
-	    [AM_LDFLAGS="$AM_LDFLAGS $flag"],
 	    [AC_MSG_RESULT([no])]
 	)
 	CFLAGS="$my_save_cflags"
