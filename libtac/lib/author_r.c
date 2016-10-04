@@ -47,6 +47,7 @@ int tac_author_read(int fd, struct areply *re) {
 	char *msg = NULL;
 	int timeleft = 0;
 	re->msg = NULL;
+	unsigned int r = 0;
 
 	bzero(re, sizeof(struct areply));
 	if (tac_readtimeout_enable
@@ -129,7 +130,7 @@ int tac_author_read(int fd, struct areply *re) {
 	pktp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
 
 	/* cycle through the arguments supplied in the packet */
-	for (unsigned int r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
+	for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
 			r++) {
 		if ((ssize_t) len_from_body > packet_read
 				|| ((void *) pktp - (void *) tb) > packet_read) {
@@ -202,7 +203,7 @@ int tac_author_read(int fd, struct areply *re) {
 		TACSYSLOG((LOG_DEBUG, "Args cnt %d", tb->arg_cnt));
 		/* argp points to current argument string
 		 pktp points to current argument length */
-		for (unsigned int r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
+		for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
 				r++) {
 			char buff[256];
 			char *sep;
