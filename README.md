@@ -1,4 +1,4 @@
-![Travis CI](https://travis-ci.org/jeroennijhof/pam_tacplus.svg?branch=master)
+[![Build Status](https://travis-ci.org/jeroennijhof/pam_tacplus.svg?branch=master)](https://travis-ci.org/jeroennijhof/pam_tacplus)
 [![Analysis Status](https://scan.coverity.com/projects/5499/badge.svg)](https://scan.coverity.com/projects/5499)
 [![GitHub forks](https://img.shields.io/github/forks/jeroennijhof/pam_tacplus.svg)](https://github.com/jeroennijhof/pam_tacplus/network)
 [![GitHub license](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://raw.githubusercontent.com/jeroennijhof/pam_tacplus/master/COPYING)
