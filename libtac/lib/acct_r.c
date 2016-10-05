@@ -44,8 +44,8 @@ int tac_acct_read(int fd, struct areply *re) {
 
     if (tac_readtimeout_enable &&
         tac_read_wait(fd,tac_timeout*1000, TAC_PLUS_HDR_SIZE,&timeleft) < 0 ) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout))
+        TACSYSLOG(LOG_ERR,\
+            "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
         free(tb);
@@ -54,9 +54,9 @@ int tac_acct_read(int fd, struct areply *re) {
 
     spacket_read = read(fd, &th, TAC_PLUS_HDR_SIZE);
     if(spacket_read  < TAC_PLUS_HDR_SIZE) {
-        TACSYSLOG((LOG_ERR,\
+        TACSYSLOG(LOG_ERR,\
             "%s: short reply header, read %zd of %u expected: %m", __FUNCTION__,\
-            spacket_read, TAC_PLUS_HDR_SIZE))
+            spacket_read, TAC_PLUS_HDR_SIZE);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_HDR;
         free(tb);
@@ -69,17 +69,17 @@ int tac_acct_read(int fd, struct areply *re) {
         re->msg = xstrdup(msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
         free(tb);
-        TACDEBUG((LOG_DEBUG, "%s: exit status=%d, status message \"%s\"",\
-            __FUNCTION__, re->status, re->msg != NULL ? re->msg : ""))
+        TACDEBUG(LOG_DEBUG, "%s: exit status=%d, status message \"%s\"",\
+            __FUNCTION__, re->status, re->msg != NULL ? re->msg : "");
         return re->status;
     }
 
     ulen_from_header = ntohl(th.datalength);
     if (ulen_from_header > TAC_PLUS_MAX_PACKET_SIZE) {
-        TACSYSLOG((LOG_ERR,\
+        TACSYSLOG(LOG_ERR,\
             "%s: length declared in the packet %zu exceeds max allowed packet size %d",\
             __FUNCTION__,\
-            ulen_from_header, TAC_PLUS_MAX_PACKET_SIZE))
+            ulen_from_header, TAC_PLUS_MAX_PACKET_SIZE);
         re->status=LIBTAC_STATUS_SHORT_HDR;
         free(tb);
         return re->status;
@@ -89,8 +89,8 @@ int tac_acct_read(int fd, struct areply *re) {
     /* read reply packet body */
     if (tac_readtimeout_enable &&
         tac_read_wait(fd,timeleft,ulen_from_header,NULL) < 0 ) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout))
+        TACSYSLOG(LOG_ERR,\
+            "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
         free(tb);
@@ -99,10 +99,10 @@ int tac_acct_read(int fd, struct areply *re) {
 
     spacket_read = read(fd, tb, ulen_from_header);
     if(spacket_read < (ssize_t) ulen_from_header) {
-        TACSYSLOG((LOG_ERR,\
+        TACSYSLOG(LOG_ERR,\
             "%s: short reply body, read %zd of %zu: %m",\
             __FUNCTION__,\
-			spacket_read, ulen_from_header))
+			spacket_read, ulen_from_header);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_BODY;
         free(tb);
@@ -121,9 +121,9 @@ int tac_acct_read(int fd, struct areply *re) {
         sizeof(tb->status) + tb->msg_len + tb->data_len;
 
     if(ulen_from_header != len_from_body) {
-        TACSYSLOG((LOG_ERR,\
+        TACSYSLOG(LOG_ERR,\
             "%s: inconsistent reply body, incorrect key?",\
-            __FUNCTION__))
+            __FUNCTION__);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
         free(tb);
@@ -140,15 +140,15 @@ int tac_acct_read(int fd, struct areply *re) {
 
     /* server logged our request successfully */
     if (tb->status == TAC_PLUS_ACCT_STATUS_SUCCESS) {
-        TACDEBUG((LOG_DEBUG, "%s: accounted ok", __FUNCTION__))
+        TACDEBUG(LOG_DEBUG, "%s: accounted ok", __FUNCTION__);
         if (!re->msg) re->msg = xstrdup(acct_ok_msg);
         re->status = tb->status;
         free(tb);
         return re->status;
     }
 
-    TACDEBUG((LOG_DEBUG, "%s: accounting failed, server reply status=%d",\
-        __FUNCTION__, tb->status))
+    TACDEBUG(LOG_DEBUG, "%s: accounting failed, server reply status=%d",\
+        __FUNCTION__, tb->status);
     switch(tb->status) {
         case TAC_PLUS_ACCT_STATUS_FOLLOW:
             re->status = tb->status;

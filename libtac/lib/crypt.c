@@ -100,6 +100,6 @@ void _tac_crypt(u_char *buf, HDR *th, int length) {
   
         free(pad);
     } else {
-        TACSYSLOG((LOG_WARNING, "%s: using no TACACS+ encryption", __FUNCTION__))
+        TACSYSLOG(LOG_WARNING, "%s: using no TACACS+ encryption", __FUNCTION__);
     }
 }    /* _tac_crypt */

@@ -55,7 +55,7 @@ int tac_author_read(int fd, struct areply *re) {
 					&timeleft) < 0) {
 
 		TACSYSLOG(
-				(LOG_ERR, "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout))
+				LOG_ERR, "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
 		re->msg = xstrdup(author_syserr_msg);
 		re->status = LIBTAC_STATUS_READ_TIMEOUT;
 		free(tb);
@@ -65,7 +65,7 @@ int tac_author_read(int fd, struct areply *re) {
 	packet_read = read(fd, &th, TAC_PLUS_HDR_SIZE);
 	if (packet_read < TAC_PLUS_HDR_SIZE) {
 		TACSYSLOG(
-				(LOG_ERR, "%s: short reply header, read %zd of %d: %m", __FUNCTION__, packet_read, TAC_PLUS_HDR_SIZE))
+				LOG_ERR, "%s: short reply header, read %zd of %d: %m", __FUNCTION__, packet_read, TAC_PLUS_HDR_SIZE);
 		re->msg = xstrdup(author_syserr_msg);
 		re->status = LIBTAC_STATUS_SHORT_HDR;
 		free(tb);
@@ -85,7 +85,7 @@ int tac_author_read(int fd, struct areply *re) {
 	len_from_header = ntohl(th.datalength);
 	if (len_from_header > TAC_PLUS_MAX_PACKET_SIZE) {
 		TACSYSLOG(
-				(LOG_ERR, "%s: length declared in the packet %zu exceeds max packet size %d", __FUNCTION__, len_from_header, TAC_PLUS_MAX_PACKET_SIZE))
+				LOG_ERR, "%s: length declared in the packet %zu exceeds max packet size %d", __FUNCTION__, len_from_header, TAC_PLUS_MAX_PACKET_SIZE);
 		re->status = LIBTAC_STATUS_PROTOCOL_ERR;
 		free(tb);
 		return re->status;
@@ -97,7 +97,7 @@ int tac_author_read(int fd, struct areply *re) {
 			&& tac_read_wait(fd, timeleft, len_from_header, NULL) < 0) {
 
 		TACSYSLOG(
-				(LOG_ERR, "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout))
+				LOG_ERR, "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
 		re->msg = xstrdup(author_syserr_msg);
 		re->status = LIBTAC_STATUS_READ_TIMEOUT;
 		free(tb);
@@ -106,7 +106,7 @@ int tac_author_read(int fd, struct areply *re) {
 	packet_read = read(fd, tb, len_from_header);
 	if (packet_read < (ssize_t) len_from_header) {
 		TACSYSLOG(
-				(LOG_ERR, "%s: short reply body, read %zd of %zu", __FUNCTION__, packet_read, len_from_header))
+				LOG_ERR, "%s: short reply body, read %zd of %zu", __FUNCTION__, packet_read, len_from_header);
 		re->msg = xstrdup(author_syserr_msg);
 		re->status = LIBTAC_STATUS_SHORT_BODY;
 		free(tb);
@@ -135,7 +135,7 @@ int tac_author_read(int fd, struct areply *re) {
 		if ((ssize_t) len_from_body > packet_read
 				|| ((void *) pktp - (void *) tb) > packet_read) {
 			TACSYSLOG(
-					(LOG_ERR, "%s: arguments supplied in packet seem to exceed its size", __FUNCTION__))
+					LOG_ERR, "%s: arguments supplied in packet seem to exceed its size", __FUNCTION__);
 			re->msg = xstrdup(protocol_err_msg);
 			re->status = LIBTAC_STATUS_PROTOCOL_ERR;
 			free(tb);
@@ -148,7 +148,7 @@ int tac_author_read(int fd, struct areply *re) {
 
 	if (len_from_header != len_from_body) {
 		TACSYSLOG(
-				(LOG_ERR, "%s: inconsistent reply body, incorrect key?", __FUNCTION__))
+				LOG_ERR, "%s: inconsistent reply body, incorrect key?", __FUNCTION__);
 		re->msg = xstrdup(protocol_err_msg);
 		re->status = LIBTAC_STATUS_PROTOCOL_ERR;
 		free(tb);
@@ -174,12 +174,12 @@ int tac_author_read(int fd, struct areply *re) {
 						+ (tb->arg_cnt) * sizeof(u_char) + tb->msg_len, smsg,
 				tb->data_len);
 		smsg[(int) tb->data_len] = '\0';
-		TACSYSLOG((LOG_ERR, "%s: reply message: %s", __FUNCTION__,smsg))
+		TACSYSLOG(LOG_ERR, "%s: reply message: %s", __FUNCTION__, smsg);
 		free(smsg);
 	}
 
-	TACDEBUG((LOG_DEBUG, "%s: authorization reply status=%d",
-					__FUNCTION__, tb->status));
+	TACDEBUG(LOG_DEBUG, "%s: authorization reply status=%d",
+					__FUNCTION__, tb->status);
 
 	/* prepare status */
 	switch (tb->status) {
@@ -200,7 +200,7 @@ int tac_author_read(int fd, struct areply *re) {
 		pktp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
 		argp = pktp + (tb->arg_cnt * sizeof(u_char)) + tb->msg_len
 				+ tb->data_len;
-		TACSYSLOG((LOG_DEBUG, "Args cnt %d", tb->arg_cnt));
+		TACSYSLOG(LOG_DEBUG, "Args cnt %d", tb->arg_cnt);
 		/* argp points to current argument string
 		 pktp points to current argument length */
 		for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
@@ -218,7 +218,7 @@ int tac_author_read(int fd, struct areply *re) {
 			}
 			if (sep == NULL) {
 				TACSYSLOG(
-						(LOG_WARNING, "AUTHOR_STATUS_PASS_ADD/REPL: av pair does not contain a separator: %s", buff))
+						LOG_WARNING, "AUTHOR_STATUS_PASS_ADD/REPL: av pair does not contain a separator: %s", buff);
 				/* now buff points to attribute name, make value ""
 				 treat as "name=" */
 				value = "";
@@ -229,7 +229,7 @@ int tac_author_read(int fd, struct areply *re) {
 				/* now buff points to attribute name,
 				 value to the attribute value */
 			}
-			TACSYSLOG((LOG_DEBUG, "Adding buf/value pair (%s,%s)", buff, value));
+			TACSYSLOG(LOG_DEBUG, "Adding buf/value pair (%s,%s)", buff, value);
 			tac_add_attrib_pair(&re->attr, buff, sepchar, value);
 			argp += *pktp;
 			pktp++;

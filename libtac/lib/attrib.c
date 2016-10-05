@@ -41,9 +41,9 @@ void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *v
     total_len = l1 + l2 + 1; /* "name" + "=" + "value" */
 
     if (total_len > 255) {
-        TACSYSLOG((LOG_WARNING,\
+        TACSYSLOG(LOG_WARNING,\
             "%s: attribute `%s' total length exceeds 255 characters, skipping",\
-            __FUNCTION__, name))
+            __FUNCTION__, name);
         return;
     }
 

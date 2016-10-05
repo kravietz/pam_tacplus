@@ -47,7 +47,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
     int fd=-1;
 
     if(servers == 0 || server == NULL) {
-        TACSYSLOG((LOG_ERR, "%s: no TACACS+ servers defined", __FUNCTION__))
+        TACSYSLOG(LOG_ERR, "%s: no TACACS+ servers defined", __FUNCTION__);
     } else {
         for ( tries = 0; tries < servers; tries++ ) {   
             if((fd=tac_connect_single(server[tries], key[tries], NULL, tac_timeout)) >= 0 ) {
@@ -58,7 +58,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
     }
 
     /* all attempts failed if fd is still < 0 */
-    TACDEBUG((LOG_DEBUG, "%s: exit status=%d",__FUNCTION__, fd))
+    TACDEBUG(LOG_DEBUG, "%s: exit status=%d",__FUNCTION__, fd);
     return fd;
 } /* tac_connect */
 
@@ -78,7 +78,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     char *ip;
 
     if(server == NULL) {
-        TACSYSLOG((LOG_ERR, "%s: no TACACS+ server defined", __FUNCTION__))
+        TACSYSLOG(LOG_ERR, "%s: no TACACS+ server defined", __FUNCTION__);
         goto bomb;
     }
 
@@ -86,8 +86,8 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     ip = tac_ntop(server->ai_addr);
 
     if((fd=socket(server->ai_family, server->ai_socktype, server->ai_protocol)) < 0) {
-        TACSYSLOG((LOG_ERR,"%s: socket creation error: %s", __FUNCTION__,
-            strerror(errno)))
+        TACSYSLOG(LOG_ERR,"%s: socket creation error: %s", __FUNCTION__,
+            strerror(errno));
         goto bomb;
     }
 
@@ -96,16 +96,16 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
 
     /* put socket in non blocking mode for timeout support */
     if( fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1 ) {
-        TACSYSLOG((LOG_ERR, "%s: cannot set socket non blocking",\
-            __FUNCTION__))
+        TACSYSLOG(LOG_ERR, "%s: cannot set socket non blocking",\
+            __FUNCTION__);
         goto bomb;
     }
 
     /* bind if source address got explicity defined */
     if (srcaddr) {
         if (bind(fd, srcaddr->ai_addr, srcaddr->ai_addrlen) < 0) {
-            TACSYSLOG((LOG_ERR, "%s: Failed to bind source address: %s",
-                __FUNCTION__, strerror(errno)))
+            TACSYSLOG(LOG_ERR, "%s: Failed to bind source address: %s",
+                __FUNCTION__, strerror(errno));
             goto bomb;
         }
     }
@@ -113,8 +113,8 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     rc = connect(fd, server->ai_addr, server->ai_addrlen);
     /* FIX this..for some reason errno = 0 on AIX... */
     if((rc == -1) && (errno != EINPROGRESS) && (errno != 0)) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: connection to %s failed: %m", __FUNCTION__, ip))
+        TACSYSLOG(LOG_ERR,\
+            "%s: connection to %s failed: %m", __FUNCTION__, ip);
         goto bomb;
     }
 
@@ -139,28 +139,28 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
 
     /* some other error or interrupt before timeout */
     if ( rc < 0 ) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: connection failed with %s: %m", __FUNCTION__, ip))
+        TACSYSLOG(LOG_ERR,\
+            "%s: connection failed with %s: %m", __FUNCTION__, ip);
         goto bomb;
     }
 
     /* check with getpeername if we have a valid connection */
     len = sizeof addr;
     if(getpeername(fd, (struct sockaddr*)&addr, &len) == -1) {
-        TACSYSLOG((LOG_ERR,\
-            "%s: connection failed with %s: %m", __FUNCTION__, ip))
+        TACSYSLOG(LOG_ERR,\
+            "%s: connection failed with %s: %m", __FUNCTION__, ip);
         goto bomb;
     }
 
     /* restore flags on socket - flags was set only when fd >= 0 */
     if(fcntl(fd, F_SETFL, flags) == -1) {
-        TACSYSLOG((LOG_ERR, "%s: cannot restore socket flags: %m",\
-             __FUNCTION__)) 
+        TACSYSLOG(LOG_ERR, "%s: cannot restore socket flags: %m",\
+             __FUNCTION__);
         goto bomb;
     }
 
     /* connected ok */
-    TACDEBUG((LOG_DEBUG, "%s: connected to %s", __FUNCTION__, ip))
+    TACDEBUG(LOG_DEBUG, "%s: connected to %s", __FUNCTION__, ip);
     retval = fd;
 
     /* set current tac_secret */
@@ -174,8 +174,8 @@ bomb:
     if (retval < 0 && fd != -1)
        close(fd);
 
-    TACDEBUG((LOG_DEBUG, "%s: exit status=%d (fd=%d)",\
-        __FUNCTION__, retval < 0 ? retval:0, fd))
+    TACDEBUG(LOG_DEBUG, "%s: exit status=%d (fd=%d)",\
+        __FUNCTION__, retval < 0 ? retval:0, fd);
     return retval;
 } /* tac_connect_single */
 
