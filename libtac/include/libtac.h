@@ -158,8 +158,7 @@ int tac_authen_read(int, struct areply *);
 int tac_cont_send_seq(int, char *, int);
 #define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)
 HDR *_tac_req_header(u_char, int);
-void _tac_crypt(u_char *, HDR *, int);
-u_char *_tac_md5_pad(int, HDR *);
+void _tac_crypt(u_char *, const HDR *);
 void tac_add_attrib(struct tac_attrib **, char *, char *);
 void tac_free_attrib(struct tac_attrib **);
 char *tac_acct_flag2str(int);

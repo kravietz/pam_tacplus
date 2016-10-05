@@ -92,7 +92,7 @@ int tac_cont_send_seq(int fd, char *pass, int seq) {
 	}
 
 	/* encrypt the body */
-	_tac_crypt(pkt, th, bodylength);
+	_tac_crypt(pkt, th);
 
 	w = write(fd, pkt, pkt_len);
 	if (w < 0 || w < pkt_len) {
