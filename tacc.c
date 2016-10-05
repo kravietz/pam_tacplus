@@ -435,7 +435,7 @@ int main(int argc, char **argv) {
 void sighandler(int sig) {
 	sig = sig;				/* unused */
 
-	TACDEBUG((LOG_DEBUG, "caught signal %d", sig));
+	TACDEBUG(LOG_DEBUG, "caught signal %d", sig);
 }
 
 void authenticate(const struct addrinfo *tac_server, const char *tac_secret,

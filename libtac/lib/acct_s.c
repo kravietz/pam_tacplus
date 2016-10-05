@@ -66,10 +66,10 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     th->version=TAC_PLUS_VER_0;
     th->encryption=tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
 
-    TACDEBUG((LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s, type: %s", \
+    TACDEBUG(LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s, type: %s", \
         __FUNCTION__, user, tty, r_addr, \
         (tac_encryption) ? "yes" : "no", \
-        tac_acct_flag2str(type)))
+        tac_acct_flag2str(type));
         
     user_len=(u_char) strlen(user);
     port_len=(u_char) strlen(tty);
@@ -154,8 +154,8 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     w = write(fd, th, TAC_PLUS_HDR_SIZE);
 
     if(w < TAC_PLUS_HDR_SIZE) {
-        TACSYSLOG((LOG_ERR, "%s: short write on header, wrote %d of %d: %m",\
-            __FUNCTION__, w, TAC_PLUS_HDR_SIZE))
+        TACSYSLOG(LOG_ERR, "%s: short write on header, wrote %d of %d: %m",\
+            __FUNCTION__, w, TAC_PLUS_HDR_SIZE);
         free(pkt);
         free(th);
         return LIBTAC_STATUS_WRITE_ERR;
@@ -167,13 +167,13 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     /* write body */
     w=write(fd, pkt, pkt_len);
     if(w < pkt_len) {
-        TACSYSLOG((LOG_ERR, "%s: short write on body, wrote %d of %d: %m",\
-            __FUNCTION__, w, pkt_len))
+        TACSYSLOG(LOG_ERR, "%s: short write on body, wrote %d of %d: %m",\
+            __FUNCTION__, w, pkt_len);
         ret = LIBTAC_STATUS_WRITE_ERR;
     }
 
     free(pkt);
     free(th);
-    TACDEBUG((LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret))
+    TACDEBUG(LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret);
     return ret;
 }

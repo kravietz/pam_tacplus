@@ -45,19 +45,31 @@ extern "C" {
 #include "tacplus.h"
 
 #if defined(DEBUGTAC) && !defined(TACDEBUG)
-#define TACDEBUG(x) syslog x;
+# ifdef __GNUC__
+#define TACDEBUG(level, fmt, ...) syslog(level, fmt, ## __VA_ARGS__)
+# else
+#define TACDEBUG(level, fmt, ...) syslog(level, fmt, __VA_ARGS__)
+# endif
 #else
-//#define TACDEBUG(x) syslog x;
-#define TACDEBUG(x)
+#define TACDEBUG(level, fmt, ...) (void)0
 #endif
 
-#define TACSYSLOG(x) syslog x;
+#ifdef __GNUC__
+#define TACSYSLOG(level, fmt, ...) syslog(level, fmt, ## __VA_ARGS__)
+#else
+#define TACSYSLOG(level, fmt, ...) syslog(level, fmt, __VA_ARGS__)
+#endif
 
 #if defined(TACDEBUG_AT_RUNTIME)
 #undef TACDEBUG
 #undef TACSYSLOG
-#define TACDEBUG(x) if (tac_debug_enable) (void)logmsg x;
-#define TACSYSLOG(x) (void)logmsg x;
+# ifdef __GNUC__
+#define TACDEBUG(level, fmt, ...) do { if (tac_debug_enable) (void)logmsg(level, fmt, ## __VA_ARGS__); } while (0)
+#define TACSYSLOG(level, fmt, ...) (void)logmsg(level, fmt, ## __VA_ARGS__)
+# else
+#define TACDEBUG(level, fmt, ...) do { if (tac_debug_enable) (void)logmsg(level, fmt, __VA_ARGS__); } while (0)
+#define TACSYSLOG(level, fmt, ...) (void)logmsg(level, fmt, __VA_ARGS__)
+# endif
 extern int logmsg __P((int, const char*, ...));
 #endif
 
