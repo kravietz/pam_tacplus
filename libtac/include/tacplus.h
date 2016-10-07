@@ -107,6 +107,7 @@ struct authen_cont {
     u_short user_msg_len;
     u_short user_data_len;
     u_char flags;
+    u_char msg[0];
 
 #define TAC_PLUS_CONTINUE_FLAG_ABORT 0x01
 
@@ -133,6 +134,7 @@ struct authen_reply {
 
     u_short msg_len;
     u_short data_len;
+    u_char  msg[0];
 };
 
 #define TAC_AUTHEN_REPLY_FIXED_FIELDS_SIZE 6
@@ -173,6 +175,7 @@ struct acct {
     u_char port_len;
     u_char r_addr_len;
     u_char arg_cnt;    /* the number of cmd args */
+    u_char arg_len[0];
 };
 
 #define TAC_ACCT_REQ_FIXED_FIELDS_SIZE 9
@@ -201,6 +204,7 @@ struct author {
     u_char port_len;
     u_char r_addr_len;
     u_char arg_cnt;    /* the number of args */
+    u_char arg_len[0];
 };
 
 #define TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE 8
@@ -211,6 +215,7 @@ struct author_reply {
     u_char arg_cnt;
     u_short msg_len;
     u_short data_len;
+    u_char  arg_len[0];
 
 #define TAC_PLUS_AUTHOR_STATUS_PASS_ADD  0x01
 #define TAC_PLUS_AUTHOR_STATUS_PASS_REPL 0x02

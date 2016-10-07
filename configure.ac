@@ -48,6 +48,7 @@ dnl --------------------------------------------------------------------
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h ])
+AC_CHECK_HEADERS([stdbool.h limits.h assert.h])
 AC_CHECK_HEADERS([syslog.h unistd.h openssl/md5.h openssl/rand.h linux/random.h sys/random.h])
 AC_CHECK_HEADER(security/pam_appl.h, [], [AC_MSG_ERROR([PAM libraries missing. Install with "yum install pam-devel" or "apt-get install libpam-dev".])] )
 AM_CONDITIONAL(MY_MD5, [test "$ac_cv_header_openssl_md5_h" = "no" ])
