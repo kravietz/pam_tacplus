@@ -23,13 +23,7 @@
 #include "libtac.h"
 #include "messages.h"
 
-/* This function returns structure containing
- 1. status (granted/denied)
- 2. message for the user
- 3. list of attributes returned by server
- The attributes should be applied to service authorization
- is requested for.
- *
+/*
  * return value:
  *   <  0 : error status code, see LIBTAC_STATUS_...
  *         LIBTAC_STATUS_READ_TIMEOUT
@@ -38,83 +32,38 @@
  *         LIBTAC_STATUS_PROTOCOL_ERR
  *   >= 0 : server response, see TAC_PLUS_AUTHOR_STATUS_...
  */
-int tac_author_read(int fd, struct areply *re) {
-	HDR th;
+int tac_author_parse(u_char *pkt, unsigned pkt_total, struct areply *re) {
+	HDR *th = (HDR *)pkt;
 	struct author_reply *tb = NULL;
 	size_t len_from_header, len_from_body;
-	ssize_t packet_read;
-	u_char *pktp = NULL;
 	char *msg = NULL;
-	int timeleft = 0;
-	re->msg = NULL;
 	unsigned int r = 0;
 
-	bzero(re, sizeof(struct areply));
-	if (tac_readtimeout_enable
-			&& tac_read_wait(fd, tac_timeout * 1000, TAC_PLUS_HDR_SIZE,
-					&timeleft) < 0) {
-
-		TACSYSLOG(
-				LOG_ERR, "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
-		re->msg = xstrdup(author_syserr_msg);
-		re->status = LIBTAC_STATUS_READ_TIMEOUT;
-		free(tb);
-		return re->status;
-	}
-
-	packet_read = read(fd, &th, TAC_PLUS_HDR_SIZE);
-	if (packet_read < TAC_PLUS_HDR_SIZE) {
-		TACSYSLOG(
-				LOG_ERR, "%s: short reply header, read %zd of %d: %m", __FUNCTION__, packet_read, TAC_PLUS_HDR_SIZE);
-		re->msg = xstrdup(author_syserr_msg);
-		re->status = LIBTAC_STATUS_SHORT_HDR;
-		free(tb);
-		return re->status;
-	}
+	bzero(re, sizeof(*re));
 
 	/* check header consistency */
-	msg = _tac_check_header(&th, TAC_PLUS_AUTHOR);
+	msg = _tac_check_header(th, TAC_PLUS_AUTHOR);
 	if (msg != NULL) {
 		/* no need to process body if header is broken */
 		re->msg = xstrdup(msg);
 		re->status = LIBTAC_STATUS_PROTOCOL_ERR;
-		free(tb);
 		return re->status;
 	}
 
-	len_from_header = ntohl(th.datalength);
-	if (len_from_header > TAC_PLUS_MAX_PACKET_SIZE) {
-		TACSYSLOG(
-				LOG_ERR, "%s: length declared in the packet %zu exceeds max packet size %d", __FUNCTION__, len_from_header, TAC_PLUS_MAX_PACKET_SIZE);
-		re->status = LIBTAC_STATUS_PROTOCOL_ERR;
-		free(tb);
-		return re->status;
-	}
-	tb = (struct author_reply *) xcalloc(1, len_from_header);
+	len_from_header = ntohl(th->datalength);
 
-	/* read reply packet body */
-	if (tac_readtimeout_enable
-			&& tac_read_wait(fd, timeleft, len_from_header, NULL) < 0) {
+	tb = (struct author_reply *)(pkt + TAC_PLUS_HDR_SIZE);
 
+	if (pkt_total != TAC_PLUS_HDR_SIZE + len_from_header) {
 		TACSYSLOG(
-				LOG_ERR, "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
-		re->msg = xstrdup(author_syserr_msg);
-		re->status = LIBTAC_STATUS_READ_TIMEOUT;
-		free(tb);
-		return re->status;
-	}
-	packet_read = read(fd, tb, len_from_header);
-	if (packet_read < (ssize_t) len_from_header) {
-		TACSYSLOG(
-				LOG_ERR, "%s: short reply body, read %zd of %zu", __FUNCTION__, packet_read, len_from_header);
+				LOG_ERR, "%s: short packet, got %u of %zu", __FUNCTION__, pkt_total, len_from_header);
 		re->msg = xstrdup(author_syserr_msg);
 		re->status = LIBTAC_STATUS_SHORT_BODY;
-		free(tb);
 		return re->status;
 	}
 
 	/* decrypt the body */
-	_tac_crypt((u_char *) tb, &th);
+	_tac_crypt((u_char *) tb, th);
 
 	/* Convert network byte order to host byte order */
 	tb->msg_len = ntohs(tb->msg_len);
@@ -127,42 +76,39 @@ int tac_author_read(int fd, struct areply *re) {
 	len_from_body = TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE + tb->msg_len
 			+ tb->data_len;
 
-	pktp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
-
 	/* cycle through the arguments supplied in the packet */
-	for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
-			r++) {
-		if ((ssize_t) len_from_body > packet_read
-				|| ((void *) pktp - (void *) tb) > packet_read) {
+	for (r = 0; ; r++) {
+		if (len_from_body > pkt_total) {
 			TACSYSLOG(
 					LOG_ERR, "%s: arguments supplied in packet seem to exceed its size", __FUNCTION__);
 			re->msg = xstrdup(protocol_err_msg);
 			re->status = LIBTAC_STATUS_PROTOCOL_ERR;
-			free(tb);
 			return re->status;
 		}
-		len_from_body += sizeof(u_char); /* add arg length field's size*/
-		len_from_body += *pktp; /* add arg length itself */
-		pktp++;
+
+		if (r == tb->arg_cnt)
+			break;
+
+		len_from_body += sizeof(tb->arg_len[0]) + tb->arg_len[r];
 	}
 
 	if (len_from_header != len_from_body) {
 		TACSYSLOG(
-				LOG_ERR, "%s: inconsistent reply body, incorrect key?", __FUNCTION__);
+				LOG_ERR, "%s: inconsistent reply body, header len %zu versus parsed len %zu", __FUNCTION__, len_from_header, len_from_body);
 		re->msg = xstrdup(protocol_err_msg);
 		re->status = LIBTAC_STATUS_PROTOCOL_ERR;
-		free(tb);
 		return re->status;
 	}
 
 	/* packet seems to be consistent, prepare return messages */
+
 	/* server message for user */
 	if (tb->msg_len) {
 		char *msg = (char *) xcalloc(1, tb->msg_len + 1);
 		bcopy(
 				(u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
-						+ (tb->arg_cnt) * sizeof(u_char), msg, tb->msg_len);
-		msg[(int) tb->msg_len] = '\0';
+						+ (tb->arg_cnt) * sizeof(tb->arg_len[0]), msg, tb->msg_len);
+		msg[tb->msg_len] = '\0';
 		re->msg = msg; /* freed by caller */
 	}
 
@@ -171,11 +117,11 @@ int tac_author_read(int fd, struct areply *re) {
 		char *smsg = (char *) xcalloc(1, tb->data_len + 1);
 		bcopy(
 				(u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
-						+ (tb->arg_cnt) * sizeof(u_char) + tb->msg_len, smsg,
+						+ (tb->arg_cnt) * sizeof(tb->arg_len[0]) + tb->msg_len, smsg,
 				tb->data_len);
-		smsg[(int) tb->data_len] = '\0';
+		smsg[tb->data_len] = '\0';
+		re->data = smsg;     /* Freed by caller */
 		TACSYSLOG(LOG_ERR, "%s: reply message: %s", __FUNCTION__, smsg);
-		free(smsg);
 	}
 
 	TACDEBUG(LOG_DEBUG, "%s: authorization reply status=%d",
@@ -186,6 +132,9 @@ int tac_author_read(int fd, struct areply *re) {
 	/* success conditions */
 	/* XXX support optional vs mandatory arguments */
 	case TAC_PLUS_AUTHOR_STATUS_PASS_REPL:
+		/* @@@ we bzero'd the pointer at the top of this function,
+		 * so there's nothing left to free here!
+		 */
 		tac_free_attrib(&re->attr);
 
 	case TAC_PLUS_AUTHOR_STATUS_PASS_ADD: {
@@ -197,10 +146,11 @@ int tac_author_read(int fd, struct areply *re) {
 
 		/* add attributes received to attribute list returned to
 		 the client */
-		pktp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
-		argp = pktp + (tb->arg_cnt * sizeof(u_char)) + tb->msg_len
-				+ tb->data_len;
+		argp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE +
+		       (tb->arg_cnt * sizeof(tb->arg_len[0])) + tb->msg_len +
+			tb->data_len;
 		TACSYSLOG(LOG_DEBUG, "Args cnt %d", tb->arg_cnt);
+
 		/* argp points to current argument string
 		 pktp points to current argument length */
 		for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
@@ -210,12 +160,15 @@ int tac_author_read(int fd, struct areply *re) {
 			char *value;
 			char sepchar = '=';
 
-			bcopy(argp, buff, *pktp);
-			buff[*pktp] = '\0';
-			sep = strchr(buff, '=');
+			bcopy(argp, buff, tb->arg_len[r]);
+			buff[tb->arg_len[r]] = '\0';
+
+			sep = strchr(buff, sepchar);
+
 			if (sep == NULL) {
 				sep = strchr(buff, '*');
 			}
+
 			if (sep == NULL) {
 				TACSYSLOG(
 						LOG_WARNING, "AUTHOR_STATUS_PASS_ADD/REPL: av pair does not contain a separator: %s", buff);
@@ -227,20 +180,17 @@ int tac_author_read(int fd, struct areply *re) {
 				*sep = '\0';
 				value = ++sep;
 				/* now buff points to attribute name,
-				 value to the attribute value */
+				 value to the attribute value (only
+				 buff needs to be freed). */
 			}
 			TACSYSLOG(LOG_DEBUG, "Adding buf/value pair (%s,%s)", buff, value);
 			tac_add_attrib_pair(&re->attr, buff, sepchar, value);
-			argp += *pktp;
-			pktp++;
+			argp += tb->arg_len[r];
 		}
-	}
-		free(tb);
-		return re->status;
+
 		break;
 	}
 
-	switch (tb->status) {
 	/* authorization failure conditions */
 	/* failing to follow is allowed by RFC, page 23  */
 	case TAC_PLUS_AUTHOR_STATUS_FOLLOW:
@@ -255,8 +205,101 @@ int tac_author_read(int fd, struct areply *re) {
 		if (!re->msg)
 			re->msg = xstrdup(author_err_msg);
 		re->status = TAC_PLUS_AUTHOR_STATUS_ERROR;
+		break;
 	}
 
-	free(tb);
 	return re->status;
 }
+
+/* This function returns structure containing
+    1. status (granted/denied)
+    2. message for the user
+    3. list of attributes returned by server
+   The attributes should be applied to service authorization
+   is requested for.
+ *
+ * return value:
+ *   <  0 : error status code, see LIBTAC_STATUS_...
+ *         LIBTAC_STATUS_READ_TIMEOUT
+ *         LIBTAC_STATUS_SHORT_HDR
+ *         LIBTAC_STATUS_SHORT_BODY
+ *         LIBTAC_STATUS_PROTOCOL_ERR
+ *   >= 0 : server response, see TAC_PLUS_AUTHOR_STATUS_...
+ */
+int tac_author_read(int fd, struct areply *re) {
+	HDR *th;
+	struct author_reply *tb = NULL;
+	size_t len_from_header;
+	ssize_t packet_read;
+	int timeleft = 0;
+
+	bzero(re, sizeof(*re));
+
+	if (tac_readtimeout_enable
+			&& tac_read_wait(fd, tac_timeout * 1000, TAC_PLUS_HDR_SIZE,
+					&timeleft) < 0) {
+
+		TACSYSLOG(
+				LOG_ERR, "%s: reply timeout after %d secs", __FUNCTION__, tac_timeout);
+		re->msg = xstrdup(author_syserr_msg);
+		re->status = LIBTAC_STATUS_READ_TIMEOUT;
+		return re->status;
+	}
+
+	th = (HDR *)xcalloc(1, TAC_PLUS_HDR_SIZE);
+
+	packet_read = read(fd, th, TAC_PLUS_HDR_SIZE);
+	if (packet_read < TAC_PLUS_HDR_SIZE) {
+		TACSYSLOG(
+				LOG_ERR, "%s: short reply header, read %zd of %u: %m", __FUNCTION__,
+				((packet_read >= 0) ? packet_read : 0), TAC_PLUS_HDR_SIZE);
+		re->msg = xstrdup(author_syserr_msg);
+		re->status = LIBTAC_STATUS_SHORT_HDR;
+		free(th);
+		return re->status;
+	}
+
+	len_from_header = ntohl(th->datalength);
+	if (len_from_header > TAC_PLUS_MAX_PACKET_SIZE) {
+		TACSYSLOG(
+				LOG_ERR, "%s: length declared in the packet %zu exceeds max packet size %d", __FUNCTION__, len_from_header, TAC_PLUS_MAX_PACKET_SIZE);
+		re->msg = xstrdup(author_syserr_msg);
+		re->status = LIBTAC_STATUS_PROTOCOL_ERR;
+		free(th);
+		return re->status;
+	}
+
+	/* now make room for entire contiguous packet */
+	th = (HDR *)xrealloc(th, TAC_PLUS_HDR_SIZE + len_from_header);
+	tb = (struct author_reply *)((u_char *)th + TAC_PLUS_HDR_SIZE);
+
+	/* read reply packet body */
+	if (tac_readtimeout_enable
+			&& tac_read_wait(fd, timeleft, len_from_header, NULL) < 0) {
+		TACSYSLOG(
+				LOG_ERR, "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
+		re->msg = xstrdup(author_syserr_msg);
+		re->status = LIBTAC_STATUS_READ_TIMEOUT;
+		free(th);
+		return re->status;
+	}
+	packet_read = read(fd, tb, len_from_header);
+	if (packet_read < 0 || (size_t) packet_read < len_from_header) {
+		TACSYSLOG(
+				LOG_ERR, "%s: short reply body, read %zd of %zu: %m", __FUNCTION__, ((packet_read >= 0) ? packet_read : 0), len_from_header);
+		re->msg = xstrdup(author_syserr_msg);
+		re->status = LIBTAC_STATUS_SHORT_BODY;
+		free(th);
+		return re->status;
+	}
+
+	/* now parse remaining packet fields */
+	(void) tac_author_parse((u_char *)th, TAC_PLUS_HDR_SIZE + len_from_header,
+				 re);
+
+	/* all useful data has been copied out */
+	free(th);
+
+	return re->status;
+}	/* tac_author_read */
+

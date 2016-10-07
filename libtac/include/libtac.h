@@ -42,6 +42,9 @@ extern "C" {
 #else
 #include "cdefs.h"
 #endif
+#include <assert.h>
+#include <stdbool.h>
+#include <limits.h>
 #include "tacplus.h"
 
 #if defined(DEBUGTAC) && !defined(TACDEBUG)
@@ -87,6 +90,7 @@ struct tac_attrib {
 struct areply {
 	struct tac_attrib *attr;
 	char *msg;
+	char *data;
 	int status :8;
 	int flags :8;
 	int seq_no :8;
@@ -144,6 +148,8 @@ extern int tac_authen_service;
 extern int tac_debug_enable;
 extern int tac_readtimeout_enable;
 
+HDR *_tac_req_header(u_char, int);
+
 /* connect.c */
 extern int tac_timeout;
 
@@ -152,29 +158,64 @@ int tac_connect_single(const struct addrinfo *, const char *, struct addrinfo *,
 		int);
 char *tac_ntop(const struct sockaddr *);
 
-int tac_authen_send(int, const char *, const char *, const char *, const char *,
-		u_char);
+/* authen_s.c */
+u_char tac_get_authen_type(const char *);
+void tac_authen_send_pkt(const char *, const char *, const char *,
+    const char *, u_char, u_char **, unsigned *);
+int tac_authen_send(int, const char *, const char *, const char *,
+    const char *, u_char);
+
+/* authen_r.c */
+int tac_authen_parse(struct areply *, u_char *, unsigned);
 int tac_authen_read(int, struct areply *);
-int tac_cont_send_seq(int, const char *, int);
+
+/* cont_s.c */
+void tac_cont_send_pkt(const char *, uint8_t, u_char **, unsigned *);
+int tac_cont_send_seq(int, const char *, uint8_t);
 #define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)
-HDR *_tac_req_header(u_char, int);
+
+/* crypt.c */
 void _tac_crypt(u_char *, const HDR *);
+
+/* author_r.c */
+int tac_author_parse(u_char *, unsigned, struct areply *);
+int tac_author_read(int, struct areply *);
+
+/* author_s.c */
+void tac_author_send_pkt(const char *, const char *, const char *,
+    struct tac_attrib *, u_char **, unsigned *);
+int tac_author_send(int, const char *, const char *, const char *,
+    struct tac_attrib *);
+
+/* attrib.c */
 void tac_add_attrib(struct tac_attrib **, char *, char *);
+void tac_add_attrib_pair(struct tac_attrib **, char *, char, char *);
 void tac_free_attrib(struct tac_attrib **);
-char *tac_acct_flag2str(int);
-int tac_acct_send(int, int, const char *, char *, char *, struct tac_attrib *);
+
+/* acct_s.c */
+char *tac_acct_flag2str(u_char);
+void tac_acct_send_pkt(u_char, const char *, const char *, const char *,
+    struct tac_attrib *, u_char **, unsigned *);
+int tac_acct_send(int, u_char, const char *, const char *, const char *,
+    struct tac_attrib *);
+
+/* acct_r.c */
+int tac_acct_parse(u_char *, unsigned, struct areply *);
 int tac_acct_read(int, struct areply *);
+
+/* xalloc.c */
 void *xcalloc(size_t, size_t);
 void *xrealloc(void *, size_t);
 char *xstrcpy(char *, const char *, size_t);
-char *_tac_check_header(HDR *, int);
-int tac_author_send(int, const char *, char *, char *, struct tac_attrib *);
-int tac_author_read(int, struct areply *);
-void tac_add_attrib_pair(struct tac_attrib **, char *, char, char *);
-int tac_read_wait(int, int, int, int *);
+
+/* hdr_check.c */
+char *_tac_check_header(HDR *, uint8_t);
 
 /* magic.c */
 u_int32_t magic(void);
+
+/* read_wait.c */
+int tac_read_wait(int, int, int, int *);
 
 #ifdef __cplusplus
 }
