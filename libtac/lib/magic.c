@@ -18,13 +18,6 @@
  * See `CHANGES' file for revision history.
  */
 
-#ifdef HAVE_CONFIG_H
-  #include "config.h"
-#endif
-
-/* if OpenSSL library is available this legacy code will not be compiled in */
-#if !(defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO))
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -33,24 +26,43 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "magic.h"
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
 
-static int magic_initialised = 0;
+#ifdef _MSC_VER
+# pragma section(".CRT$XCU",read)
+# define INITIALIZER2_(f,p) \
+	static void f(void); \
+	__declspec(allocate(".CRT$XCU")) void (*f##_)(void) = f; \
+	__pragma(comment(linker,"/include:" p #f "_")) \
+	static void f(void)
+# ifdef _WIN64
+#  define INITIALIZER(f) INITIALIZER2_(f,"")
+# else
+#  define INITIALIZER(f) INITIALIZER2_(f,"_")
+# endif
+#else /* __GNUC__ */
+# define INITIALIZER(f) \
+	static void f(void) __attribute__((constructor)); \
+	static void f(void)
+#endif
+
+/* if OpenSSL library is available this legacy code will not be compiled in */
+#if !(defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO))
+
+#include "magic.h"
 
 /*
  * magic_init - Initialize the magic number generator.
  *
  * Attempts to compute a random number seed which will not repeat.
  */
-void
-magic_init()
+INITIALIZER(magic_init)
 {
     struct stat statbuf;
     long seed = 0;
     struct timeval t;
-
-    if (magic_initialised)
-        return;
 
     // try to initialise seed from urandom
     if (!lstat("/dev/urandom", &statbuf) && S_ISCHR(statbuf.st_mode)) {
@@ -67,20 +79,14 @@ magic_init()
 
     // finally seed the PRNG
     srandom(seed);
-    magic_initialised = 1;
 }
 
-#include <pthread.h>
 /*
  * magic - Returns the next magic number.
  */
 u_int32_t
 magic()
 {
-    static pthread_once_t magic_control = PTHREAD_ONCE_INIT;
-    
-    pthread_once(&magic_control, &magic_init);
-
     return (u_int32_t)random();
 }
 
