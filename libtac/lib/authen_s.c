@@ -51,6 +51,19 @@ digest_chap(u_char digest[MD5_LBLOCK], uint8_t id,
     MD5_Final(digest, &mdcontext);
 }
 
+u_char tac_get_authen_type(const char *login)
+{
+	if (*login) {
+		if (!strcmp(login, "chap")) {
+			return TAC_PLUS_AUTHEN_TYPE_CHAP;
+		} else if (!strcmp(login, "login")) {
+			return TAC_PLUS_AUTHEN_TYPE_ASCII;
+		}
+	}
+	/* default to PAP */
+	return TAC_PLUS_AUTHEN_TYPE_PAP;
+}
+
 /* this function sends a packet do TACACS+ server, asking
  * for validation of given username and password
  *
@@ -74,11 +87,14 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 	char *token = NULL;
 	u_char *pkt = NULL;
 	const uint8_t id = 5;
+	uint8_t authen_type;
 
 	th = _tac_req_header(TAC_PLUS_AUTHEN, 0);
 
+	authen_type = tac_get_authen_type(tac_login);
+
 	/* set some header options */
-	if (!strcmp(tac_login, "login")) {
+	if (authen_type == TAC_PLUS_AUTHEN_TYPE_ASCII) {
 		th->version = TAC_PLUS_VER_0;
 	} else {
 		th->version = TAC_PLUS_VER_1;
@@ -98,7 +114,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 	port_len = strlen(tty);
 	r_addr_len = strlen(r_addr);
 
-	if (!strcmp(tac_login, "chap")) {
+	if (authen_type == TAC_PLUS_AUTHEN_TYPE_CHAP) {
 		u_char digest[MD5_LBLOCK];
 
 		digest_chap(digest, id, pass, pass_len, chal, chal_len);
@@ -116,19 +132,12 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 	/* fill the body of message */
 	tb.action = action;
 	tb.priv_lvl = tac_priv_lvl;
-	if (!*tac_login) {
-		/* default to PAP */
+	if (authen_type == TAC_PLUS_AUTHEN_TYPE_PAP) {
 		tb.authen_type =
 				TAC_PLUS_AUTHEN_CHPASS == action ?
 						TAC_PLUS_AUTHEN_TYPE_ASCII : TAC_PLUS_AUTHEN_TYPE_PAP;
 	} else {
-		if (!strcmp(tac_login, "chap")) {
-			tb.authen_type = TAC_PLUS_AUTHEN_TYPE_CHAP;
-		} else if (!strcmp(tac_login, "login")) {
-			tb.authen_type = TAC_PLUS_AUTHEN_TYPE_ASCII;
-		} else {
-			tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
-		}
+		tb.authen_type = authen_type;
 	}
 	tb.service = tac_authen_service;
 	tb.user_len = user_len;
