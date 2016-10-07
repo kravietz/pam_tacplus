@@ -30,6 +30,8 @@
   #include "config.h"
 #endif
 
+#include "magic.h"
+
 #ifdef _MSC_VER
 # pragma section(".CRT$XCU",read)
 # define INITIALIZER2_(f,p) \
@@ -49,9 +51,44 @@
 #endif
 
 /* if OpenSSL library is available this legacy code will not be compiled in */
-#if !(defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO))
+#if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
 
-#include "magic.h"
+#include <openssl/rand.h>
+
+/*
+ * magic - Returns the next magic number.
+ */
+u_int32_t
+magic()
+{
+    u_int32_t num;
+
+    RAND_pseudo_bytes((unsigned char *)&num, sizeof(num));
+
+    return num;
+}
+
+#elif defined(HAVE_GETRANDOM)
+
+# if defined(HAVE_LINUX_RANDOM_H)
+#  include <linux/random.h>
+# elif defined(HAVE_SYS_RANDOM_H)
+#  include <sys/random.h>
+# endif
+
+/*
+ * magic - Returns the next magic number.
+ */
+u_int32_t
+magic()
+{
+    u_int32_t num;
+
+    getrandom(&num, sizeof(num), GRND_NONBLOCK);
+    return num;
+}
+
+#else
 
 /*
  * magic_init - Initialize the magic number generator.
@@ -91,3 +128,4 @@ magic()
 }
 
 #endif
+
