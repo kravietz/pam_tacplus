@@ -49,9 +49,22 @@
 
 /* address of server discovered by pam_sm_authenticate */
 static tacplus_server_t active_server;
+struct addrinfo active_addrinfo;
+struct sockaddr active_sockaddr;
+char active_key[TAC_SECRET_MAX_LEN+1];
 
 /* accounting task identifier */
 static short int task_id = 0;
+
+/* copy a server's information into active_server */
+static void set_active_server (const tacplus_server_t *tac_svr)
+{
+	active_addrinfo.ai_addr = &active_sockaddr;
+	tac_copy_addr_info (&active_addrinfo, tac_svr->addr);
+	strlcpy (active_key, tac_svr->key ? tac_svr->key : "", TAC_SECRET_MAX_LEN);
+	active_server.addr = &active_addrinfo;
+	active_server.key = active_key;
+}
 
 /* Helper functions */
 int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
@@ -277,12 +290,14 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 				NULL, tac_timeout);
 		if (tac_fd < 0) {
 			_pam_log(LOG_ERR, "connection failed srv %d: %m", srv_i);
+			active_server.addr = NULL;
 			continue;
 		}
 		if (tac_authen_send(tac_fd, user, pass, tty, r_addr,
 				TAC_PLUS_AUTHEN_LOGIN) < 0) {
 			close(tac_fd);
 			_pam_log(LOG_ERR, "error sending auth req to TACACS+ server");
+			active_server.addr = NULL;
 			continue;
 		}
 		communicating = 1;
@@ -321,8 +336,7 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 				}
 				status = PAM_SUCCESS;
 				communicating = 0;
-				active_server.addr = tac_srv[srv_i].addr;
-				active_server.key = tac_srv[srv_i].key;
+				set_active_server(&tac_srv[srv_i]);
 
 				if (ctrl & PAM_TAC_DEBUG)
 					syslog(LOG_DEBUG, "%s: active srv %d", __FUNCTION__, srv_i);
@@ -612,6 +626,7 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 			free(arep.msg);
 
 		close(tac_fd);
+		active_server.addr = NULL;
 		return PAM_AUTH_ERR;
 	}
 
@@ -843,9 +858,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 				}
 				status = PAM_SUCCESS;
 				communicating = 0;
-
-				active_server.addr = tac_srv[srv_i].addr;
-				active_server.key = tac_srv[srv_i].key;
+				set_active_server(&tac_srv[srv_i]);
 
 				if (ctrl & PAM_TAC_DEBUG)
 					syslog(LOG_DEBUG, "%s: active srv %d", __FUNCTION__, srv_i);
