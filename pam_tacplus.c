@@ -36,7 +36,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <strings.h>
-#include <bsd/string.h>  /* strlcpy */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -62,7 +61,7 @@ static void set_active_server (const tacplus_server_t *tac_svr)
 {
 	active_addrinfo.ai_addr = &active_sockaddr;
 	tac_copy_addr_info (&active_addrinfo, tac_svr->addr);
-	strlcpy (active_key, tac_svr->key ? tac_svr->key : "", TAC_SECRET_MAX_LEN);
+	strncpy (active_key, tac_svr->key ? tac_svr->key : "", TAC_SECRET_MAX_LEN-1);
 	active_server.addr = &active_addrinfo;
 	active_server.key = active_key;
 }
