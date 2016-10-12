@@ -29,6 +29,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <bsd/string.h> /* strlcpy */
 
 tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
 int tac_srv_no = 0;
