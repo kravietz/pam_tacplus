@@ -29,7 +29,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <bsd/string.h> /* strlcpy */
 
 tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
 int tac_srv_no = 0;
@@ -208,7 +207,7 @@ static void set_tac_srv_key (unsigned int srv_no, const char *key)
 {
     if (srv_no < TAC_PLUS_MAXSERVERS) {
         if (key) {
-            strlcpy (tac_srv_key[srv_no], key, TAC_SECRET_MAX_LEN);
+            strncpy (tac_srv_key[srv_no], key, TAC_SECRET_MAX_LEN-1);
             tac_srv[srv_no].key = tac_srv_key[srv_no];
         }
         else {
