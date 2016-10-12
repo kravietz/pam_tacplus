@@ -36,6 +36,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <strings.h>
+#include <bsd/string.h>  /* strlcpy */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
