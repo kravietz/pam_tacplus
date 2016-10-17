@@ -95,7 +95,7 @@ static struct option long_options[] =
 				NULL, 'c' }, { "service", required_argument, NULL, 'S' }, {
 				"protocol", required_argument, NULL, 'P' }, { "remote",
 				required_argument, NULL, 'r' }, { "login", required_argument,
-				NULL, 'L' },
+				NULL, 'L' }, { "tty", required_argument, NULL, 'y' },
 
 		/* modifiers */
 		{ "quiet", no_argument, NULL, 'q' },
@@ -104,11 +104,11 @@ static struct option long_options[] =
 						0, 0, 0, 0 } };
 
 /* command line letters */
-char *opt_string = "TRAVhu:p:s:k:c:qr:wnS:P:L:";
+char *opt_string = "TRAVhu:p:s:k:c:qr:wnS:P:L:y:";
 
 int main(int argc, char **argv) {
 	char *pass = NULL;
-	char *tty;
+	char *tty = NULL;
 	char *command = NULL;
 	char *remote_addr = NULL;
 	char *service = NULL;
@@ -202,6 +202,9 @@ int main(int argc, char **argv) {
 			case 'n':
 				tac_encryption = 0;
 				break;
+			case 'y':
+				tty = optarg;
+				break;
 			}
 		}
 	}
@@ -263,9 +266,10 @@ int main(int argc, char **argv) {
 			exit(EXIT_ERR);
 	}
 
-	tty = ttyname(0);
-	if (strncmp(tty, "/dev/", 5) == 0)
-		tty += 5;
+	if (tty == NULL) {
+		printf("error: tty name is required.\n");
+		exit(EXIT_ERR);
+	}
 
 	/* open syslog before any TACACS+ calls */
 	openlog("tacc", LOG_CONS | LOG_PID, LOG_AUTHPRIV);
@@ -513,9 +517,10 @@ void showusage(char *progname) {
 	printf("  -w, --no-wtmp       don't write records to wtmp(5)\n");
 	printf(
 			"  -n, --no-encrypt    don't encrypt AAA packets sent to servers\n\n");
+	printf("  -y, --tty           remote user tty or port\n");
 	printf("Example usage:\n\n");
 	printf(
-			"  tacc -TRA -u test1 -p test1 -s localhost -r 1.1.1.1 -k test1 -S ppp -P ip\n");
+			"  tacc -TRA -u test1 -p test1 -s localhost -r 1.1.1.1 -k test1 -S ppp -P ip -y ttyS17\n");
 
 	exit(EXIT_ERR);
 }
