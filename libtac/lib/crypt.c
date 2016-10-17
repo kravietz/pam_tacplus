@@ -45,7 +45,7 @@ static void _tac_md5_pad(const HDR *hdr,
 
     /* place session_id, key, version and seq_no in buffer */
     MD5_Init(&mdcontext);
-    MD5_Update(&mdcontext, (const u_char *) &hdr->session_id, sizeof(session_id));
+    MD5_Update(&mdcontext, (const u_char *) &hdr->session_id, sizeof(hdr->session_id));
     MD5_Update(&mdcontext, (const u_char *) tac_secret, tac_secret_len);
     MD5_Update(&mdcontext, &hdr->version, sizeof(hdr->version));
     MD5_Update(&mdcontext, &hdr->seq_no, sizeof(hdr->seq_no));
@@ -80,7 +80,7 @@ void _tac_crypt(u_char *buf, const HDR *th) {
             if (j == 0)
                 _tac_md5_pad(th, digest, ((i > 0) ? digest : NULL));
 
-            buf[i] ^= digest[i];
+            buf[i] ^= digest[j];
         }
     } else {
         TACSYSLOG(LOG_WARNING, "%s: using no TACACS+ encryption", __FUNCTION__);
