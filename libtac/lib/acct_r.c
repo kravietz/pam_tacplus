@@ -32,7 +32,8 @@
  *             LIBTAC_STATUS_PROTOCOL_ERR
  *   >= 0 : server response, see TAC_PLUS_AUTHEN_STATUS_...
  */
-int tac_acct_parse(u_char *pkt, unsigned pkt_total, struct areply *re) {
+int tac_acct_parse(struct tac_session *sess, u_char *pkt, unsigned pkt_total,
+    struct areply *re) {
     HDR *th = (HDR *)pkt;
     struct acct_reply *tb = NULL;
     size_t ulen_from_header, len_from_body;
@@ -42,7 +43,7 @@ int tac_acct_parse(u_char *pkt, unsigned pkt_total, struct areply *re) {
     re->msg = re->data = NULL;
 
     /* check the reply fields in header */
-    msg = _tac_check_header(th, TAC_PLUS_ACCT);
+    msg = _tac_check_header(sess, th, TAC_PLUS_ACCT);
     if(msg != NULL) {
         re->msg = xstrdup(msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
@@ -66,7 +67,7 @@ int tac_acct_parse(u_char *pkt, unsigned pkt_total, struct areply *re) {
     }
 
     /* decrypt the body */
-    _tac_crypt((u_char *) tb, th);
+    _tac_crypt(sess, (u_char *) tb, th);
 
     /* Convert network byte order to host byte order */
     tb->msg_len  = ntohs(tb->msg_len);
@@ -136,7 +137,7 @@ int tac_acct_parse(u_char *pkt, unsigned pkt_total, struct areply *re) {
  *             LIBTAC_STATUS_PROTOCOL_ERR
  *   >= 0 : server response, see TAC_PLUS_AUTHEN_STATUS_...
  */
-int tac_acct_read(int fd, struct areply *re) {
+int tac_acct_read(struct tac_session *sess, int fd, struct areply *re) {
     HDR *th;
     struct acct_reply *tb = NULL;
     size_t ulen_from_header;
@@ -207,7 +208,7 @@ int tac_acct_read(int fd, struct areply *re) {
     }
 
     /* now parse remaining packet fields */
-    status = tac_acct_parse((u_char *)th,
+    status = tac_acct_parse(sess, (u_char *)th,
 		TAC_PLUS_HDR_SIZE + ulen_from_header, re);
 
     /* all useful data has been copied out */

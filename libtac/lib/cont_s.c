@@ -26,8 +26,8 @@
 #endif
 
 /* allocate and format an continue packet */
-void tac_cont_send_pkt(const char *pass, uint8_t seq,
-    u_char **_pkt, unsigned *_len) {
+void tac_cont_send_pkt(struct tac_session *sess, const char *pass,
+   u_char **_pkt, unsigned *_len) {
 
 	HDR *th; /* TACACS+ packet header */
 	struct authen_cont *tb; /* continue body */
@@ -39,9 +39,6 @@ void tac_cont_send_pkt(const char *pass, uint8_t seq,
 	pass_len = strlen(pass);
 
 	assert(pass_len <= UCHAR_MAX);
-
-	/* @@@ really need to make tac_secret, tac_encryption, session_id
-	 * be bound to the session... */
 
 #define TAC_AUTHEN_CONT_FIXED_TOTAL \
 	(TAC_PLUS_HDR_SIZE + TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE)
@@ -58,11 +55,11 @@ void tac_cont_send_pkt(const char *pass, uint8_t seq,
 	/* set some header options */
 	th->version = TAC_PLUS_VER_0;
 	th->type = TAC_PLUS_AUTHEN;
-	th->seq_no = seq; /* 1 = request, 2 = reply, 3 = continue, 4 = reply */
+	th->seq_no = ++sess->seq_no;
 	th->encryption =
-			tac_encryption ?
+			sess->tac_encryption ?
 					TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
-	th->session_id = htonl(session_id);
+	th->session_id = htonl(sess->tac_session_id);
 	th->datalength = htonl(pkt_total - TAC_PLUS_HDR_SIZE);
 
 	/* fixed part of tacacs body */
@@ -82,7 +79,7 @@ void tac_cont_send_pkt(const char *pass, uint8_t seq,
 	assert(pkt_len == pkt_total);
 
 	/* encrypt the body */
-	_tac_crypt((u_char *)tb, th);
+	_tac_crypt(sess, (u_char *)tb, th);
 
 	*_pkt = pkt;
 	*_len = pkt_total;
@@ -98,14 +95,14 @@ void tac_cont_send_pkt(const char *pass, uint8_t seq,
  *         LIBTAC_STATUS_WRITE_TIMEOUT  (pending impl)
  *         LIBTAC_STATUS_ASSEMBLY_ERR
  */
-int tac_cont_send_seq(int fd, const char *pass, uint8_t seq) {
+int tac_cont_send(struct tac_session *sess, int fd, const char *pass) {
 
 	u_char *pkt = NULL;
 	unsigned pkt_total = 0;
 	int w, ret = 0;
 
 	/* generate the packet */
-	tac_cont_send_pkt(pass, seq, &pkt, &pkt_total);
+	tac_cont_send_pkt(sess, pass, &pkt, &pkt_total);
 
 	w = write(fd, pkt, pkt_total);
 	if (w < 0 || (unsigned) w < pkt_total) {

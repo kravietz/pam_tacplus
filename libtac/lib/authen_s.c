@@ -51,9 +51,9 @@ digest_chap(u_char digest[MD5_LBLOCK], uint8_t id,
     MD5_Final(digest, &mdcontext);
 }
 
-u_char tac_get_authen_type(const char *login)
+uint8_t tac_get_authen_type(const char *login)
 {
-	if (*login) {
+	if (login && *login) {
 		if (!strcmp(login, "chap")) {
 			return TAC_PLUS_AUTHEN_TYPE_CHAP;
 		} else if (!strcmp(login, "login")) {
@@ -62,6 +62,19 @@ u_char tac_get_authen_type(const char *login)
 	}
 	/* default to PAP */
 	return TAC_PLUS_AUTHEN_TYPE_PAP;
+}
+
+const char *tac_get_authen_string(uint8_t type)
+{
+	const char *authen_types[5] = {
+		"ascii", "pap", "chap", "arap", "mschap"
+	};
+
+	if (TAC_PLUS_AUTHEN_TYPE_ASCII <= type
+	  && type <= TAC_PLUS_AUTHEN_TYPE_MSCHAP)
+		return authen_types[type - TAC_PLUS_AUTHEN_TYPE_ASCII];
+
+	return "???";
 }
 
 /* this function sends a packet do TACACS+ server, asking
@@ -75,7 +88,8 @@ u_char tac_get_authen_type(const char *login)
  *             LIBTAC_STATUS_ASSEMBLY_ERR
  */
 /* allocate and format an Authentication Start packet */
-void tac_authen_send_pkt(const char *user, const char *pass, const char *tty,
+void tac_authen_send_pkt(struct tac_session *sess,
+    const char *user, const char *pass, const char *tty,
     const char *r_addr, u_char action, u_char **_pkt, unsigned *_len) {
 
 	HDR *th; /* TACACS+ packet header */
@@ -86,13 +100,10 @@ void tac_authen_send_pkt(const char *user, const char *pass, const char *tty,
 	u_char *pkt = NULL;
 	unsigned pkt_total, pkt_len = 0;
 	const uint8_t id = 5;
-	uint8_t authen_type;
 
 	TACDEBUG(LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s",
 					__FUNCTION__, user, tty, r_addr,
-					(tac_encryption) ? "yes" : "no");
-
-	authen_type = tac_get_authen_type(tac_login);
+					(sess->tac_encryption) ? "yes" : "no");
 
 	/* get size of submitted data */
 	user_len = strlen(user);
@@ -101,7 +112,7 @@ void tac_authen_send_pkt(const char *user, const char *pass, const char *tty,
 	port_len = strlen(tty);
 	r_addr_len = strlen(r_addr);
 
-	if (authen_type == TAC_PLUS_AUTHEN_TYPE_CHAP) {
+	if (sess->tac_authen_type == TAC_PLUS_AUTHEN_TYPE_CHAP) {
 		u_char digest[MD5_LBLOCK];
 
 		digest_chap(digest, id, pass, pass_len, chal, chal_len);
@@ -134,32 +145,31 @@ void tac_authen_send_pkt(const char *user, const char *pass, const char *tty,
 	th = (HDR *)pkt;
 
 	/* set some header options */
-	if (authen_type == TAC_PLUS_AUTHEN_TYPE_ASCII) {
+	if (sess->tac_authen_type == TAC_PLUS_AUTHEN_TYPE_ASCII) {
 		th->version = TAC_PLUS_VER_0;
 	} else {
 		th->version = TAC_PLUS_VER_1;
 	}
 	th->type = TAC_PLUS_AUTHEN;
-	th->seq_no = 1;
+	th->seq_no = ++sess->seq_no;
 	th->encryption =
-			tac_encryption ?
+			sess->tac_encryption ?
 					TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
-	session_id = magic();
-	th->session_id = htonl(session_id);
+	th->session_id = htonl(sess->tac_session_id);
 	th->datalength = htonl(pkt_total - TAC_PLUS_HDR_SIZE);
 
 	/* fixed part of tacacs body */
 	tb = tac_hdr_to_body(th);
 	tb->action = TAC_PLUS_AUTHEN_LOGIN;
-	tb->priv_lvl = tac_priv_lvl;
-	if (authen_type == TAC_PLUS_AUTHEN_TYPE_PAP) {
+	tb->priv_lvl = sess->tac_priv_lvl;
+	if (sess->tac_authen_type == TAC_PLUS_AUTHEN_TYPE_PAP) {
 		tb->authen_type =
 				TAC_PLUS_AUTHEN_CHPASS == action ?
 						TAC_PLUS_AUTHEN_TYPE_ASCII : TAC_PLUS_AUTHEN_TYPE_PAP;
 	} else {
-		tb->authen_type = authen_type;
+		tb->authen_type = sess->tac_authen_type;
 	}
-	tb->service = tac_authen_service;
+	tb->service = sess->tac_authen_service;
 	tb->user_len = user_len;
 	tb->port_len = port_len;
 	tb->r_addr_len = r_addr_len; /* may be e.g Caller-ID in future */
@@ -181,7 +191,7 @@ void tac_authen_send_pkt(const char *user, const char *pass, const char *tty,
 	free(token);
 
 	/* encrypt packet body */
-	_tac_crypt((u_char *)tb, th);
+	_tac_crypt(sess, (u_char *)tb, th);
 
 	*_pkt = pkt;
 	*_len = pkt_total;
@@ -197,7 +207,8 @@ void tac_authen_send_pkt(const char *user, const char *pass, const char *tty,
  *             LIBTAC_STATUS_WRITE_TIMEOUT
  *             LIBTAC_STATUS_ASSEMBLY_ERR
  */
-int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
+int tac_authen_send(struct tac_session *sess, int fd,
+		const char *user, const char *pass, const char *tty,
 		const char *r_addr, u_char action) {
 
 	u_char *pkt = NULL;
@@ -205,7 +216,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 	int w, ret = 0;
 
 	/* generate the packet */
-	tac_authen_send_pkt(user, pass, tty, r_addr, action, &pkt, &pkt_total);
+	tac_authen_send_pkt(sess, user, pass, tty, r_addr, action, &pkt, &pkt_total);
 
 	/* we can now write the packet */
 	w = write(fd, pkt, pkt_total);

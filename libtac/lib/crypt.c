@@ -35,9 +35,9 @@
 /* Produce MD5 pseudo-random pad for TACACS+ encryption.
    Use data from packet header and secret, which
    should be a global variable */
-static void _tac_md5_pad(const HDR *hdr,
+static void _tac_md5_pad(const struct tac_session *sess, const HDR *hdr,
         u_char *new_digest, u_char *old_digest)  {
-    unsigned tac_secret_len = strlen(tac_secret);
+    unsigned tac_secret_len = strlen(sess->tac_secret);
     MD5_CTX mdcontext;
 
     /* MD5_1 = MD5{session_id, secret, version, seq_no}
@@ -46,7 +46,7 @@ static void _tac_md5_pad(const HDR *hdr,
     /* place session_id, key, version and seq_no in buffer */
     MD5_Init(&mdcontext);
     MD5_Update(&mdcontext, (const u_char *) &hdr->session_id, sizeof(hdr->session_id));
-    MD5_Update(&mdcontext, (const u_char *) tac_secret, tac_secret_len);
+    MD5_Update(&mdcontext, (const u_char *) sess->tac_secret, tac_secret_len);
     MD5_Update(&mdcontext, &hdr->version, sizeof(hdr->version));
     MD5_Update(&mdcontext, &hdr->seq_no, sizeof(hdr->seq_no));
 
@@ -62,11 +62,11 @@ static void _tac_md5_pad(const HDR *hdr,
 /* Perform encryption/decryption on buffer. This means simply XORing
    each byte from buffer with according byte from pseudo-random
    pad. */
-void _tac_crypt(u_char *buf, const HDR *th) {
+void _tac_crypt(const struct tac_session *sess, u_char *buf, const HDR *th) {
     unsigned i, j, length = ntohl(th->datalength);
  
     /* null operation if no encryption requested */
-    if((tac_secret != NULL) && (th->encryption & TAC_PLUS_UNENCRYPTED_FLAG) != TAC_PLUS_UNENCRYPTED_FLAG) {
+    if ((sess->tac_secret != NULL) && (th->encryption & TAC_PLUS_UNENCRYPTED_FLAG) != TAC_PLUS_UNENCRYPTED_FLAG) {
         u_char digest[MD5_LBLOCK];
  
         for (i=0; i<length; i++) {
@@ -78,7 +78,7 @@ void _tac_crypt(u_char *buf, const HDR *th) {
              * the previous digest.
              */
             if (j == 0)
-                _tac_md5_pad(th, digest, ((i > 0) ? digest : NULL));
+                _tac_md5_pad(sess, th, digest, ((i > 0) ? digest : NULL));
 
             buf[i] ^= digest[j];
         }
