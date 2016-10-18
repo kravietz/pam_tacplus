@@ -42,15 +42,15 @@ int tac_timeout = 5;
  *   >= 0 : valid fd
  *   <  0 : error status code, see LIBTAC_STATUS_...
  */
-int tac_connect(struct addrinfo **server, char **key, int servers) {
-    int tries;
+int tac_connect(struct addrinfo **server, unsigned servers) {
+    unsigned tries;
     int fd=-1;
 
     if(servers == 0 || server == NULL) {
         TACSYSLOG(LOG_ERR, "%s: no TACACS+ servers defined", __FUNCTION__);
     } else {
         for ( tries = 0; tries < servers; tries++ ) {   
-            if((fd=tac_connect_single(server[tries], key[tries], NULL, tac_timeout)) >= 0 ) {
+            if((fd=tac_connect_single(server[tries], NULL, tac_timeout)) >= 0 ) {
                 /* tac_secret was set in tac_connect_single on success */
                 break;
             }
@@ -67,7 +67,7 @@ int tac_connect(struct addrinfo **server, char **key, int servers) {
  *   >= 0 : valid fd
  *   <  0 : error status code, see LIBTAC_STATUS_...
  */
-int tac_connect_single(const struct addrinfo *server, const char *key, struct addrinfo *srcaddr, int timeout) {
+int tac_connect_single(const struct addrinfo *server, struct addrinfo *srcaddr, int timeout) {
     int retval = LIBTAC_STATUS_CONN_ERR; /* default retval */
     int fd = -1;
     int flags, rc;
@@ -162,13 +162,6 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     /* connected ok */
     TACDEBUG(LOG_DEBUG, "%s: connected to %s", __FUNCTION__, ip);
     retval = fd;
-
-    /* set current tac_secret */
-    tac_encryption = 0;
-    if (key != NULL && *key) {
-        tac_encryption = 1;
-        tac_secret = key;
-    }
 
 bomb:
     if (retval < 0 && fd != -1)

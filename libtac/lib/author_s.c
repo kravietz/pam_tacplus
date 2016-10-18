@@ -23,7 +23,8 @@
 #include "xalloc.h"
 
 /* allocate and format an Authorization Start packet */
-void tac_author_send_pkt(const char *user, const char *tty, const char *r_addr,
+void tac_author_send_pkt(struct tac_session *sess,
+	const char *user, const char *tty, const char *r_addr,
 	struct tac_attrib *attr, u_char **_pkt, unsigned *_len) {
 
 	HDR *th;
@@ -36,7 +37,7 @@ void tac_author_send_pkt(const char *user, const char *tty, const char *r_addr,
 
 	TACDEBUG(LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s",
 					__FUNCTION__, user,
-					tty, r_addr, tac_encryption ? "yes" : "no");
+					tty, r_addr, sess->tac_encryption ? "yes" : "no");
 
 	/*
 	 * precompute the buffer size so we don't need to keep resizing/copying it
@@ -65,18 +66,17 @@ void tac_author_send_pkt(const char *user, const char *tty, const char *r_addr,
 	/* tacacs header */
 	th->version = TAC_PLUS_VER_0;
 	th->type = TAC_PLUS_AUTHOR;
-	th->seq_no = 1;
-	th->encryption = tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
-	session_id = magic();
-	th->session_id = htonl(session_id);
+	th->seq_no = ++sess->seq_no;
+	th->encryption = sess->tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
+	th->session_id = htonl(sess->tac_session_id);
 	th->datalength = htonl(pkt_total - TAC_PLUS_HDR_SIZE);
 
 	/* fixed part of tacacs body */
 	tb = (struct author *)(pkt + TAC_PLUS_HDR_SIZE);
-	tb->authen_method = tac_authen_method;
-	tb->priv_lvl = tac_priv_lvl;
-	tb->authen_type = tac_get_authen_type(tac_login);
-	tb->service = tac_authen_service;
+	tb->authen_method = sess->tac_authen_method;
+	tb->priv_lvl = sess->tac_priv_lvl;
+	tb->authen_type = sess->tac_authen_type;
+	tb->service = sess->tac_authen_service;
 	tb->user_len = user_len;
 	tb->port_len = port_len;
 	tb->r_addr_len = r_addr_len;
@@ -104,7 +104,7 @@ void tac_author_send_pkt(const char *user, const char *tty, const char *r_addr,
 	assert(pkt_len == pkt_total);
 
 	/* encrypt packet body  */
-	_tac_crypt((u_char *)tb, th);
+	_tac_crypt(sess, (u_char *)tb, th);
 
 	*_pkt = pkt;
 	*_len = pkt_total;
@@ -120,7 +120,8 @@ void tac_author_send_pkt(const char *user, const char *tty, const char *r_addr,
  *		 LIBTAC_STATUS_WRITE_TIMEOUT (pending impl)
  *		 LIBTAC_STATUS_ASSEMBLY_ERR  (pending impl)
  */
-int tac_author_send(int fd, const char *user, const char *tty, const char *r_addr,
+int tac_author_send(struct tac_session *sess,
+	int fd, const char *user, const char *tty, const char *r_addr,
 	struct tac_attrib *attr) {
 
 	u_char *pkt = NULL;
@@ -128,7 +129,7 @@ int tac_author_send(int fd, const char *user, const char *tty, const char *r_add
 	int w, ret = 0;
 
 	/* generate the packet */
-	tac_author_send_pkt(user, tty, r_addr, attr, &pkt, &pkt_total);
+	tac_author_send_pkt(sess, user, tty, r_addr, attr, &pkt, &pkt_total);
 
 	/* write packet */
 	w = write(fd, pkt, pkt_total);

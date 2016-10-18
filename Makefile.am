@@ -45,6 +45,7 @@ libtac/lib/read_wait.c \
 libtac/lib/version.c \
 libtac/lib/xalloc.c \
 libtac/lib/xalloc.h \
+libtac/lib/session.c \
 $(libtac_include_HEADERS)
 if MY_MD5
 libtac_la_SOURCES += \

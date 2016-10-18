@@ -79,6 +79,10 @@ typedef unsigned char flag;
 flag quiet = 0;
 char *user = NULL; /* global, because of signal handler */
 
+char tac_login[64];
+
+struct tac_session *sess = NULL;
+
 /* command line options */
 static struct option long_options[] =
 		{
@@ -172,7 +176,6 @@ int main(int argc, char **argv) {
 				remote_addr = optarg;
 				break;
 			case 'L':
-				// tac_login is a global variable initialized in libtac
 				bzero(tac_login, sizeof(tac_login));
 				strncpy(tac_login, optarg, sizeof(tac_login) - 1);
 				break;
@@ -272,8 +275,14 @@ int main(int argc, char **argv) {
 		exit(EXIT_ERR);
 	}
 
+	bzero(&arep, sizeof(arep));
+
 	/* open syslog before any TACACS+ calls */
 	openlog("tacc", LOG_CONS | LOG_PID, LOG_AUTHPRIV);
+
+	sess = tac_session_alloc();
+
+	tac_session_set_authen_type(sess, tac_get_authen_type(tac_login));
 
 	if (do_authen)
 		authenticate(tac_server, tac_secret, user, pass, tty, remote_addr);
@@ -284,16 +293,21 @@ int main(int argc, char **argv) {
 		tac_add_attrib(&attr, "service", service);
 		tac_add_attrib(&attr, "protocol", protocol);
 
-		tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
+		tac_session_new_session_id(sess);
+		tac_session_reset_seq(sess);
+
+		tac_fd = tac_connect_single(tac_server, NULL, 60);
 		if (tac_fd < 0) {
 			if (!quiet)
 				printf("Error connecting to TACACS+ server: %m\n");
 			exit(EXIT_ERR);
 		}
 
-		tac_author_send(tac_fd, user, tty, remote_addr, attr);
+		tac_session_set_secret(sess, tac_secret);
 
-		tac_author_read(tac_fd, &arep);
+		tac_author_send(sess, tac_fd, user, tty, remote_addr, attr);
+
+		tac_author_read(sess, tac_fd, &arep);
 		if (arep.status != AUTHOR_STATUS_PASS_ADD
 				&& arep.status != AUTHOR_STATUS_PASS_REPL) {
 			if (!quiet)
@@ -322,17 +336,22 @@ int main(int argc, char **argv) {
 		tac_add_attrib(&attr, "service", service);
 		tac_add_attrib(&attr, "protocol", protocol);
 
-		tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
+		tac_session_new_session_id(sess);
+		tac_session_reset_seq(sess);
+
+		tac_fd = tac_connect_single(tac_server, NULL, 60);
 		if (tac_fd < 0) {
 			if (!quiet)
 				printf("Error connecting to TACACS+ server: %m\n");
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, user, tty, remote_addr,
+		tac_session_set_secret(sess, tac_secret);
+
+		tac_acct_send(sess, tac_fd, TAC_PLUS_ACCT_FLAG_START, user, tty, remote_addr,
 				attr);
 
-		ret = tac_acct_read(tac_fd, &arep);
+		ret = tac_acct_read(sess, tac_fd, &arep);
 		if (ret == 0) {
 			if (!quiet)
 				printf("Accounting: START failed: %s\n", arep.msg);
@@ -378,6 +397,8 @@ int main(int argc, char **argv) {
 		if(pid == 0) {
 			/* child */
 
+			tac_session_free(sess);
+
 			execl(DEFAULT_COMMAND, DEFAULT_COMMAND, ARGS, NULL);
 			syslog(LOG_ERR, "execl() failed: %m");
 			_exit(EXIT_FAIL);
@@ -406,16 +427,21 @@ int main(int argc, char **argv) {
 		sprintf(buf, "%hu", task_id);
 		tac_add_attrib(&attr, "task_id", buf);
 
-		tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
+		tac_session_new_session_id(sess);
+		tac_session_reset_seq(sess);
+
+		tac_fd = tac_connect_single(tac_server, NULL, 60);
 		if (tac_fd < 0) {
 			if (!quiet)
 				printf("Error connecting to TACACS+ server: %m\n");
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, user, tty, remote_addr,
+		tac_session_set_secret(sess, tac_secret);
+
+		tac_acct_send(sess, tac_fd, TAC_PLUS_ACCT_FLAG_STOP, user, tty, remote_addr,
 				attr);
-		ret = tac_acct_read(tac_fd, &arep);
+		ret = tac_acct_read(sess, tac_fd, &arep);
 		if (ret == 0) {
 			if (!quiet)
 				printf("Accounting: STOP failed: %s", arep.msg);
@@ -434,6 +460,8 @@ int main(int argc, char **argv) {
 		logwtmp(tty, "", "");
 #endif
 
+	tac_session_free(sess);
+
 	exit(EXIT_OK);
 }
 
@@ -450,23 +478,28 @@ void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
 	int ret;
 	struct areply arep;
 
-	tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
+	tac_session_new_session_id(sess);
+	tac_session_reset_seq(sess);
+
+	tac_fd = tac_connect_single(tac_server, NULL, 60);
 	if (tac_fd < 0) {
 		if (!quiet)
 			printf("Error connecting to TACACS+ server: %m\n");
 		exit(EXIT_ERR);
 	}
 
+	tac_session_set_secret(sess, tac_secret);
+
 	/* start authentication */
 
-	if (tac_authen_send(tac_fd, user, pass, tty, remote_addr,
+	if (tac_authen_send(sess, tac_fd, user, pass, tty, remote_addr,
 			TAC_PLUS_AUTHEN_LOGIN) < 0) {
 		if (!quiet)
 			printf("Error sending query to TACACS+ server\n");
 		exit(EXIT_ERR);
 	}
 
-	ret = tac_authen_read(tac_fd, &arep);
+	ret = tac_authen_read(sess, tac_fd, &arep);
 
 	if (ret == TAC_PLUS_AUTHEN_STATUS_GETPASS) {
 

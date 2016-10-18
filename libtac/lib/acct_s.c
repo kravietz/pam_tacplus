@@ -38,9 +38,9 @@ char *tac_acct_flag2str(u_char flag) {
 }
 
 /* allocate and format an Accounting Start packet */
-void tac_acct_send_pkt(u_char type, const char *user, const char *tty,
-    const char *r_addr, struct tac_attrib *attr,
-    u_char **_pkt, unsigned *_len) {
+void tac_acct_send_pkt(struct tac_session *sess, u_char type,
+    const char *user, const char *tty, const char *r_addr,
+    struct tac_attrib *attr, u_char **_pkt, unsigned *_len) {
 
     HDR *th;
     struct acct *tb;
@@ -52,7 +52,7 @@ void tac_acct_send_pkt(u_char type, const char *user, const char *tty,
 
     TACDEBUG(LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s, type: %s", \
         __FUNCTION__, user, tty, r_addr, \
-        (tac_encryption) ? "yes" : "no", \
+        (sess->tac_encryption) ? "yes" : "no", \
         tac_acct_flag2str(type));
 
     /*
@@ -82,19 +82,18 @@ void tac_acct_send_pkt(u_char type, const char *user, const char *tty,
     /* tacacs header */
     th->version = TAC_PLUS_VER_0;
     th->type = TAC_PLUS_ACCT;
-    th->seq_no = 1;
-    th->encryption = tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
-    session_id = magic();
-    th->session_id = htonl(session_id);
+    th->seq_no = ++sess->seq_no;
+    th->encryption = sess->tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
+    th->session_id = htonl(sess->tac_session_id);
     th->datalength = htonl(pkt_total - TAC_PLUS_HDR_SIZE);
 
     /* fixed part of tacacs body */
     tb = (struct acct *)(pkt + TAC_PLUS_HDR_SIZE);
     tb->flags = type;
-    tb->authen_method = tac_authen_method;
-    tb->priv_lvl = tac_priv_lvl;
-    tb->authen_type = tac_get_authen_type(tac_login);
-    tb->authen_service = tac_authen_service;
+    tb->authen_method = sess->tac_authen_method;
+    tb->priv_lvl = sess->tac_priv_lvl;
+    tb->authen_type = sess->tac_authen_type;
+    tb->authen_service = sess->tac_authen_service;
     tb->user_len = user_len;
     tb->port_len = port_len;
     tb->r_addr_len = r_addr_len;
@@ -122,7 +121,7 @@ void tac_acct_send_pkt(u_char type, const char *user, const char *tty,
     assert(pkt_len == pkt_total);
 
     /* encrypt packet body  */
-    _tac_crypt((u_char *)tb, th);
+    _tac_crypt(sess, (u_char *)tb, th);
 
     *_pkt = pkt;
     *_len = pkt_total;
@@ -136,15 +135,16 @@ void tac_acct_send_pkt(u_char type, const char *user, const char *tty,
  *             LIBTAC_STATUS_WRITE_TIMEOUT  (pending impl)
  *             LIBTAC_STATUS_ASSEMBLY_ERR   (pending impl)
  */
-int tac_acct_send(int fd, u_char type, const char *user, const char *tty,
-    const char *r_addr, struct tac_attrib *attr) {
+int tac_acct_send(struct tac_session *sess, int fd,
+    u_char type, const char *user,
+    const char *tty, const char *r_addr, struct tac_attrib *attr) {
 
     u_char *pkt = NULL;
     unsigned pkt_total = 0;
     int w, ret = 0;
 
     /* generate the packet */
-    tac_acct_send_pkt(type, user, tty, r_addr, attr, &pkt, &pkt_total);
+    tac_acct_send_pkt(sess, type, user, tty, r_addr, attr, &pkt, &pkt_total);
 
     /* write packet */
     w = write(fd, pkt, pkt_total);
