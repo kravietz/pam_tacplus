@@ -71,7 +71,7 @@ static void set_active_server (const tacplus_server_t *tac_svr)
 struct tac_session *sess = NULL;
 
 /* Helper functions */
-int _pam_send_account(struct tac_session *sess, int tac_fd, int type,
+int _pam_send_account(struct tac_session *sess, int type,
 		const char *user, char *tty, char *r_addr, char *cmd) {
 
 	char buf[64];
@@ -96,7 +96,7 @@ int _pam_send_account(struct tac_session *sess, int tac_fd, int type,
 		tac_add_attrib(&attr, "cmd", cmd);
 	}
 
-	retval = tac_acct_send(sess, tac_fd, type, user, tty, r_addr, attr);
+	retval = tac_acct_send(sess, type, user, tty, r_addr, attr);
 
 	/* this is no longer needed */
 	tac_free_attrib(&attr);
@@ -108,7 +108,7 @@ int _pam_send_account(struct tac_session *sess, int tac_fd, int type,
 	}
 
 	struct areply re;
-	if (tac_acct_read(sess, tac_fd, &re) != TAC_PLUS_ACCT_STATUS_SUCCESS) {
+	if (tac_acct_read(sess, &re) != TAC_PLUS_ACCT_STATUS_SUCCESS) {
 		_pam_log(LOG_WARNING, "%s: accounting %s failed (task %hu)",
 				__FUNCTION__, tac_acct_flag2str(type), task_id);
 
@@ -134,7 +134,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv, int type,
 	char *r_addr = NULL;
 	char *typemsg;
 	int status = PAM_SESSION_ERR;
-	int srv_i, tac_fd;
+	int srv_i;
 
 	typemsg = tac_acct_flag2str(type);
 	ctrl = _pam_parse(argc, argv);
@@ -190,8 +190,8 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv, int type,
 
 	status = PAM_SESSION_ERR;
 	for (srv_i = 0; srv_i < tac_srv_no; srv_i++) {
-		tac_fd = tac_connect_single(tac_srv[srv_i].addr, NULL, tac_timeout);
-		if (tac_fd < 0) {
+		retval = tac_connect_single(sess, tac_srv[srv_i].addr, NULL, tac_timeout);
+		if (retval < 0) {
 			_pam_log(LOG_WARNING, "%s: error sending %s (fd)", __FUNCTION__,
 					typemsg);
 			continue;
@@ -201,9 +201,9 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv, int type,
 
 		if (ctrl & PAM_TAC_DEBUG)
 			syslog(LOG_DEBUG, "%s: connected with fd=%d (srv %d)", __FUNCTION__,
-					tac_fd, srv_i);
+					sess->fd, srv_i);
 
-		retval = _pam_send_account(sess, tac_fd, type, user, tty, r_addr, cmd);
+		retval = _pam_send_account(sess, type, user, tty, r_addr, cmd);
 
 		if (retval < 0) {
 			_pam_log(LOG_WARNING, "%s: error sending %s (acct)", __FUNCTION__,
@@ -214,7 +214,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv, int type,
 				syslog(LOG_DEBUG, "%s: [%s] for [%s] sent", __FUNCTION__,
 						typemsg, user);
 		}
-		close(tac_fd);
+		tac_close(sess);
 
 		if ((status == PAM_SUCCESS) && !(ctrl & PAM_TAC_ACCT)) {
 			/* do not send acct start/stop packets to _all_ servers */
@@ -248,7 +248,7 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 	char *tty;
 	char *r_addr;
 	int srv_i;
-	int tac_fd, status, msg, communicating;
+	int status, msg, communicating;
 
 	user = pass = tty = r_addr = NULL;
 
@@ -300,8 +300,8 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 		if (ctrl & PAM_TAC_DEBUG)
 			syslog(LOG_DEBUG, "%s: trying srv %d", __FUNCTION__, srv_i);
 
-		tac_fd = tac_connect_single(tac_srv[srv_i].addr, NULL, tac_timeout);
-		if (tac_fd < 0) {
+		retval = tac_connect_single(sess, tac_srv[srv_i].addr, NULL, tac_timeout);
+		if (retval < 0) {
 			_pam_log(LOG_ERR, "connection failed srv %d: %m", srv_i);
 			active_server.addr = NULL;
 			continue;
@@ -309,9 +309,9 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 
 		tac_session_set_secret(sess, tac_srv[srv_i].key);
 
-		if (tac_authen_send(sess, tac_fd, user, pass, tty, r_addr,
+		if (tac_authen_send(sess, user, pass, tty, r_addr,
 				TAC_PLUS_AUTHEN_LOGIN) < 0) {
-			close(tac_fd);
+			tac_close(sess);
 			_pam_log(LOG_ERR, "error sending auth req to TACACS+ server");
 			active_server.addr = NULL;
 			continue;
@@ -323,7 +323,7 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 			struct pam_message conv_msg = { .msg_style = 0, .msg = NULL };
 			struct pam_response *resp = NULL;
 
-			msg = tac_authen_read(sess, tac_fd, &re);
+			msg = tac_authen_read(sess, &re);
 
 			if (NULL != re.msg) {
 				conv_msg.msg = re.msg;
@@ -405,7 +405,7 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 									__FUNCTION__);
 
 						if (0
-								> tac_cont_send(sess, tac_fd, resp->resp)) {
+								> tac_cont_send(sess, resp->resp)) {
 							_pam_log(LOG_ERR,
 									"error sending continue req to TACACS+ server");
 							status = PAM_AUTH_ERR;
@@ -446,7 +446,7 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 				if (ctrl & PAM_TAC_DEBUG)
 					syslog(LOG_DEBUG, "%s: tac_cont_send called", __FUNCTION__);
 
-				if (tac_cont_send(sess, tac_fd, pass) < 0) {
+				if (tac_cont_send(sess, pass) < 0) {
 					_pam_log(LOG_ERR,
 							"error sending continue req to TACACS+ server");
 					communicating = 0;
@@ -512,7 +512,7 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 			free(re.msg);
 
 		} /* end while(communicating) */
-		close(tac_fd);
+		tac_close(sess);
 
 		if (status == PAM_SUCCESS || status == PAM_AUTH_ERR)
 			break;
@@ -565,7 +565,6 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 	char *r_addr;
 	struct areply arep;
 	struct tac_attrib *attr = NULL;
-	int tac_fd;
 
 	flags = flags;				/* unused */
 
@@ -629,8 +628,8 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 
 	tac_session_set_authen_type(sess, tac_get_authen_type(tac_login));
 
-	tac_fd = tac_connect_single(active_server.addr, NULL, tac_timeout);
-	if (tac_fd < 0) {
+	retval = tac_connect_single(sess, active_server.addr, NULL, tac_timeout);
+	if (retval < 0) {
 		_pam_log(LOG_ERR, "TACACS+ server unavailable");
 		if (arep.msg != NULL)
 			free(arep.msg);
@@ -640,7 +639,7 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 
 	tac_session_set_secret(sess, active_server.key);
 
-	retval = tac_author_send(sess, tac_fd, user, tty, r_addr, attr);
+	retval = tac_author_send(sess, user, tty, r_addr, attr);
 
 	tac_free_attrib(&attr);
 
@@ -650,7 +649,6 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 			free(arep.msg);
 
 		tac_session_free(sess);
-		close(tac_fd);
 		active_server.addr = NULL;
 		return PAM_AUTH_ERR;
 	}
@@ -658,10 +656,9 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 	if (ctrl & PAM_TAC_DEBUG)
 		syslog(LOG_DEBUG, "%s: sent authorization request", __FUNCTION__);
 
-	tac_author_read(sess, tac_fd, &arep);
+	tac_author_read(sess, &arep);
 
 	tac_session_free(sess);
-	close(tac_fd);
 
 	if (arep.status != AUTHOR_STATUS_PASS_ADD
 			&& arep.status != AUTHOR_STATUS_PASS_REPL) {
@@ -775,7 +772,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 	char *r_addr;
 	const void *pam_pass = NULL;
 	int srv_i;
-	int tac_fd, status, msg, communicating;
+	int status, msg, communicating;
 
 	user = pass = tty = r_addr = NULL;
 
@@ -827,8 +824,8 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 		if (ctrl & PAM_TAC_DEBUG)
 			syslog(LOG_DEBUG, "%s: trying srv %d", __FUNCTION__, srv_i);
 
-		tac_fd = tac_connect_single(tac_srv[srv_i].addr, NULL, tac_timeout);
-		if (tac_fd < 0) {
+		retval = tac_connect_single(sess, tac_srv[srv_i].addr, NULL, tac_timeout);
+		if (retval < 0) {
 			_pam_log(LOG_ERR, "connection failed srv %d: %m", srv_i);
 			continue;
 		}
@@ -837,16 +834,16 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 				syslog(LOG_DEBUG, "%s: finishing PAM_PRELIM_CHECK with srv %d",
 						__FUNCTION__, srv_i);
 
-			close(tac_fd);
+			tac_close(sess);
 			status = PAM_SUCCESS;
 			goto finish;
 		}
 
 		tac_session_set_secret(sess, tac_srv[srv_i].key);
 
-		if (tac_authen_send(sess, tac_fd, user, "", tty, r_addr,
+		if (tac_authen_send(sess, user, "", tty, r_addr,
 				TAC_PLUS_AUTHEN_CHPASS) < 0) {
-			close(tac_fd);
+			tac_close(sess);
 			_pam_log(LOG_ERR, "error sending auth req to TACACS+ server");
 			continue;
 		}
@@ -857,7 +854,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 			struct pam_message conv_msg = { .msg_style = 0, .msg = NULL };
 			struct pam_response *resp = NULL;
 
-			msg = tac_authen_read(sess, tac_fd, &re);
+			msg = tac_authen_read(sess, &re);
 
 			if (NULL != re.msg) {
 				conv_msg.msg = re.msg;
@@ -939,7 +936,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 									__FUNCTION__);
 
 						if (0
-								> tac_cont_send(sess, tac_fd, resp->resp)) {
+								> tac_cont_send(sess, resp->resp)) {
 							_pam_log(LOG_ERR,
 									"error sending continue req to TACACS+ server");
 							communicating = 0;
@@ -976,7 +973,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 					syslog(LOG_DEBUG, "%s: calling tac_cont_send",
 							__FUNCTION__);
 
-				if (tac_cont_send(sess, tac_fd, pass) < 0) {
+				if (tac_cont_send(sess, pass) < 0) {
 					_pam_log(LOG_ERR,
 							"error sending continue req to TACACS+ server");
 					communicating = 0;
@@ -1044,7 +1041,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 			free(re.msg);
 
 		} /* end while(communicating) */
-		close(tac_fd);
+		tac_close(sess);
 
 		if (status == PAM_SUCCESS || status == PAM_AUTHTOK_ERR)
 			break;

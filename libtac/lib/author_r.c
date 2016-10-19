@@ -228,7 +228,7 @@ int tac_author_parse(struct tac_session *sess,
  *         LIBTAC_STATUS_PROTOCOL_ERR
  *   >= 0 : server response, see TAC_PLUS_AUTHOR_STATUS_...
  */
-int tac_author_read(struct tac_session *sess, int fd, struct areply *re) {
+int tac_author_read(struct tac_session *sess, struct areply *re) {
 	HDR *th;
 	struct author_reply *tb = NULL;
 	size_t len_from_header;
@@ -238,7 +238,7 @@ int tac_author_read(struct tac_session *sess, int fd, struct areply *re) {
 	bzero(re, sizeof(*re));
 
 	if (tac_readtimeout_enable
-			&& tac_read_wait(fd, tac_timeout * 1000, TAC_PLUS_HDR_SIZE,
+			&& tac_read_wait(sess->fd, tac_timeout * 1000, TAC_PLUS_HDR_SIZE,
 					&timeleft) < 0) {
 
 		TACSYSLOG(
@@ -250,7 +250,7 @@ int tac_author_read(struct tac_session *sess, int fd, struct areply *re) {
 
 	th = xcalloc(1, TAC_PLUS_HDR_SIZE);
 
-	packet_read = read(fd, th, TAC_PLUS_HDR_SIZE);
+	packet_read = read(sess->fd, th, TAC_PLUS_HDR_SIZE);
 	if (packet_read < TAC_PLUS_HDR_SIZE) {
 		TACSYSLOG(
 				LOG_ERR, "%s: short reply header, read %zd of %u: %m", __FUNCTION__,
@@ -277,7 +277,7 @@ int tac_author_read(struct tac_session *sess, int fd, struct areply *re) {
 
 	/* read reply packet body */
 	if (tac_readtimeout_enable
-			&& tac_read_wait(fd, timeleft, len_from_header, NULL) < 0) {
+			&& tac_read_wait(sess->fd, timeleft, len_from_header, NULL) < 0) {
 		TACSYSLOG(
 				LOG_ERR, "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
 		re->msg = xstrdup(author_syserr_msg);
@@ -285,7 +285,7 @@ int tac_author_read(struct tac_session *sess, int fd, struct areply *re) {
 		free(th);
 		return re->status;
 	}
-	packet_read = read(fd, tb, len_from_header);
+	packet_read = read(sess->fd, tb, len_from_header);
 	if (packet_read < 0 || (size_t) packet_read < len_from_header) {
 		TACSYSLOG(
 				LOG_ERR, "%s: short reply body, read %zd of %zu: %m", __FUNCTION__, ((packet_read >= 0) ? packet_read : 0), len_from_header);

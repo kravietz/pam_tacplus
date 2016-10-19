@@ -46,7 +46,7 @@ HDR *_tac_req_header(struct tac_session *sess, u_char type, bool cont_session) {
 
     /* preset some packet options in header */
     th->type=type;
-    th->seq_no=sess->seq_no;
+    th->seq_no=++sess->seq_no;
     th->encryption=TAC_PLUS_ENCRYPTED_FLAG;
  
     /* make session_id from pseudo-random number */

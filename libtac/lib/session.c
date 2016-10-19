@@ -40,6 +40,7 @@ tac_session_alloc_extra(unsigned n)
     sess->tac_authen_method = TAC_PLUS_AUTHEN_METH_TACACSPLUS;
     sess->tac_authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
     sess->seq_no = 0;
+    sess->fd = -1;
 
     return sess;
 }
@@ -95,6 +96,7 @@ tac_session_get_user_data(struct tac_session *sess)
 void
 tac_session_free(struct tac_session *sess)
 {
+    tac_close(sess);
     free(sess);
 }
 

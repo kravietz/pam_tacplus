@@ -121,7 +121,7 @@ void tac_author_send_pkt(struct tac_session *sess,
  *		 LIBTAC_STATUS_ASSEMBLY_ERR  (pending impl)
  */
 int tac_author_send(struct tac_session *sess,
-	int fd, const char *user, const char *tty, const char *r_addr,
+	const char *user, const char *tty, const char *r_addr,
 	struct tac_attrib *attr) {
 
 	u_char *pkt = NULL;
@@ -132,7 +132,7 @@ int tac_author_send(struct tac_session *sess,
 	tac_author_send_pkt(sess, user, tty, r_addr, attr, &pkt, &pkt_total);
 
 	/* write packet */
-	w = write(fd, pkt, pkt_total);
+	w = write(sess->fd, pkt, pkt_total);
 	if (w < 0 || (unsigned) w < pkt_total) {
 		TACSYSLOG(LOG_ERR, "%s: short write on packet, wrote %d of %d: %m",\
 			__FUNCTION__, w, pkt_total);

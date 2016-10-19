@@ -95,7 +95,7 @@ void tac_cont_send_pkt(struct tac_session *sess, const char *pass,
  *         LIBTAC_STATUS_WRITE_TIMEOUT  (pending impl)
  *         LIBTAC_STATUS_ASSEMBLY_ERR
  */
-int tac_cont_send(struct tac_session *sess, int fd, const char *pass) {
+int tac_cont_send(struct tac_session *sess, const char *pass) {
 
 	u_char *pkt = NULL;
 	unsigned pkt_total = 0;
@@ -104,7 +104,7 @@ int tac_cont_send(struct tac_session *sess, int fd, const char *pass) {
 	/* generate the packet */
 	tac_cont_send_pkt(sess, pass, &pkt, &pkt_total);
 
-	w = write(fd, pkt, pkt_total);
+	w = write(sess->fd, pkt, pkt_total);
 	if (w < 0 || (unsigned) w < pkt_total) {
 		TACSYSLOG(
 				LOG_ERR, "%s: short write on packet, wrote %d of %u: %m", __FUNCTION__, w, pkt_total);
