@@ -207,7 +207,7 @@ void tac_authen_send_pkt(struct tac_session *sess,
  *             LIBTAC_STATUS_WRITE_TIMEOUT
  *             LIBTAC_STATUS_ASSEMBLY_ERR
  */
-int tac_authen_send(struct tac_session *sess, int fd,
+int tac_authen_send(struct tac_session *sess,
 		const char *user, const char *pass, const char *tty,
 		const char *r_addr, u_char action) {
 
@@ -219,7 +219,7 @@ int tac_authen_send(struct tac_session *sess, int fd,
 	tac_authen_send_pkt(sess, user, pass, tty, r_addr, action, &pkt, &pkt_total);
 
 	/* we can now write the packet */
-	w = write(fd, pkt, pkt_total);
+	w = write(sess->fd, pkt, pkt_total);
 	if (w < 0 || (unsigned) w < pkt_total) {
 		TACSYSLOG(
 				LOG_ERR, "%s: short write on packet, wrote %d of %u: %m", __FUNCTION__, w, pkt_total);

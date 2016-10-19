@@ -147,6 +147,7 @@ struct tac_session {
     uint8_t tac_authen_service;
     uint8_t tac_authen_type;
     uint8_t seq_no;
+    int fd;
 
     /* user defined stuff */
     uint8_t user_data[0];
@@ -171,8 +172,9 @@ HDR *_tac_req_header(struct tac_session *, u_char, bool);
 /* connect.c */
 extern int tac_timeout;
 
-int tac_connect(struct addrinfo **, unsigned);
-int tac_connect_single(const struct addrinfo *, struct addrinfo *, int);
+int tac_connect(struct tac_session *, struct addrinfo **, unsigned);
+int tac_connect_single(struct tac_session *, const struct addrinfo *, struct addrinfo *, int);
+void tac_close(struct tac_session *);
 char *tac_ntop(const struct sockaddr *);
 
 /* authen_s.c */
@@ -182,29 +184,29 @@ const char *tag_get_authen_string(uint8_t);
 void tac_authen_send_pkt(struct tac_session *,
     const char *, const char *, const char *, const char *, u_char,
     u_char **, unsigned *);
-int tac_authen_send(struct tac_session *, int,
+int tac_authen_send(struct tac_session *,
     const char *, const char *, const char *, const char *, u_char);
 
 /* authen_r.c */
 int tac_authen_parse(struct tac_session *, struct areply *, u_char *, unsigned);
-int tac_authen_read(struct tac_session *, int, struct areply *);
+int tac_authen_read(struct tac_session *, struct areply *);
 
 /* cont_s.c */
 void tac_cont_send_pkt(struct tac_session *, const char *,
    u_char **, unsigned *);
-int tac_cont_send(struct tac_session *, int, const char *);
+int tac_cont_send(struct tac_session *, const char *);
 
 /* crypt.c */
 void _tac_crypt(const struct tac_session *, u_char *, const HDR *);
 
 /* author_r.c */
 int tac_author_parse(struct tac_session *, u_char *, unsigned, struct areply *);
-int tac_author_read(struct tac_session *, int, struct areply *);
+int tac_author_read(struct tac_session *, struct areply *);
 
 /* author_s.c */
 void tac_author_send_pkt(struct tac_session *, const char *, const char *,
     const char *, struct tac_attrib *, u_char **, unsigned *);
-int tac_author_send(struct tac_session *, int, const char *, const char *,
+int tac_author_send(struct tac_session *, const char *, const char *,
     const char *, struct tac_attrib *);
 
 /* attrib.c */
@@ -216,13 +218,13 @@ void tac_free_attrib(struct tac_attrib **);
 char *tac_acct_flag2str(u_char);
 void tac_acct_send_pkt(struct tac_session *, u_char, const char *,
     const char *, const char *, struct tac_attrib *, u_char **, unsigned *);
-int tac_acct_send(struct tac_session *, int, u_char, const char *,
+int tac_acct_send(struct tac_session *, u_char, const char *,
     const char *, const char *, struct tac_attrib *);
 
 /* acct_r.c */
 int tac_acct_parse(struct tac_session *, u_char *, unsigned,
     struct areply *);
-int tac_acct_read(struct tac_session *, int, struct areply *);
+int tac_acct_read(struct tac_session *, struct areply *);
 
 /* xalloc.c */
 void *xcalloc(size_t, size_t);

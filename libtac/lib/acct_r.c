@@ -137,7 +137,7 @@ int tac_acct_parse(struct tac_session *sess, u_char *pkt, unsigned pkt_total,
  *             LIBTAC_STATUS_PROTOCOL_ERR
  *   >= 0 : server response, see TAC_PLUS_AUTHEN_STATUS_...
  */
-int tac_acct_read(struct tac_session *sess, int fd, struct areply *re) {
+int tac_acct_read(struct tac_session *sess, struct areply *re) {
     HDR *th;
     struct acct_reply *tb = NULL;
     size_t ulen_from_header;
@@ -148,7 +148,7 @@ int tac_acct_read(struct tac_session *sess, int fd, struct areply *re) {
     re->msg = re->data = NULL;
 
     if (tac_readtimeout_enable &&
-        tac_read_wait(fd, tac_timeout * 1000, TAC_PLUS_HDR_SIZE, &timeleft) < 0 ) {
+        tac_read_wait(sess->fd, tac_timeout * 1000, TAC_PLUS_HDR_SIZE, &timeleft) < 0 ) {
         TACSYSLOG(LOG_ERR,\
             "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
         re->msg = xstrdup(acct_syserr_msg);
@@ -158,7 +158,7 @@ int tac_acct_read(struct tac_session *sess, int fd, struct areply *re) {
 
     th = (HDR *)xcalloc(1, TAC_PLUS_HDR_SIZE);
 
-    spacket_read = read(fd, (char *)th, TAC_PLUS_HDR_SIZE);
+    spacket_read = read(sess->fd, (char *)th, TAC_PLUS_HDR_SIZE);
     if(spacket_read < TAC_PLUS_HDR_SIZE) {
         TACSYSLOG(LOG_ERR,\
             "%s: short reply header, read %zd of %u expected: %m", __FUNCTION__,\
@@ -186,7 +186,7 @@ int tac_acct_read(struct tac_session *sess, int fd, struct areply *re) {
 
     /* read reply packet body */
     if (tac_readtimeout_enable &&
-        tac_read_wait(fd, timeleft, ulen_from_header, NULL) < 0 ) {
+        tac_read_wait(sess->fd, timeleft, ulen_from_header, NULL) < 0 ) {
         TACSYSLOG(LOG_ERR,\
             "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
         re->msg = xstrdup(acct_syserr_msg);
@@ -195,7 +195,7 @@ int tac_acct_read(struct tac_session *sess, int fd, struct areply *re) {
         return re->status;
     }
 
-    spacket_read = read(fd, (char *)tb, ulen_from_header);
+    spacket_read = read(sess->fd, (char *)tb, ulen_from_header);
     if(spacket_read < 0 || (size_t) spacket_read < ulen_from_header) {
         TACSYSLOG(LOG_ERR,\
             "%s: short reply body, read %zd of %zu: %m",\
