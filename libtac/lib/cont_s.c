@@ -35,7 +35,7 @@
  *         LIBTAC_STATUS_WRITE_TIMEOUT  (pending impl)
  *         LIBTAC_STATUS_ASSEMBLY_ERR
  */
-int tac_cont_send_seq(int fd, char *pass, int seq) {
+int tac_cont_send_seq(int fd, const char *pass, int seq) {
 	HDR *th; /* TACACS+ packet header */
 	struct authen_cont tb; /* continue body */
 	int pass_len, bodylength, w;

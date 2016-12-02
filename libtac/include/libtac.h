@@ -155,7 +155,7 @@ char *tac_ntop(const struct sockaddr *);
 int tac_authen_send(int, const char *, const char *, const char *, const char *,
 		u_char);
 int tac_authen_read(int, struct areply *);
-int tac_cont_send_seq(int, char *, int);
+int tac_cont_send_seq(int, const char *, int);
 #define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)
 HDR *_tac_req_header(u_char, int);
 void _tac_crypt(u_char *, const HDR *);
