@@ -26,6 +26,8 @@
 
 #include <security/pam_modules.h>
 
+#define TAC_SECRET_MAX_LEN   64
+
 typedef struct {
     struct addrinfo *addr;
     const char *key;
@@ -37,6 +39,7 @@ extern int tac_srv_no;
 extern char tac_service[64];
 extern char tac_protocol[64];
 extern char tac_prompt[64];
+void tac_copy_addr_info (struct addrinfo *p_dst, const struct addrinfo *p_src);
 
 int _pam_parse (int, const char **);
 unsigned long _resolve_name (char *);

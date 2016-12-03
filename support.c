@@ -36,6 +36,9 @@ int tac_srv_no = 0;
 char tac_service[64];
 char tac_protocol[64];
 char tac_prompt[64];
+struct addrinfo tac_srv_addr[TAC_PLUS_MAXSERVERS];
+struct sockaddr tac_sock_addr[TAC_PLUS_MAXSERVERS];
+char tac_srv_key[TAC_PLUS_MAXSERVERS][TAC_SECRET_MAX_LEN+1];
 
 void _pam_log(int err, const char *format,...) {
     char msg[256];
@@ -172,6 +175,47 @@ int tacacs_get_password (pam_handle_t * pamh, int flags,
     return PAM_SUCCESS;
 }
 
+void tac_copy_addr_info (struct addrinfo *p_dst, const struct addrinfo *p_src)
+{
+    if (p_dst && p_src) {
+        p_dst->ai_flags = p_src->ai_flags;
+        p_dst->ai_family = p_src->ai_family;
+        p_dst->ai_socktype = p_src->ai_socktype;
+        p_dst->ai_protocol = p_src->ai_protocol;
+        p_dst->ai_addrlen = p_src->ai_addrlen;
+        memcpy (p_dst->ai_addr, p_src->ai_addr, sizeof(struct sockaddr));
+        p_dst->ai_canonname = NULL; /* we do not care it */
+        p_dst->ai_next = NULL;      /* no more chain */
+    }
+}
+
+static void set_tac_srv_addr (unsigned int srv_no, const struct addrinfo *addr)
+{
+    if (srv_no < TAC_PLUS_MAXSERVERS) {
+        if (addr) {
+            tac_srv_addr[srv_no].ai_addr = &tac_sock_addr[srv_no];
+            tac_copy_addr_info (&tac_srv_addr[srv_no], addr);
+            tac_srv[srv_no].addr = &tac_srv_addr[srv_no];
+        }
+        else {
+            tac_srv[srv_no].addr = NULL;
+        }
+    }
+}
+
+static void set_tac_srv_key (unsigned int srv_no, const char *key)
+{
+    if (srv_no < TAC_PLUS_MAXSERVERS) {
+        if (key) {
+            strncpy (tac_srv_key[srv_no], key, TAC_SECRET_MAX_LEN-1);
+            tac_srv[srv_no].key = tac_srv_key[srv_no];
+        }
+        else {
+            tac_srv[srv_no].key = NULL;
+        }
+    }
+}
+
 int _pam_parse (int argc, const char **argv) {
     int ctrl = 0;
     const char *current_secret = NULL;
@@ -239,10 +283,11 @@ int _pam_parse (int argc, const char **argv) {
                 }
                 if ((rv = getaddrinfo(server_name, (port == NULL) ? "49" : port, &hints, &servers)) == 0) {
                     for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
-                        tac_srv[tac_srv_no].addr = server;
-                        tac_srv[tac_srv_no].key = current_secret;
+                        set_tac_srv_addr (tac_srv_no, server);
+                        set_tac_srv_key (tac_srv_no, current_secret);
                         tac_srv_no++;
                     }
+                    freeaddrinfo (servers);
                 } else {
                     _pam_log (LOG_ERR,
                         "skip invalid server: %s (getaddrinfo: %s)",
@@ -262,7 +307,7 @@ int _pam_parse (int argc, const char **argv) {
                 if (tac_srv[i].key != NULL)
                     break;
 
-                tac_srv[i].key = current_secret;
+                set_tac_srv_key (i, current_secret);
             }
         } else if (!strncmp (*argv, "timeout=", 8)) {
             /* FIXME atoi() doesn't handle invalid numeric strings well */
