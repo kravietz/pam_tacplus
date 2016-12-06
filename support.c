@@ -36,6 +36,9 @@ int tac_srv_no = 0;
 char tac_service[64];
 char tac_protocol[64];
 char tac_prompt[64];
+struct sockaddr src_sockaddr;
+struct addrinfo src_addr_info;
+struct addrinfo *tac_src_addr_info = NULL;
 struct addrinfo tac_srv_addr[TAC_PLUS_MAXSERVERS];
 struct sockaddr tac_sock_addr[TAC_PLUS_MAXSERVERS];
 char tac_srv_key[TAC_PLUS_MAXSERVERS][TAC_SECRET_MAX_LEN+1];
@@ -175,6 +178,26 @@ int tacacs_get_password (pam_handle_t * pamh, int flags,
     return PAM_SUCCESS;
 }
 
+/* Convert ip address string to address info.
+ * It returns 0 on success, or -1 otherwise
+   It supports ipv4 only.
+ */
+int ip_addr_str_to_addr_info (const char *srcaddr, struct addrinfo *p_addr_info)
+{
+    struct sockaddr_in *s_in;
+
+    s_in = (struct sockaddr_in *)p_addr_info->ai_addr;
+    s_in->sin_family = AF_INET;
+    s_in->sin_addr.s_addr = INADDR_ANY;
+
+    if (inet_pton(AF_INET, srcaddr, &(s_in->sin_addr)) == 1) {
+        p_addr_info->ai_family = AF_INET;
+        p_addr_info->ai_addrlen = sizeof (struct sockaddr_in);
+        return 0;
+    }
+    return -1;
+}
+
 void tac_copy_addr_info (struct addrinfo *p_dst, const struct addrinfo *p_src)
 {
     if (p_dst && p_src) {
@@ -219,6 +242,7 @@ static void set_tac_srv_key (unsigned int srv_no, const char *key)
 int _pam_parse (int argc, const char **argv) {
     int ctrl = 0;
     const char *current_secret = NULL;
+    char tac_source_ip[64];
 
     /* otherwise the list will grow with each call */
     memset(tac_srv, 0, sizeof(tacplus_server_t) * TAC_PLUS_MAXSERVERS);
@@ -228,6 +252,8 @@ int _pam_parse (int argc, const char **argv) {
     tac_protocol[0] = 0;
     tac_prompt[0] = 0;
     tac_login[0] = 0;
+    tac_source_ip[0] = 0;
+    tac_src_addr_info = NULL;
 
     for (ctrl = 0; argc-- > 0; ++argv) {
         if (!strcmp (*argv, "debug")) { /* all */
@@ -318,6 +344,15 @@ int _pam_parse (int argc, const char **argv) {
             } else { 
                 tac_readtimeout_enable = 1;
             }
+        /* if source ip address, convert it to addr info  */
+       else if (!strncmp (*argv, "source_ip=", 10)) {
+            strcpy (tac_source_ip, *argv + 10);
+            memset (&src_addr_info, 0, sizeof (struct addrinfo));
+            memset (&src_sockaddr, 0, sizeof (struct sockaddr));
+            src_addr_info.ai_addr = &src_sockaddr;
+            if (ip_addr_str_to_addr_info (tac_source_ip, &src_addr_info) == 0) {
+                tac_src_addr_info = &src_addr_info;
+            }
         } else {
             _pam_log (LOG_WARNING, "unrecognized option: %s", *argv);
         }
@@ -336,6 +371,7 @@ int _pam_parse (int argc, const char **argv) {
         _pam_log(LOG_DEBUG, "tac_protocol='%s'", tac_protocol);
         _pam_log(LOG_DEBUG, "tac_prompt='%s'", tac_prompt);
         _pam_log(LOG_DEBUG, "tac_login='%s'", tac_login);
+        _pam_log(LOG_DEBUG, "tac_source_ip='%s'", tac_source_ip);
     }
 
     return ctrl;
