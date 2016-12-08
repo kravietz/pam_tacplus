@@ -148,6 +148,12 @@ extern int tac_authen_service;
 extern int tac_debug_enable;
 extern int tac_readtimeout_enable;
 
+/* we return a void * because there are different types of bodies */
+static inline void *tac_hdr_to_body(HDR *th)
+{
+    return (void *)((u_char *)th + TAC_PLUS_HDR_SIZE);
+}
+
 HDR *_tac_req_header(u_char, int);
 
 /* connect.c */

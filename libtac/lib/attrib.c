@@ -29,14 +29,14 @@ void tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
 
 void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
     struct tac_attrib *a;
-    u_char l1 = (u_char) strlen(name);
-    u_char l2;
-    int total_len;
+    unsigned l1 = (u_char) strlen(name);
+    unsigned l2;
+    unsigned total_len;
 
     if (value == NULL) {
         l2 = 0;
     } else {
-        l2 = (u_char) strlen(value);
+        l2 = strlen(value);
     }
     total_len = l1 + l2 + 1; /* "name" + "=" + "value" */
 
@@ -49,7 +49,7 @@ void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *v
 
     /* initialize the list if application passed us a null pointer */
     if(*attr == NULL) {
-        *attr = (struct tac_attrib *) xcalloc(1, sizeof(struct tac_attrib));
+        *attr = xcalloc(1, sizeof(struct tac_attrib));
         a = *attr;
     } else {
         /* find the last allocated block */
@@ -57,7 +57,7 @@ void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *v
         while(a->next != NULL)
             a = a->next; /* a holds last allocated block */
 
-        a->next = (struct tac_attrib *) xcalloc(1, sizeof(struct tac_attrib));
+        a->next = xcalloc(1, sizeof(struct tac_attrib));
         a = a->next; /* set current block pointer to the new one */
     }
 
@@ -67,7 +67,7 @@ void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *v
 
     /* fill the block */
     a->attr_len=total_len;
-    a->attr = (char *) xcalloc(1, total_len+1);
+    a->attr = xcalloc(1, total_len+1);
     bcopy(name, a->attr, l1);    /* paste name */
     *(a->attr+l1)=sep;           /* insert seperator "[=*]" */
     if (value != NULL) {

@@ -130,7 +130,7 @@ void tac_authen_send_pkt(const char *user, const char *pass, const char *tty,
 	pkt_total = TAC_AUTHEN_START_FIXED_TOTAL +
 		user_len + port_len + r_addr_len + token_len;
 
-	pkt = (u_char *)xcalloc(1, pkt_total);
+	pkt = xcalloc(1, pkt_total);
 	th = (HDR *)pkt;
 
 	/* set some header options */
@@ -149,7 +149,7 @@ void tac_authen_send_pkt(const char *user, const char *pass, const char *tty,
 	th->datalength = htonl(pkt_total - TAC_PLUS_HDR_SIZE);
 
 	/* fixed part of tacacs body */
-	tb = (struct authen_start *)(pkt + TAC_PLUS_HDR_SIZE);
+	tb = tac_hdr_to_body(th);
 	tb->action = TAC_PLUS_AUTHEN_LOGIN;
 	tb->priv_lvl = tac_priv_lvl;
 	if (authen_type == TAC_PLUS_AUTHEN_TYPE_PAP) {

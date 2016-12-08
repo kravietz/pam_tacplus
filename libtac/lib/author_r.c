@@ -52,7 +52,7 @@ int tac_author_parse(u_char *pkt, unsigned pkt_total, struct areply *re) {
 
 	len_from_header = ntohl(th->datalength);
 
-	tb = (struct author_reply *)(pkt + TAC_PLUS_HDR_SIZE);
+	tb = tac_hdr_to_body(th);
 
 	if (pkt_total != TAC_PLUS_HDR_SIZE + len_from_header) {
 		TACSYSLOG(
@@ -104,7 +104,7 @@ int tac_author_parse(u_char *pkt, unsigned pkt_total, struct areply *re) {
 
 	/* server message for user */
 	if (tb->msg_len) {
-		char *msg = (char *) xcalloc(1, tb->msg_len + 1);
+		char *msg = xcalloc(1, tb->msg_len + 1);
 		bcopy(
 				(u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
 						+ (tb->arg_cnt) * sizeof(tb->arg_len[0]), msg, tb->msg_len);
@@ -114,7 +114,7 @@ int tac_author_parse(u_char *pkt, unsigned pkt_total, struct areply *re) {
 
 	/* server message to syslog */
 	if (tb->data_len) {
-		char *smsg = (char *) xcalloc(1, tb->data_len + 1);
+		char *smsg = xcalloc(1, tb->data_len + 1);
 		bcopy(
 				(u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
 						+ (tb->arg_cnt) * sizeof(tb->arg_len[0]) + tb->msg_len, smsg,
@@ -246,7 +246,7 @@ int tac_author_read(int fd, struct areply *re) {
 		return re->status;
 	}
 
-	th = (HDR *)xcalloc(1, TAC_PLUS_HDR_SIZE);
+	th = xcalloc(1, TAC_PLUS_HDR_SIZE);
 
 	packet_read = read(fd, th, TAC_PLUS_HDR_SIZE);
 	if (packet_read < TAC_PLUS_HDR_SIZE) {
@@ -270,8 +270,8 @@ int tac_author_read(int fd, struct areply *re) {
 	}
 
 	/* now make room for entire contiguous packet */
-	th = (HDR *)xrealloc(th, TAC_PLUS_HDR_SIZE + len_from_header);
-	tb = (struct author_reply *)((u_char *)th + TAC_PLUS_HDR_SIZE);
+	th = xrealloc(th, TAC_PLUS_HDR_SIZE + len_from_header);
+	tb = tac_hdr_to_body(th);
 
 	/* read reply packet body */
 	if (tac_readtimeout_enable

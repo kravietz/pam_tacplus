@@ -41,9 +41,9 @@ void tac_author_send_pkt(const char *user, const char *tty, const char *r_addr,
 	/*
 	 * precompute the buffer size so we don't need to keep resizing/copying it
 	 */
-	user_len = (u_char) strlen(user);
-	port_len = (u_char) strlen(tty);
-	r_addr_len = (u_char) strlen(r_addr);
+	user_len = strlen(user);
+	port_len = strlen(tty);
+	r_addr_len = strlen(r_addr);
 
 	assert(user_len <= UCHAR_MAX);
 	assert(port_len <= UCHAR_MAX);
@@ -59,7 +59,7 @@ void tac_author_send_pkt(const char *user, const char *tty, const char *r_addr,
 	   pkt_total += a->attr_len + 1;		   /* count length byte too */
 	}
 
-	pkt = (u_char *)xcalloc(1, pkt_total);
+	pkt = xcalloc(1, pkt_total);
 	th = (HDR *)pkt;
 
 	/* tacacs header */
@@ -72,7 +72,7 @@ void tac_author_send_pkt(const char *user, const char *tty, const char *r_addr,
 	th->datalength = htonl(pkt_total - TAC_PLUS_HDR_SIZE);
 
 	/* fixed part of tacacs body */
-	tb = (struct author *)(pkt + TAC_PLUS_HDR_SIZE);
+	tb = tac_hdr_to_body(th);
 	tb->authen_method = tac_authen_method;
 	tb->priv_lvl = tac_priv_lvl;
 	tb->authen_type = tac_get_authen_type(tac_login);

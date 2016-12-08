@@ -52,7 +52,7 @@ void tac_cont_send_pkt(const char *pass, uint8_t seq,
 	pkt_total = TAC_AUTHEN_CONT_FIXED_TOTAL + pass_len;
 
 	/* build the packet */
-	pkt = (u_char *)xcalloc(1, pkt_total);
+	pkt = xcalloc(1, pkt_total);
 	th = (HDR *)pkt;
 
 	/* set some header options */
@@ -66,7 +66,7 @@ void tac_cont_send_pkt(const char *pass, uint8_t seq,
 	th->datalength = htonl(pkt_total - TAC_PLUS_HDR_SIZE);
 
 	/* fixed part of tacacs body */
-	tb = (struct authen_cont *)(pkt + TAC_PLUS_HDR_SIZE);
+	tb = tac_hdr_to_body(th);
 	tb->flags = 0;
 	tb->user_msg_len = htons(pass_len);
 	tb->user_data_len = 0;

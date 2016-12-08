@@ -52,7 +52,7 @@ int tac_authen_parse(struct areply *re, u_char *pkt, unsigned pkt_total) {
 
 	len_from_header = ntohl(th->datalength);
 
-	tb = (struct authen_reply *) (pkt + TAC_PLUS_HDR_SIZE);
+	tb = tac_hdr_to_body(th);
 
 	if (pkt_total != TAC_PLUS_HDR_SIZE + len_from_header) {
 		TACSYSLOG(
@@ -157,7 +157,7 @@ int tac_authen_read(int fd, struct areply *re) {
 		return re->status;
 	}
 
-	th = (HDR *)xcalloc(1, TAC_PLUS_HDR_SIZE);
+	th = xcalloc(1, TAC_PLUS_HDR_SIZE);
 
 	r = read(fd, th, TAC_PLUS_HDR_SIZE);
 	if (r < TAC_PLUS_HDR_SIZE) {
@@ -181,8 +181,8 @@ int tac_authen_read(int fd, struct areply *re) {
 	}
 
 	/* now make room for entire contiguous packet */
-	th = (HDR *)xrealloc(th, TAC_PLUS_HDR_SIZE + len_from_header);
-	tb = (struct authen_reply *) ((u_char *)th + TAC_PLUS_HDR_SIZE);
+	th = xrealloc(th, TAC_PLUS_HDR_SIZE + len_from_header);
+	tb = tac_hdr_to_body(th);
 
 	/* read reply packet body */
 	if (tac_readtimeout_enable &&
@@ -192,7 +192,7 @@ int tac_authen_read(int fd, struct areply *re) {
 		status = LIBTAC_STATUS_READ_TIMEOUT;
 	}
 
-	r = read(fd, (char *)tb, len_from_header);
+	r = read(fd, tb, len_from_header);
 	if (r < 0 || (unsigned) r < len_from_header) {
 		TACSYSLOG(LOG_ERR,
 			"%s: short reply body, read %d of %zu: %m",
