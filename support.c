@@ -56,7 +56,7 @@ char *_pam_get_user(pam_handle_t *pamh) {
     int retval;
     char *user;
 
-    retval = pam_get_user(pamh, (void *)&user, "Username: ");
+    retval = pam_get_user(pamh, (const char **)&user, "Username: ");
     if (retval != PAM_SUCCESS || user == NULL || *user == '\0') {
         _pam_log(LOG_ERR, "unable to obtain username");
         user = NULL;
@@ -68,7 +68,7 @@ char *_pam_get_terminal(pam_handle_t *pamh) {
     int retval;
     char *tty;
 
-    retval = pam_get_item(pamh, PAM_TTY, (void *)&tty);
+    retval = pam_get_item(pamh, PAM_TTY, (const void **)&tty);
     if (retval != PAM_SUCCESS || tty == NULL || *tty == '\0') {
         tty = ttyname(STDIN_FILENO);
         if(tty == NULL || *tty == '\0')
@@ -81,7 +81,7 @@ char *_pam_get_rhost(pam_handle_t *pamh) {
     int retval;
     char *rhost;
 
-    retval = pam_get_item(pamh, PAM_RHOST, (void *)&rhost);
+    retval = pam_get_item(pamh, PAM_RHOST, (const void **)&rhost);
     if (retval != PAM_SUCCESS || rhost == NULL || *rhost == '\0') {
         rhost = "unknown";
     }

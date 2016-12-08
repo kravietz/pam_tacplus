@@ -76,7 +76,7 @@ void tac_acct_send_pkt(struct tac_session *sess, u_char type,
         pkt_total += a->attr_len + 1;          /* count length byte too */
     }
 
-    pkt = (u_char *)xcalloc(1, pkt_total);
+    pkt = xcalloc(1, pkt_total);
     th = (HDR *)pkt;
 
     /* tacacs header */
@@ -88,7 +88,7 @@ void tac_acct_send_pkt(struct tac_session *sess, u_char type,
     th->datalength = htonl(pkt_total - TAC_PLUS_HDR_SIZE);
 
     /* fixed part of tacacs body */
-    tb = (struct acct *)(pkt + TAC_PLUS_HDR_SIZE);
+    tb = tac_hdr_to_body(th);
     tb->flags = type;
     tb->authen_method = sess->tac_authen_method;
     tb->priv_lvl = sess->tac_priv_lvl;

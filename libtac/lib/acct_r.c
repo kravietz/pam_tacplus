@@ -54,7 +54,7 @@ int tac_acct_parse(struct tac_session *sess, u_char *pkt, unsigned pkt_total,
 
     ulen_from_header = ntohl(th->datalength);
 
-    tb = (struct acct_reply *)(pkt + TAC_PLUS_HDR_SIZE);
+    tb = tac_hdr_to_body(th);
 
     if (pkt_total != ulen_from_header) {
         TACSYSLOG(LOG_ERR,\
@@ -88,14 +88,14 @@ int tac_acct_parse(struct tac_session *sess, u_char *pkt, unsigned pkt_total,
 
     /* save status and clean up */
     if(tb->msg_len) {
-        msg=(char *) xcalloc(1, tb->msg_len+1);
+        msg = xcalloc(1, tb->msg_len+1);
         bcopy((u_char *) tb+TAC_ACCT_REPLY_FIXED_FIELDS_SIZE, msg, tb->msg_len);
         msg[tb->msg_len] = '\0';
         re->msg = msg;      /* Freed by caller */
     }
 
     if(tb->data_len) {
-        msg=(char *) xcalloc(1, tb->data_len+1);
+        msg = xcalloc(1, tb->data_len+1);
         bcopy((u_char *) tb+TAC_ACCT_REPLY_FIXED_FIELDS_SIZE+tb->data_len,
             msg, tb->data_len);
         msg[tb->data_len] = '\0';
@@ -156,9 +156,9 @@ int tac_acct_read(struct tac_session *sess, struct areply *re) {
         return re->status;
     }
 
-    th = (HDR *)xcalloc(1, TAC_PLUS_HDR_SIZE);
+    th = xcalloc(1, TAC_PLUS_HDR_SIZE);
 
-    spacket_read = read(sess->fd, (char *)th, TAC_PLUS_HDR_SIZE);
+    spacket_read = read(sess->fd, th, TAC_PLUS_HDR_SIZE);
     if(spacket_read < TAC_PLUS_HDR_SIZE) {
         TACSYSLOG(LOG_ERR,\
             "%s: short reply header, read %zd of %u expected: %m", __FUNCTION__,\
@@ -181,8 +181,8 @@ int tac_acct_read(struct tac_session *sess, struct areply *re) {
     }
 
     /* now make room for entire contiguous packet */
-    th = (HDR *)xrealloc(th, TAC_PLUS_HDR_SIZE + ulen_from_header);
-    tb = (struct acct_reply *)((u_char *)th + TAC_PLUS_HDR_SIZE);
+    th = xrealloc(th, TAC_PLUS_HDR_SIZE + ulen_from_header);
+    tb = tac_hdr_to_body(th);
 
     /* read reply packet body */
     if (tac_readtimeout_enable &&
@@ -195,7 +195,7 @@ int tac_acct_read(struct tac_session *sess, struct areply *re) {
         return re->status;
     }
 
-    spacket_read = read(sess->fd, (char *)tb, ulen_from_header);
+    spacket_read = read(sess->fd, tb, ulen_from_header);
     if(spacket_read < 0 || (size_t) spacket_read < ulen_from_header) {
         TACSYSLOG(LOG_ERR,\
             "%s: short reply body, read %zd of %zu: %m",\
@@ -208,7 +208,8 @@ int tac_acct_read(struct tac_session *sess, struct areply *re) {
     }
 
     /* now parse remaining packet fields */
-    status = tac_acct_parse(sess, (u_char *)th, TAC_PLUS_HDR_SIZE + ulen_from_header, re);
+    status = tac_acct_parse(sess, (u_char *)th,
+		TAC_PLUS_HDR_SIZE + ulen_from_header, re);
 
     /* all useful data has been copied out */
     free(th);
