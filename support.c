@@ -344,6 +344,7 @@ int _pam_parse (int argc, const char **argv) {
             } else { 
                 tac_readtimeout_enable = 1;
             }
+        }
         /* if source ip address, convert it to addr info  */
        else if (!strncmp (*argv, "source_ip=", 10)) {
             strcpy (tac_source_ip, *argv + 10);
