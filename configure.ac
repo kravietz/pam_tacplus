@@ -103,8 +103,21 @@ AC_SUBST(rt_debug_defines)
 AM_SUBST_NOTMAKE(rt_debug_defines)
 
 dnl --------------------------------------------------------------------
+dnl Switch for libevent support
+AC_ARG_WITH(libevent,
+            [AS_HELP_STRING([--with-libevent], [build libevent support])],
+            AC_DEFINE([WITH_LIBEVENT], 1,
+                      [Define to 1 if building with libevent])
+            [with_libevent=1]
+)
+AM_CONDITIONAL(WITH_LIBEVENT, [test -n "$with_libevent"])
+
+
+dnl --------------------------------------------------------------------
+
 dnl Generate made files
 AC_CONFIG_FILES([Makefile
 		 libtac.pc
+		 libtac-event.pc
                  pam_tacplus.spec])
 AC_OUTPUT

@@ -137,6 +137,24 @@ extern int tac_ver_minor;
 extern int tac_ver_patch;
 
 /* session.c */
+struct bufferevent;
+struct tac_session;
+
+struct cb_ctx {
+    struct tac_session *sess;
+    void *user_ctx;
+    const char *login;
+    const char *pass;
+};
+
+typedef void (*response_cb_t)(struct tac_session *, struct cb_ctx *,
+    int, uint8_t, struct areply *);
+
+typedef enum { UNINITIALIZED, CONNECTED, CLOSED, ERROR, TIMEOUT } session_event_t;
+
+typedef void (*oob_cb_t)(struct tac_session *, struct cb_ctx *,
+    session_event_t);
+
 struct tac_session {
     unsigned tac_timeout;
     const char *tac_secret;
@@ -149,6 +167,13 @@ struct tac_session {
     uint8_t seq_no;
     int fd;
 
+    struct bufferevent *bufev;
+    void *cookie;
+
+    response_cb_t response_cb;
+    oob_cb_t oob_cb;
+    struct cb_ctx context;
+
     /* user defined stuff */
     uint8_t user_data[0];
 };
@@ -158,6 +183,9 @@ struct tac_session *tac_session_alloc_extra(unsigned);
 void tac_session_set_authen_type(struct tac_session *, uint8_t);
 void tac_session_set_secret(struct tac_session *, const char *);
 void tac_session_set_timeout(struct tac_session *, unsigned);
+void tac_session_set_response(struct tac_session *, response_cb_t);
+void tac_session_set_oob(struct tac_session *, oob_cb_t);
+struct cb_ctx *tac_session_get_context(struct tac_session *);
 void tac_session_new_session_id(struct tac_session *);
 void tac_session_reset_seq(struct tac_session *);
 void *tac_session_get_user_data(struct tac_session *);
@@ -245,6 +273,30 @@ u_int32_t magic(void);
 
 /* read_wait.c */
 int tac_read_wait(int, int, int, int *);
+
+/* parser.c */
+void tac_parse_pkt(struct tac_session *, struct cb_ctx *, u_char *, unsigned);
+
+/* wrappers.c */
+void *tac_event_loop_initialize(void);
+int tac_event_loop(void *tac_event);
+void tac_event_loop_end(void *tac_event);
+void tac_event_loop_shutdown(void *tac_event);
+void tac_event_loop_global_shutdown(void);
+
+bool tac_connect_single_ev(struct tac_session *,
+    void *, struct addrinfo *server, struct addrinfo *srcaddr, unsigned timeout);
+bool tac_authen_send_ev(struct tac_session *sess,
+    const char *user, const char *pass, const char *tty,
+    const char *r_addr, u_char action);
+bool tac_author_send_ev(struct tac_session *sess,
+    const char *user, const char *tty, const char *r_addr,
+    struct tac_attrib *attr);
+bool tac_acct_send_ev(struct tac_session *sess,
+    u_char type, const char *user, const char *tty,
+    const char *r_addr, struct tac_attrib *attr);
+bool tac_cont_send_ev(struct tac_session *sess,
+    const char *pass);
 
 #ifdef __cplusplus
 }
