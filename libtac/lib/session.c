@@ -36,7 +36,7 @@ tac_session_alloc_extra(unsigned n)
     sess->tac_timeout = 5;
     sess->tac_secret = NULL;
     sess->tac_session_id = magic();
-    sess->tac_encryption = false;
+    sess->tac_encryption = sess->tac_multiplex = false;
     sess->tac_priv_lvl = TAC_PLUS_PRIV_LVL_MIN;
     sess->tac_authen_service = TAC_PLUS_AUTHEN_SVC_PPP;
     sess->tac_authen_method = TAC_PLUS_AUTHEN_METH_TACACSPLUS;
@@ -78,6 +78,12 @@ void
 tac_session_set_timeout(struct tac_session *sess, unsigned timeout)
 {
     sess->tac_timeout = timeout;
+}
+
+void
+tac_session_set_multiplex(struct tac_session *sess, bool multiplex)
+{
+    sess->tac_multiplex = multiplex;
 }
 
 void

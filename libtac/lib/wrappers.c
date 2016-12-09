@@ -99,6 +99,25 @@ tac_event_loop_global_shutdown(void)
 #endif
 }
 
+void tac_session_reset_timeouts(struct tac_session *sess, bool on)
+{
+    struct timeval tv = { sess->tac_timeout, 0 };
+
+    TACDEBUG(LOG_DEBUG, "session %p reset_timeouts %u %s", sess, sess->tac_timeout, (on ? "on" : "off"));
+
+    if (!sess->bufev)
+        return;
+
+    /* nothing will be enabled if we haven't yet connected... */
+    if (bufferevent_get_enabled(sess->bufev) == 0)
+        return;
+
+    if (on)
+        bufferevent_set_timeouts(sess->bufev, &tv, &tv);
+    else
+        bufferevent_set_timeouts(sess->bufev, NULL, NULL);
+}
+
 static void eventcb(struct bufferevent *bev, short events, void *ptr)
 {
     struct cb_ctx *ctx = (struct cb_ctx *)ptr;
@@ -125,6 +144,8 @@ static void eventcb(struct bufferevent *bev, short events, void *ptr)
     if (sess->oob_cb) {
         if (events & BEV_EVENT_CONNECTED) {
                 TACDEBUG(LOG_DEBUG, "session %p connected", sess);
+		/* change for setup timeout to read/write timeout values */
+		tac_session_reset_timeouts(sess, true);
 		(sess->oob_cb)(sess, &sess->context, CONNECTED);
         }
         if (events & BEV_EVENT_ERROR) {
@@ -214,10 +235,13 @@ static void readcb(struct bufferevent *bev, void *ptr)
     /* copy out... */
     i = evbuffer_remove(evbuf, pkt, length);
 
-    if (i < 0 || (unsigned) i != n)
-        TACDEBUG(LOG_DEBUG, "%s: evbuffer_remove want %ld got %d", __FUNCTION__, n, i);
+    if (i < 0 || (unsigned) i != length)
+        TACDEBUG(LOG_DEBUG, "%s: evbuffer_remove want %u got %d", __FUNCTION__, length, i);
 
-    tac_parse_pkt(ctx->sess, ctx, pkt, length);
+    /* turn off timeouts */
+    tac_session_reset_timeouts(sess, false);
+
+    tac_parse_pkt(sess, ctx, pkt, ((i > 0) ? i : 0));
 
     free(pkt);
 }
@@ -292,6 +316,9 @@ tac_authen_send_ev(struct tac_session *sess,
     /* generate the packet */
     tac_authen_send_pkt(sess, user, pass, tty, r_addr, action, &pkt, &pkt_total);
 
+    /* if reusing connection, reset timeouts */
+    tac_session_reset_timeouts(sess, true);
+
     /*
      * make evbuffer wrap around our packet, and call cleanup (free)
      * when done
@@ -327,6 +354,9 @@ tac_author_send_ev(struct tac_session *sess,
 
     /* generate the packet */
     tac_author_send_pkt(sess, user, tty, r_addr, attr, &pkt, &pkt_total);
+
+    /* if reusing connection, reset timeouts */
+    tac_session_reset_timeouts(sess, true);
 
     /*
      * make evbuffer wrap around our packet, and call cleanup (free)
@@ -364,6 +394,9 @@ tac_acct_send_ev(struct tac_session *sess,
     /* generate the packet */
     tac_acct_send_pkt(sess, type, user, tty, r_addr, attr, &pkt, &pkt_total);
 
+    /* if reusing connection, reset timeouts */
+    tac_session_reset_timeouts(sess, true);
+
     /*
      * make evbuffer wrap around our packet, and call cleanup (free)
      * when done
@@ -396,6 +429,9 @@ tac_cont_send_ev(struct tac_session *sess, const char *pass) {
 
     /* generate the packet */
     tac_cont_send_pkt(sess, pass, &pkt, &pkt_total);
+
+    /* if reusing connection, reset timeouts */
+    tac_session_reset_timeouts(sess, true);
 
     /*
      * make evbuffer wrap around our packet, and call cleanup (free)

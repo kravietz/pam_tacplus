@@ -160,6 +160,7 @@ struct tac_session {
     const char *tac_secret;
     uint32_t tac_session_id;
     bool tac_encryption;
+    bool tac_multiplex;
     uint8_t tac_priv_lvl;
     uint8_t tac_authen_method;
     uint8_t tac_authen_service;
@@ -183,6 +184,8 @@ struct tac_session *tac_session_alloc_extra(unsigned);
 void tac_session_set_authen_type(struct tac_session *, uint8_t);
 void tac_session_set_secret(struct tac_session *, const char *);
 void tac_session_set_timeout(struct tac_session *, unsigned);
+void tac_session_set_multiplex(struct tac_session *, bool);
+void tac_session_reset_timeouts(struct tac_session *, bool);
 void tac_session_set_response(struct tac_session *, response_cb_t);
 void tac_session_set_oob(struct tac_session *, oob_cb_t);
 struct cb_ctx *tac_session_get_context(struct tac_session *);

@@ -83,7 +83,8 @@ void tac_acct_send_pkt(struct tac_session *sess, u_char type,
     th->version = TAC_PLUS_VER_0;
     th->type = TAC_PLUS_ACCT;
     th->seq_no = ++sess->seq_no;
-    th->encryption = sess->tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
+    th->encryption = sess->tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG
+	| (sess->tac_multiplex ? TAC_PLUS_SINGLE_CONNECT_FLAG : 0);
     th->session_id = htonl(sess->tac_session_id);
     th->datalength = htonl(pkt_total - TAC_PLUS_HDR_SIZE);
 
