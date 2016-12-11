@@ -161,7 +161,7 @@ int tac_authen_read(int fd, struct areply *re) {
 	}
 
 	TACDEBUG(LOG_DEBUG, "%s: authentication failed, server reply status=%d",
-					__FUNCTION__, r);
+					__FUNCTION__, re->status);
 
 	free(tb);
 	return re->status;
