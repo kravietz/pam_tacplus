@@ -94,6 +94,14 @@ AC_ARG_ENABLE(doc, AS_HELP_STRING([--disable-doc], [do not build docs]))
 AM_CONDITIONAL(DOC, test "x$enable_doc" != "xno")
 
 dnl --------------------------------------------------------------------
+dnl Switch for run-time debugging
+AC_ARG_ENABLE(runtime-debugging, [AS_HELP_STRING([--enable-runtime-debugging],
+	      [Build with run-time debugging])],
+	      [rt_debug_defines="-DTACDEBUG_AT_RUNTIME=1"])
+AC_SUBST(rt_debug_defines)
+AM_SUBST_NOTMAKE(rt_debug_defines)
+
+dnl --------------------------------------------------------------------
 dnl Generate made files
 AC_CONFIG_FILES([Makefile
 		 libtac.pc

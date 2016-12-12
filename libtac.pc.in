@@ -8,4 +8,4 @@ Description: A TACACS+ protocol client implementation
 URL: https://github.com/jeroennijhof/pam_tacplus
 Version: @VERSION@
 Libs: -L${libdir} -ltac
-Cflags: -I${includedir}
+Cflags: -I${includedir} @rt_debug_defines@
