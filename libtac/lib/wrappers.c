@@ -144,8 +144,14 @@ static void eventcb(struct bufferevent *bev, short events, void *ptr)
     if (sess->oob_cb) {
         if (events & BEV_EVENT_CONNECTED) {
                 TACDEBUG(LOG_DEBUG, "session %p connected", sess);
-		/* change for setup timeout to read/write timeout values */
-		tac_session_reset_timeouts(sess, true);
+		/*
+		 * if we had enqueued a request before the connect
+		 * completed, then the idle flag would be false
+		 * and we would want to reset the timer; if we didn't
+		 * have a request on-the-wire, then the timeout gets
+		 * cleared once we're connected.
+		 */
+		tac_session_reset_timeouts(sess, !sess->tac_idle);
 		(sess->oob_cb)(sess, &sess->context, CONNECTED);
         }
         if (events & BEV_EVENT_ERROR) {
@@ -241,6 +247,9 @@ static void readcb(struct bufferevent *bev, void *ptr)
     /* turn off timeouts */
     tac_session_reset_timeouts(sess, false);
 
+    /* received response, so connection is idle again */
+    sess->tac_idle = true;
+
     tac_parse_pkt(sess, ctx, pkt, ((i > 0) ? i : 0));
 
     free(pkt);
@@ -328,6 +337,9 @@ tac_authen_send_ev(struct tac_session *sess,
     ret = bufferevent_write_buffer(sess->bufev, evbuf);
     evbuffer_free(evbuf);
 
+    /* we have a request on-the-wire */
+    sess->tac_idle = false;
+
     TACDEBUG(LOG_DEBUG, "session %p: write status=%d", sess, ret);
 
     return (ret == 0);
@@ -366,6 +378,9 @@ tac_author_send_ev(struct tac_session *sess,
 
     ret = bufferevent_write_buffer(sess->bufev, evbuf);
     evbuffer_free(evbuf);
+
+    /* we have a request on-the-wire */
+    sess->tac_idle = false;
 
     TACDEBUG(LOG_DEBUG, "session %p write status=%d", sess, ret);
 
@@ -406,6 +421,9 @@ tac_acct_send_ev(struct tac_session *sess,
     ret = bufferevent_write_buffer(sess->bufev, evbuf);
     evbuffer_free(evbuf);
 
+    /* we have a request on-the-wire */
+    sess->tac_idle = false;
+
     TACDEBUG(LOG_DEBUG, "session %p write status=%d", sess, ret);
 
     return (ret == 0);
@@ -441,6 +459,9 @@ tac_cont_send_ev(struct tac_session *sess, const char *pass) {
 
     ret = bufferevent_write_buffer(sess->bufev, evbuf);
     evbuffer_free(evbuf);
+
+    /* we have a request on-the-wire */
+    sess->tac_idle = false;
 
     TACDEBUG(LOG_DEBUG, "session %p write status=%d", sess, ret);
 

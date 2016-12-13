@@ -161,6 +161,7 @@ struct tac_session {
     uint32_t tac_session_id;
     bool tac_encryption;
     bool tac_multiplex;
+    bool tac_idle;			/* not exposed via API */
     uint8_t tac_priv_lvl;
     uint8_t tac_authen_method;
     uint8_t tac_authen_service;

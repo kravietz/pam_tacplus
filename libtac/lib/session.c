@@ -37,6 +37,7 @@ tac_session_alloc_extra(unsigned n)
     sess->tac_secret = NULL;
     sess->tac_session_id = magic();
     sess->tac_encryption = sess->tac_multiplex = false;
+    sess->tac_idle = true;
     sess->tac_priv_lvl = TAC_PLUS_PRIV_LVL_MIN;
     sess->tac_authen_service = TAC_PLUS_AUTHEN_SVC_PPP;
     sess->tac_authen_method = TAC_PLUS_AUTHEN_METH_TACACSPLUS;
