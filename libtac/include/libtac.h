@@ -64,13 +64,13 @@ extern "C" {
 #undef TACDEBUG
 #undef TACSYSLOG
 # ifdef __GNUC__
-#define TACDEBUG(level, fmt, ...) do { if (tac_debug_enable) (void)logmsg(level, fmt, ## __VA_ARGS__); } while (0)
-#define TACSYSLOG(level, fmt, ...) (void)logmsg(level, fmt, ## __VA_ARGS__)
+#define TACDEBUG(level, fmt, ...) do { if (tac_debug_enable) logmsg(level, fmt, ## __VA_ARGS__); } while (0)
+#define TACSYSLOG(level, fmt, ...) logmsg(level, fmt, ## __VA_ARGS__)
 # else
-#define TACDEBUG(level, fmt, ...) do { if (tac_debug_enable) (void)logmsg(level, fmt, __VA_ARGS__); } while (0)
-#define TACSYSLOG(level, fmt, ...) (void)logmsg(level, fmt, __VA_ARGS__)
+#define TACDEBUG(level, fmt, ...) do { if (tac_debug_enable) logmsg(level, fmt, __VA_ARGS__); } while (0)
+#define TACSYSLOG(level, fmt, ...) logmsg(level, fmt, __VA_ARGS__)
 # endif
-extern int logmsg __P((int, const char*, ...));
+extern void logmsg __P((int, const char*, ...));
 #endif
 
 /* u_int32_t support for sun */

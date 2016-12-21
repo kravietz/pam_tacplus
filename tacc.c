@@ -28,6 +28,7 @@
 #include <getopt.h>
 #include <ctype.h>
 #include <openssl/rand.h>
+#include <stdarg.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -569,3 +570,17 @@ void timeout_handler(int signum) {
 
 	syslog(LOG_ERR, "timeout reading password from user %s", user);
 }
+
+#ifdef TACDEBUG_AT_RUNTIME
+void logmsg(int level, const char *fmt, ...)
+{
+	va_list ap;
+
+	level = level;				/* unused */
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	fputc('\n', stderr);
+}
+#endif
