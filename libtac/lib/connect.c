@@ -39,35 +39,38 @@ int tac_timeout = 5;
    in server table.
 
  * return value:
- *   >= 0 : valid fd
+ *   == 0 : success
  *   <  0 : error status code, see LIBTAC_STATUS_...
  */
-int tac_connect(struct addrinfo **server, char **key, int servers) {
-    int tries;
-    int fd=-1;
+int tac_connect(struct tac_session *sess,
+    struct addrinfo **server, unsigned servers) {
+    unsigned tries;
+    int retval = -1;
+
+    TACDEBUG(LOG_DEBUG, "session %p connect (%u addrs)", sess, servers);
 
     if(servers == 0 || server == NULL) {
         TACSYSLOG(LOG_ERR, "%s: no TACACS+ servers defined", __FUNCTION__);
     } else {
         for ( tries = 0; tries < servers; tries++ ) {   
-            if((fd=tac_connect_single(server[tries], key[tries], NULL, tac_timeout)) >= 0 ) {
-                /* tac_secret was set in tac_connect_single on success */
+            if ((retval = tac_connect_single(sess, server[tries], NULL, tac_timeout)) >= 0 ) {
                 break;
             }
         }
     }
 
     /* all attempts failed if fd is still < 0 */
-    TACDEBUG(LOG_DEBUG, "%s: exit status=%d",__FUNCTION__, fd);
-    return fd;
+    TACDEBUG(LOG_DEBUG, "%s: exit status=%d: %m", __FUNCTION__, retval);
+    return retval;
 } /* tac_connect */
 
 
 /* return value:
- *   >= 0 : valid fd
+ *   == 0 : success
  *   <  0 : error status code, see LIBTAC_STATUS_...
  */
-int tac_connect_single(const struct addrinfo *server, const char *key, struct addrinfo *srcaddr, int timeout) {
+int tac_connect_single(struct tac_session *sess,
+    const struct addrinfo *server, struct addrinfo *srcaddr, int timeout) {
     int retval = LIBTAC_STATUS_CONN_ERR; /* default retval */
     int fd = -1;
     int flags, rc;
@@ -76,6 +79,8 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     socklen_t len;
     struct sockaddr_storage addr;
     char *ip;
+
+    TACDEBUG(LOG_DEBUG, "session %p connect", sess);
 
     if(server == NULL) {
         TACSYSLOG(LOG_ERR, "%s: no TACACS+ server defined", __FUNCTION__);
@@ -86,7 +91,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     ip = tac_ntop(server->ai_addr);
 
     if((fd=socket(server->ai_family, server->ai_socktype, server->ai_protocol)) < 0) {
-        TACSYSLOG(LOG_ERR,"%s: socket creation error: %s", __FUNCTION__,
+        TACSYSLOG(LOG_ERR,"%s: socket creation error: %s", __FUNCTION__,\
             strerror(errno));
         goto bomb;
     }
@@ -104,7 +109,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     /* bind if source address got explicity defined */
     if (srcaddr) {
         if (bind(fd, srcaddr->ai_addr, srcaddr->ai_addrlen) < 0) {
-            TACSYSLOG(LOG_ERR, "%s: Failed to bind source address: %s",
+            TACSYSLOG(LOG_ERR, "%s: Failed to bind source address: %s",\
                 __FUNCTION__, strerror(errno));
             goto bomb;
         }
@@ -133,6 +138,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
 
     /* timeout */
     if ( rc == 0 ) {
+        TACDEBUG(LOG_ERR, "%s: timeout", __FUNCTION__);
         retval = LIBTAC_STATUS_CONN_TIMEOUT;
         goto bomb;
     }
@@ -161,24 +167,32 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
 
     /* connected ok */
     TACDEBUG(LOG_DEBUG, "%s: connected to %s", __FUNCTION__, ip);
-    retval = fd;
+    retval = 0;
 
-    /* set current tac_secret */
-    tac_encryption = 0;
-    if (key != NULL && *key) {
-        tac_encryption = 1;
-        tac_secret = key;
-    }
+    /* now stuff the fd into the tac_session */
+    if (sess->fd >= 0)
+        close(sess->fd);
+    sess->fd = fd;
 
 bomb:
     if (retval < 0 && fd != -1)
        close(fd);
 
     TACDEBUG(LOG_DEBUG, "%s: exit status=%d (fd=%d)",\
-        __FUNCTION__, retval < 0 ? retval:0, fd);
+        __FUNCTION__, retval, fd);
     return retval;
 } /* tac_connect_single */
 
+void
+tac_close(struct tac_session *sess)
+{
+    TACDEBUG(LOG_DEBUG, "closing %p", sess);
+
+    if (sess->fd >= 0) {
+        close(sess->fd);
+        sess->fd = -1;
+    }
+}
 
 /* return value:
  *   ptr to char* with format IP address
