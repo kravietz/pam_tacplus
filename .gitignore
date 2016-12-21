@@ -20,6 +20,8 @@ config.status
 libtool
 pam_tacplus.spec
 stamp-h1
+libtac.pc
+libtac-event.pc
 *.o
 *.lo
 *.la
