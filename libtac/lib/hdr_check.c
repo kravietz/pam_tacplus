@@ -29,7 +29,7 @@
  * Returns pointer to error message
  * or NULL when the header seems to be correct
  */
-char *_tac_check_header(HDR *th, int type) {
+char *_tac_check_header(HDR *th, uint8_t type) {
     if(th->type != type) {
         TACSYSLOG(LOG_ERR,\
             "%s: unrelated reply, type %d, expected %d",\
