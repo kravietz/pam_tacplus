@@ -23,7 +23,7 @@
 #endif
 
 /* if OpenSSL library is available this legacy code will not be compiled in */
-#if !defined(HAVE_OPENSSL_MD5_H) && !defined(HAVE_LIBCRYPTO)
+#if !(defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO))
 
 #include <string.h>
 #include "md5.h"

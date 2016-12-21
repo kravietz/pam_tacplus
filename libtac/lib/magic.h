@@ -24,7 +24,6 @@
 #include "libtac.h"
 
 __BEGIN_DECLS
-void magic_init __P((void));	/* Initialize the magic number generator */
 u_int32_t magic __P((void));	/* Returns the next magic number */
 __END_DECLS
 
