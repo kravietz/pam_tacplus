@@ -79,6 +79,10 @@ typedef unsigned char flag;
 flag quiet = 0;
 char *user = NULL; /* global, because of signal handler */
 
+char tac_login[64];
+
+struct tac_session *sess = NULL;
+
 /* command line options */
 static struct option long_options[] =
 		{
@@ -117,7 +121,6 @@ int main(int argc, char **argv) {
 	struct addrinfo *tac_server;
 	char *tac_server_name = NULL;
 	char *tac_secret = NULL;
-	int tac_fd;
 	short int task_id = 0;
 	char buf[40];
 	int ret;
@@ -172,7 +175,6 @@ int main(int argc, char **argv) {
 				remote_addr = optarg;
 				break;
 			case 'L':
-				// tac_login is a global variable initialized in libtac
 				bzero(tac_login, sizeof(tac_login));
 				strncpy(tac_login, optarg, sizeof(tac_login) - 1);
 				break;
@@ -272,8 +274,14 @@ int main(int argc, char **argv) {
 		exit(EXIT_ERR);
 	}
 
+	bzero(&arep, sizeof(arep));
+
 	/* open syslog before any TACACS+ calls */
 	openlog("tacc", LOG_CONS | LOG_PID, LOG_AUTHPRIV);
+
+	sess = tac_session_alloc();
+
+	tac_session_set_authen_type(sess, tac_get_authen_type(tac_login));
 
 	if (do_authen)
 		authenticate(tac_server, tac_secret, user, pass, tty, remote_addr);
@@ -284,16 +292,21 @@ int main(int argc, char **argv) {
 		tac_add_attrib(&attr, "service", service);
 		tac_add_attrib(&attr, "protocol", protocol);
 
-		tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
-		if (tac_fd < 0) {
+		tac_session_new_session_id(sess);
+		tac_session_reset_seq(sess);
+
+		ret = tac_connect_single(sess, tac_server, NULL, 60);
+		if (ret < 0) {
 			if (!quiet)
 				printf("Error connecting to TACACS+ server: %m\n");
 			exit(EXIT_ERR);
 		}
 
-		tac_author_send(tac_fd, user, tty, remote_addr, attr);
+		tac_session_set_secret(sess, tac_secret);
 
-		tac_author_read(tac_fd, &arep);
+		tac_author_send(sess, user, tty, remote_addr, attr);
+
+		tac_author_read(sess, &arep);
 		if (arep.status != AUTHOR_STATUS_PASS_ADD
 				&& arep.status != AUTHOR_STATUS_PASS_REPL) {
 			if (!quiet)
@@ -322,17 +335,22 @@ int main(int argc, char **argv) {
 		tac_add_attrib(&attr, "service", service);
 		tac_add_attrib(&attr, "protocol", protocol);
 
-		tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
-		if (tac_fd < 0) {
+		tac_session_new_session_id(sess);
+		tac_session_reset_seq(sess);
+
+		ret = tac_connect_single(sess, tac_server, NULL, 60);
+		if (ret < 0) {
 			if (!quiet)
 				printf("Error connecting to TACACS+ server: %m\n");
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, user, tty, remote_addr,
+		tac_session_set_secret(sess, tac_secret);
+
+		tac_acct_send(sess, TAC_PLUS_ACCT_FLAG_START, user, tty, remote_addr,
 				attr);
 
-		ret = tac_acct_read(tac_fd, &arep);
+		ret = tac_acct_read(sess, &arep);
 		if (ret == 0) {
 			if (!quiet)
 				printf("Accounting: START failed: %s\n", arep.msg);
@@ -340,7 +358,7 @@ int main(int argc, char **argv) {
 		} else if (!login_mode && !quiet)
 			printf("Accounting: START OK\n");
 
-		close(tac_fd);
+		tac_close(sess);
 
 		tac_free_attrib(&attr);
 
@@ -378,6 +396,8 @@ int main(int argc, char **argv) {
 		if(pid == 0) {
 			/* child */
 
+			tac_session_free(sess);
+
 			execl(DEFAULT_COMMAND, DEFAULT_COMMAND, ARGS, NULL);
 			syslog(LOG_ERR, "execl() failed: %m");
 			_exit(EXIT_FAIL);
@@ -406,16 +426,21 @@ int main(int argc, char **argv) {
 		sprintf(buf, "%hu", task_id);
 		tac_add_attrib(&attr, "task_id", buf);
 
-		tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
-		if (tac_fd < 0) {
+		tac_session_new_session_id(sess);
+		tac_session_reset_seq(sess);
+
+		ret = tac_connect_single(sess, tac_server, NULL, 60);
+		if (ret < 0) {
 			if (!quiet)
 				printf("Error connecting to TACACS+ server: %m\n");
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, user, tty, remote_addr,
+		tac_session_set_secret(sess, tac_secret);
+
+		tac_acct_send(sess, TAC_PLUS_ACCT_FLAG_STOP, user, tty, remote_addr,
 				attr);
-		ret = tac_acct_read(tac_fd, &arep);
+		ret = tac_acct_read(sess, &arep);
 		if (ret == 0) {
 			if (!quiet)
 				printf("Accounting: STOP failed: %s", arep.msg);
@@ -423,7 +448,7 @@ int main(int argc, char **argv) {
 		} else if (!login_mode && !quiet)
 			printf("Accounting: STOP OK\n");
 
-		close(tac_fd);
+		tac_close(sess);
 
 		tac_free_attrib(&attr);
 	}
@@ -433,6 +458,8 @@ int main(int argc, char **argv) {
 	if (log_wtmp)
 		logwtmp(tty, "", "");
 #endif
+
+	tac_session_free(sess);
 
 	exit(EXIT_OK);
 }
@@ -446,37 +473,41 @@ void sighandler(int sig) {
 void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
 		const char *user, const char *pass, const char *tty,
 		const char *remote_addr) {
-	int tac_fd;
 	int ret;
 	struct areply arep;
 
-	tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
-	if (tac_fd < 0) {
+	tac_session_new_session_id(sess);
+	tac_session_reset_seq(sess);
+
+	ret = tac_connect_single(sess, tac_server, NULL, 60);
+	if (ret < 0) {
 		if (!quiet)
 			printf("Error connecting to TACACS+ server: %m\n");
 		exit(EXIT_ERR);
 	}
 
+	tac_session_set_secret(sess, tac_secret);
+
 	/* start authentication */
 
-	if (tac_authen_send(tac_fd, user, pass, tty, remote_addr,
+	if (tac_authen_send(sess, user, pass, tty, remote_addr,
 			TAC_PLUS_AUTHEN_LOGIN) < 0) {
 		if (!quiet)
 			printf("Error sending query to TACACS+ server\n");
 		exit(EXIT_ERR);
 	}
 
-	ret = tac_authen_read(tac_fd, &arep);
+	ret = tac_authen_read(sess, &arep);
 
 	if (ret == TAC_PLUS_AUTHEN_STATUS_GETPASS) {
 
-		if (tac_cont_send(tac_fd, pass) < 0) {
+		if (tac_cont_send(sess, pass) < 0) {
 			if (!quiet)
 				printf("Error sending query to TACACS+ server\n");
 			exit(EXIT_ERR);
 		}
 
-		ret = tac_authen_read(tac_fd, &arep);
+		ret = tac_authen_read(sess, &arep);
 	}
 
 	if (ret != TAC_PLUS_AUTHEN_STATUS_PASS) {
@@ -490,7 +521,7 @@ void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
 		printf("Authentication OK\n");
 	syslog(LOG_INFO, "authentication OK for %s", user);
 
-	close(tac_fd);
+	tac_close(sess);
 }
 
 void showusage(char *progname) {
