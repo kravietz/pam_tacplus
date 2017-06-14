@@ -130,6 +130,12 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 			tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
 		}
 	}
+
+	/* data field is not used in ASCII login */
+	if (tb.authen_type == TAC_PLUS_AUTHEN_TYPE_ASCII) {
+		token_len = 0;
+	}
+
 	tb.service = tac_authen_service;
 	tb.user_len = user_len;
 	tb.port_len = port_len;
