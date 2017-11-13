@@ -657,7 +657,7 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 		size_t len = strcspn(attr->attr, "=*");
 		if (len < attr->attr_len) {
 			char avpair[attr->attr_len+1];
-			memcpy(avpair, attr->attr, attr->attr_len+1); /* Also copy terminating NUL */
+			bcopy(attr->attr, avpair, attr->attr_len+1); /* Also copy terminating NUL */
 
 			if (ctrl & PAM_TAC_DEBUG)
 				syslog(LOG_DEBUG, "%s: returned attribute `%s' from server",
