@@ -654,33 +654,29 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 
 	attr = arep.attr;
 	while (attr != NULL) {
-		char attribute[attr->attr_len];
-		char value[attr->attr_len];
-		char *sep;
+		size_t len = strcspn(attr->attr, "=*");
+		if (len < attr->attr_len) {
+			char avpair[attr->attr_len+1];
+			bcopy(attr->attr, avpair, attr->attr_len+1); /* Also copy terminating NUL */
 
-		sep = index(attr->attr, '=');
-		if (sep == NULL)
-			sep = index(attr->attr, '*');
-		if (sep != NULL) {
-			bcopy(attr->attr, attribute, attr->attr_len - strlen(sep));
-			attribute[attr->attr_len - strlen(sep)] = '\0';
-			bcopy(sep, value, strlen(sep));
-			value[strlen(sep)] = '\0';
+			if (ctrl & PAM_TAC_DEBUG)
+				syslog(LOG_DEBUG, "%s: returned attribute `%s' from server",
+						__FUNCTION__, avpair);
 
+			avpair[len] = '='; // replace '*' by '='
 			size_t i;
-			for (i = 0; attribute[i] != '\0'; i++) {
-				attribute[i] = toupper(attribute[i]);
-				if (attribute[i] == '-')
-					attribute[i] = '_';
+			for (i = 0; i < len; i++) {
+				avpair[i] = toupper(avpair[i]);
+				if (avpair[i] == '-')
+					avpair[i] = '_';
 			}
 
 			if (ctrl & PAM_TAC_DEBUG)
-				syslog(LOG_DEBUG, "%s: returned attribute `%s%s' from server",
-						__FUNCTION__, attribute, value);
+				syslog(LOG_DEBUG, "%s: setting PAM environment `%s'",
+						__FUNCTION__, avpair);
 
 			/* make returned attributes available for other PAM modules via PAM environment */
-			if (pam_putenv(pamh,
-					strncat(attribute, value, strlen(value))) != PAM_SUCCESS)
+			if (pam_putenv(pamh, avpair) != PAM_SUCCESS)
 				syslog(LOG_WARNING, "%s: unable to set PAM environment",
 						__FUNCTION__);
 
