@@ -319,7 +319,11 @@ int main(int argc, char **argv) {
 		struct tac_attrib *attr = NULL;
 		sprintf(buf, "%lu", time(0));
 		tac_add_attrib(&attr, "start_time", buf);
+#ifdef HAVE_RAND_BYTES
+		RAND_bytes((unsigned char *) &task_id, sizeof(task_id));
+#else
 		RAND_pseudo_bytes((unsigned char *) &task_id, sizeof(task_id));
+#endif
 		sprintf(buf, "%hu", task_id);
 		tac_add_attrib(&attr, "task_id", buf);
 		tac_add_attrib(&attr, "service", service);
