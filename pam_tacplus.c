@@ -711,7 +711,7 @@ PAM_EXTERN
 int pam_sm_open_session(pam_handle_t * pamh, int flags, int argc,
 		const char **argv) {
 #if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
-	RAND_pseudo_bytes((unsigned char *) &task_id, sizeof(task_id));
+	RAND_bytes((unsigned char *) &task_id, sizeof(task_id));
 #else
 	task_id=(short int) magic();
 #endif

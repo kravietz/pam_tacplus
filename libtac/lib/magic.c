@@ -63,7 +63,7 @@ magic()
 {
     u_int32_t num;
 
-    RAND_pseudo_bytes((unsigned char *)&num, sizeof(num));
+    RAND_bytes((unsigned char *)&num, sizeof(num));
 
     return num;
 }
