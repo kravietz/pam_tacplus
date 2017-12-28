@@ -58,7 +58,6 @@
 
 /* prototypes */
 void sighandler(int sig);
-void showusage(char *argv0);
 unsigned long getservername(char *serv);
 void showusage(char *progname);
 void showversion(char *progname);
@@ -163,8 +162,12 @@ int main(int argc, char **argv) {
 				break;
 			case 'V':
 				showversion(argv[0]);
+				/*NOTREACHED*/
+				break;
 			case 'h':
 				showusage(argv[0]);
+				/*NOTREACHED*/
+				break;
 			case 'u':
 				user = optarg;
 				break;
