@@ -444,9 +444,7 @@ int main(int argc, char **argv) {
 	exit(EXIT_OK);
 }
 
-void sighandler(int sig) {
-	sig = sig;				/* unused */
-
+void sighandler(int sig __Unused) {
 	TACDEBUG(LOG_DEBUG, "caught signal %d", sig);
 }
 
@@ -572,18 +570,14 @@ unsigned long getservername(char *serv) {
 	return (-1);
 }
 
-void timeout_handler(int signum) {
-	signum = signum;			/* unused */
-
+void timeout_handler(int signum __Unused) {
 	syslog(LOG_ERR, "timeout reading password from user %s", user);
 }
 
 #ifdef TACDEBUG_AT_RUNTIME
-void logmsg(int level, const char *fmt, ...)
+void logmsg(int level __Unused, const char *fmt, ...)
 {
 	va_list ap;
-
-	level = level;				/* unused */
 
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);

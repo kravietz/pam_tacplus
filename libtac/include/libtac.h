@@ -44,6 +44,18 @@ extern "C" {
 #endif
 #include "tacplus.h"
 
+#if defined(__clang__)
+#define __CLANG_PREREQ(maj, min) ((__clang_major__ > (maj)) || (__clang_major__ == (maj) && __clang_minor__ >= (min)))
+#else
+#define __CLANG_PREREQ(maj, min) (0)
+#endif
+
+#if __GNUC_PREREQ(3, 2) || __CLANG_PREREQ(4, 0)
+#define __Unused __attribute__ ((unused))
+#else
+#define __Unused /* unused */
+#endif
+
 #if defined(DEBUGTAC) && !defined(TACDEBUG)
 # ifdef __GNUC__
 #define TACDEBUG(level, fmt, ...) syslog(level, fmt, ## __VA_ARGS__)
