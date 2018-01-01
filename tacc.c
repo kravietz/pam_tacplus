@@ -19,7 +19,6 @@
 #include <string.h>
 #include <syslog.h>
 #include <errno.h>
-#include <utmp.h>
 #include <sys/file.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -32,6 +31,12 @@
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
+#if defined(HAVE_PUTUTXLINE)
+#include <utmpx.h>
+#elif defined(HAVE_LOGWTMP)
+#include <utmp.h>
 #endif
 
 #include "tacplus.h"
@@ -77,6 +82,13 @@ int tac_encryption = 1;
 typedef unsigned char flag;
 flag quiet = 0;
 char *user = NULL; /* global, because of signal handler */
+
+#if defined(HAVE_PUTUTXLINE)
+struct utmpx utmpx;
+#endif
+
+/* take the length of a string constant without the NUL */
+#define C_STRLEN(str)	(sizeof("" str) - 1)
 
 /* command line options */
 static struct option long_options[] =
@@ -353,10 +365,28 @@ int main(int argc, char **argv) {
 	}
 
 	/* log in local utmp */
-#ifdef HAVE_LOGWTMP
-	if (log_wtmp)
+	if (log_wtmp) {
+#if defined(HAVE_PUTUTXLINE)
+		struct timeval tv;
+
+		gettimeofday(&tv, NULL);
+
+		memset(&utmpx, 0, sizeof(utmpx));
+		utmpx.ut_type = USER_PROCESS;
+		utmpx.ut_pid = getpid();
+		xstrcpy(utmpx.ut_line, tty, sizeof(utmpx.ut_line));
+		strncpy(utmpx.ut_id, tty + C_STRLEN("tty"), sizeof(utmpx.ut_id));
+		xstrcpy(utmpx.ut_host, "dialup", sizeof(utmpx.ut_host));
+		utmpx.ut_tv.tv_sec = tv.tv_sec;
+		utmpx.ut_tv.tv_usec = tv.tv_usec;
+		xstrcpy(utmpx.ut_user, user, sizeof(utmpx.ut_user));
+		/* ut_addr unused ... */
+		setutxent();
+		pututxline(&utmpx);
+#elif defined(HAVE_LOGWTMP)
 		logwtmp(tty, user, "dialup");
 #endif
+	}
 
 	if (command != NULL) {
 		int ret;
@@ -435,10 +465,19 @@ int main(int argc, char **argv) {
 	}
 
 	/* logout from utmp */
-#ifdef HAVE_LOGWTMP
-	if (log_wtmp)
+	if (log_wtmp) {
+#if defined(HAVE_PUTUTXLINE)
+		utmpx.ut_type = DEAD_PROCESS;
+		memset(utmpx.ut_line, 0, sizeof(utmpx.ut_line));
+		memset(utmpx.ut_user, 0, sizeof(utmpx.ut_user));
+		memset(utmpx.ut_host, 0, sizeof(utmpx.ut_host));
+		utmpx.ut_tv.tv_sec = utmpx.ut_tv.tv_usec = 0;
+		setutxent();
+		pututxline(&utmpx);
+#elif defined(HAVE_LOGWTMP)
 		logwtmp(tty, "", "");
 #endif
+	}
 
 	exit(EXIT_OK);
 }
