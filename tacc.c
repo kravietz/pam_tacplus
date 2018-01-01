@@ -176,8 +176,7 @@ int main(int argc, char **argv) {
 				break;
 			case 'L':
 				// tac_login is a global variable initialized in libtac
-				bzero(tac_login, sizeof(tac_login));
-				strncpy(tac_login, optarg, sizeof(tac_login) - 1);
+				xstrcpy(tac_login, optarg, sizeof(tac_login));
 				break;
 			case 'p':
 				pass = optarg;
