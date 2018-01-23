@@ -109,13 +109,11 @@ int converse(pam_handle_t * pamh, int nargs, const struct pam_message *message,
 }
 
 /* stolen from pam_stress */
-int tacacs_get_password (pam_handle_t * pamh, int flags,
+int tacacs_get_password (pam_handle_t * pamh, int flags __Unused,
     int ctrl, char **password) {
 
     const void *pam_pass;
     char *pass = NULL;
-
-    flags = flags;				/* unused */
 
     if (ctrl & PAM_TAC_DEBUG)
         syslog (LOG_DEBUG, "%s: called", __FUNCTION__);

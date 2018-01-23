@@ -93,6 +93,10 @@ of `autoconf'.
      targets like `make install' and `make uninstall' work correctly.
      This target is generally not run by end users.
 
+  9. If you're running SElinux in Enforcing mode, you need to set
+     your policy controls appropriately.  For Fedora/RHEL/CentOS, this
+     is done with "setsebool -P nis_enabled 1" (as root).
+
 Compilers and Options
 =====================
 

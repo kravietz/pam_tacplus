@@ -36,8 +36,13 @@ dnl Checks for libraries.
 AC_CHECK_LIB(pam, pam_start)
 AC_CHECK_LIB(tac, tac_connect)
 AC_CHECK_LIB(crypto, MD5_Init)
-AC_CHECK_LIB(crypto, RAND_pseudo_bytes)
-AC_CHECK_LIB(util, logwtmp)
+AC_CHECK_LIB(crypto, RAND_pseudo_bytes,
+            [AC_DEFINE([HAVE_RAND_PSEUDO_BYTES], [1], [Define to 1 if you have the `RAND_pseudo_bytes' function.])])
+AC_CHECK_LIB(crypto, RAND_bytes,
+             [AC_DEFINE([HAVE_RAND_BYTES], [1], [Define to 1 if you have the `RAND_bytes' function.])])
+AC_CHECK_LIB(c, pututxline,
+	     [AC_DEFINE([HAVE_PUTUTXLINE], [1], [Define to 1 if you have the `pututxline' function.])],
+	     [AC_CHECK_LIB(util, logwtmp)])
 
 case "$host" in
 	sparc-* | sparc64-*)
@@ -47,11 +52,11 @@ esac
 dnl --------------------------------------------------------------------
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h ])
-AC_CHECK_HEADERS([syslog.h unistd.h openssl/md5.h openssl/rand.h linux/random.h sys/random.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h])
+AC_CHECK_HEADERS([syslog.h unistd.h openssl/md5.h openssl/rand.h sys/random.h])
 AC_CHECK_HEADER(security/pam_appl.h, [], [AC_MSG_ERROR([PAM libraries missing. Install with "yum install pam-devel" or "apt-get install libpam-dev".])] )
 AM_CONDITIONAL(MY_MD5, [test "$ac_cv_header_openssl_md5_h" = "no" ])
-AM_CONDITIONAL(TACC, [test "$ac_cv_lib_crypto_RAND_pseudo_bytes" = "yes"])
+AM_CONDITIONAL(TACC, [test "$ac_cv_lib_crypto_RAND_bytes" = "yes" || test "$ac_cv_lib_crypto_RAND_pseudo_bytes" = "yes"])
 
 dnl --------------------------------------------------------------------
 dnl Checks for typedefs, structures, and compiler characteristics.

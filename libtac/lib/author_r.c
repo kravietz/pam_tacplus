@@ -187,6 +187,7 @@ int tac_author_read(int fd, struct areply *re) {
 	/* XXX support optional vs mandatory arguments */
 	case TAC_PLUS_AUTHOR_STATUS_PASS_REPL:
 		tac_free_attrib(&re->attr);
+		/*FALLTHRU*/
 
 	case TAC_PLUS_AUTHOR_STATUS_PASS_ADD: {
 		u_char *argp;

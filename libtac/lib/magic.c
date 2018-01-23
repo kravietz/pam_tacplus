@@ -63,17 +63,21 @@ magic()
 {
     u_int32_t num;
 
+#ifdef HAVE_RAND_BYTES
+    RAND_bytes((unsigned char *)&num, sizeof(num));
+#else
     RAND_pseudo_bytes((unsigned char *)&num, sizeof(num));
+#endif
 
     return num;
 }
 
 #elif defined(HAVE_GETRANDOM)
 
-# if defined(HAVE_LINUX_RANDOM_H)
-#  include <linux/random.h>
-# elif defined(HAVE_SYS_RANDOM_H)
+# if defined(HAVE_SYS_RANDOM_H)
 #  include <sys/random.h>
+# else
+#  error no header containing getrandom(2) declaration
 # endif
 
 /*
