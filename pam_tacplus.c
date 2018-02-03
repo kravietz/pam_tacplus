@@ -611,8 +611,6 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 			tac_timeout);
 	if (tac_fd < 0) {
 		_pam_log(LOG_ERR, "TACACS+ server unavailable");
-		if (arep.msg != NULL)
-			free(arep.msg);
 		return PAM_AUTH_ERR;
 	}
 
@@ -622,9 +620,6 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 
 	if (retval < 0) {
 		_pam_log(LOG_ERR, "error getting authorization");
-		if (arep.msg != NULL)
-			free(arep.msg);
-
 		close(tac_fd);
 		active_server.addr = NULL;
 		return PAM_AUTH_ERR;
