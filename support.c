@@ -46,10 +46,8 @@ void _pam_log(int err, const char *format,...) {
 
     va_start(args, format);
     vsnprintf(msg, sizeof(msg), format, args);
-    openlog("PAM-tacplus", LOG_PID, LOG_AUTH);
-    syslog(err, "%s", msg);
+    syslog(err, "PAM-tacplus: %s", msg);
     va_end(args);
-    closelog();
 }
 
 char *_pam_get_user(pam_handle_t *pamh) {
