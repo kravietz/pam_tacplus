@@ -48,13 +48,13 @@
 #endif
 
 /* address of server discovered by pam_sm_authenticate */
-static tacplus_server_t active_server;
-struct addrinfo active_addrinfo;
-struct sockaddr active_sockaddr;
-char active_key[TAC_SECRET_MAX_LEN+1];
+static __thread tacplus_server_t active_server;
+__thread struct addrinfo active_addrinfo;
+__thread struct sockaddr active_sockaddr;
+__thread char active_key[TAC_SECRET_MAX_LEN+1];
 
 /* accounting task identifier */
-static short int task_id = 0;
+static __thread short int task_id = 0;
 
 /* copy a server's information into active_server */
 static void set_active_server (const tacplus_server_t *tac_svr)
@@ -127,7 +127,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv, int type,
 		char *cmd) {
 
 	int retval;
-	static int ctrl;
+	int ctrl;
 	char *user = NULL;
 	char *tty = NULL;
 	char *r_addr = NULL;

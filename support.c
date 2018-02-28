@@ -30,15 +30,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
-int tac_srv_no = 0;
+__thread tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
+__thread int tac_srv_no = 0;
 
-char tac_service[64];
-char tac_protocol[64];
-char tac_prompt[64];
-struct addrinfo tac_srv_addr[TAC_PLUS_MAXSERVERS];
-struct sockaddr tac_sock_addr[TAC_PLUS_MAXSERVERS];
-char tac_srv_key[TAC_PLUS_MAXSERVERS][TAC_SECRET_MAX_LEN+1];
+__thread char tac_service[64];
+__thread char tac_protocol[64];
+__thread char tac_prompt[64];
+__thread struct addrinfo tac_srv_addr[TAC_PLUS_MAXSERVERS];
+__thread struct sockaddr tac_sock_addr[TAC_PLUS_MAXSERVERS];
+__thread char tac_srv_key[TAC_PLUS_MAXSERVERS][TAC_SECRET_MAX_LEN+1];
 
 void _pam_log(int err, const char *format,...) {
     char msg[256];

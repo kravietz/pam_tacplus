@@ -145,19 +145,19 @@ extern int tac_ver_minor;
 extern int tac_ver_patch;
 
 /* header.c */
-extern int session_id;
-extern int tac_encryption;
-extern const char *tac_secret;
-extern char tac_login[64];
-extern int tac_priv_lvl;
-extern int tac_authen_method;
-extern int tac_authen_service;
+extern __thread int session_id;
+extern __thread int tac_encryption;
+extern __thread const char *tac_secret;
+extern __thread char tac_login[64];
+extern __thread int tac_priv_lvl;
+extern __thread int tac_authen_method;
+extern __thread int tac_authen_service;
 
-extern int tac_debug_enable;
-extern int tac_readtimeout_enable;
+extern __thread int tac_debug_enable;
+extern __thread int tac_readtimeout_enable;
 
 /* connect.c */
-extern int tac_timeout;
+extern __thread int tac_timeout;
 
 int tac_connect(struct addrinfo **, char **, int);
 int tac_connect_single(const struct addrinfo *, const char *, struct addrinfo *,
