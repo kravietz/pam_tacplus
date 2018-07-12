@@ -51,6 +51,7 @@
 static tacplus_server_t active_server;
 struct addrinfo active_addrinfo;
 struct sockaddr active_sockaddr;
+struct sockaddr_in6 active_sockaddr6;
 char active_key[TAC_SECRET_MAX_LEN+1];
 
 /* accounting task identifier */
@@ -60,9 +61,21 @@ static short int task_id = 0;
 static void set_active_server (const tacplus_server_t *tac_svr)
 {
 	active_addrinfo.ai_addr = &active_sockaddr;
+	memset(&active_server, 0, sizeof(tacplus_server_t));
+	memset(&active_addrinfo, 0, sizeof(struct addrinfo));
+	memset(&active_sockaddr, 0, sizeof(struct sockaddr));
+	memset(&active_sockaddr6, 0, sizeof(struct sockaddr_in6));
+
+	if ((tac_svr) && (tac_svr->addr->ai_family == AF_INET6)) {
+		active_addrinfo.ai_addr = (struct sockaddr *)&active_sockaddr6;
+    } else {
+		active_addrinfo.ai_addr = &active_sockaddr;
+	}
 	tac_copy_addr_info (&active_addrinfo, tac_svr->addr);
 	strncpy (active_key, tac_svr->key ? tac_svr->key : "", TAC_SECRET_MAX_LEN-1);
 	active_server.addr = &active_addrinfo;
+    syslog(LOG_DEBUG, "%s: active server set as [%s]", __FUNCTION__,
+				tac_ntop(active_server.addr->ai_addr));
 	active_server.key = active_key;
 }
 

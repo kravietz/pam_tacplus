@@ -38,6 +38,7 @@ char tac_protocol[64];
 char tac_prompt[64];
 struct addrinfo tac_srv_addr[TAC_PLUS_MAXSERVERS];
 struct sockaddr tac_sock_addr[TAC_PLUS_MAXSERVERS];
+struct sockaddr_in6 tac_sock6_addr[TAC_PLUS_MAXSERVERS];
 char tac_srv_key[TAC_PLUS_MAXSERVERS][TAC_SECRET_MAX_LEN+1];
 
 void _pam_log(int err, const char *format,...) {
@@ -181,7 +182,16 @@ void tac_copy_addr_info (struct addrinfo *p_dst, const struct addrinfo *p_src)
         p_dst->ai_socktype = p_src->ai_socktype;
         p_dst->ai_protocol = p_src->ai_protocol;
         p_dst->ai_addrlen = p_src->ai_addrlen;
-        memcpy (p_dst->ai_addr, p_src->ai_addr, sizeof(struct sockaddr));
+
+        /* ipv6 check */
+        if (p_dst->ai_family == AF_INET6) {
+          memcpy (p_dst->ai_addr, p_src->ai_addr, sizeof(struct sockaddr_in6));
+          memset ((struct sockaddr_in6*)p_dst->ai_addr, 0 , sizeof(struct sockaddr_in6));
+          memcpy ((struct sockaddr_in6*)p_dst->ai_addr, (struct sockaddr_in6*)p_src->ai_addr, sizeof(struct sockaddr_in6));
+        } else {
+           memcpy (p_dst->ai_addr, p_src->ai_addr, sizeof(struct sockaddr)); 
+        }
+
         p_dst->ai_canonname = NULL; /* we do not care it */
         p_dst->ai_next = NULL;      /* no more chain */
     }
@@ -189,12 +199,28 @@ void tac_copy_addr_info (struct addrinfo *p_dst, const struct addrinfo *p_src)
 
 static void set_tac_srv_addr (unsigned int srv_no, const struct addrinfo *addr)
 {
+    _pam_log(LOG_DEBUG, "%s: server [%s]", __FUNCTION__,
+                        tac_ntop(addr->ai_addr));
     if (srv_no < TAC_PLUS_MAXSERVERS) {
         if (addr) {
+          if (addr->ai_family == AF_INET6) {
+            tac_srv_addr[srv_no].ai_addr = (struct sockaddr *)&tac_sock6_addr[srv_no];
+          } else {
             tac_srv_addr[srv_no].ai_addr = &tac_sock_addr[srv_no];
-            tac_copy_addr_info (&tac_srv_addr[srv_no], addr);
-            tac_srv[srv_no].addr = &tac_srv_addr[srv_no];
-        }
+          }
+          tac_copy_addr_info (&tac_srv_addr[srv_no], addr);
+          tac_srv[srv_no].addr = &tac_srv_addr[srv_no];
+
+          /*this code will copy the ipv6 address to a temp variable */
+          /*and copies to global tac_srv array*/
+          if (addr->ai_family == AF_INET6) {
+            memset (&tac_sock6_addr[srv_no], 0, sizeof(struct sockaddr_in6));
+            memcpy (&tac_sock6_addr[srv_no], (struct sockaddr_in6*)addr->ai_addr, sizeof(struct sockaddr_in6));
+            tac_srv[srv_no].addr->ai_addr = (struct sockaddr *)&tac_sock6_addr[srv_no];
+          }
+          _pam_log(LOG_DEBUG, "%s: server %d after copy [%s]",  __FUNCTION__, srv_no,
+                        tac_ntop(tac_srv[srv_no].addr->ai_addr));
+        } 
         else {
             tac_srv[srv_no].addr = NULL;
         }
@@ -209,6 +235,8 @@ static void set_tac_srv_key (unsigned int srv_no, const char *key)
             tac_srv[srv_no].key = tac_srv_key[srv_no];
         }
         else {
+            _pam_log(LOG_DEBUG, "%s: server %d key is null; address [%s]", __FUNCTION__,srv_no,
+                              tac_ntop(tac_srv[srv_no].addr->ai_addr));
             tac_srv[srv_no].key = NULL;
         }
     }
@@ -220,6 +248,9 @@ int _pam_parse (int argc, const char **argv) {
 
     /* otherwise the list will grow with each call */
     memset(tac_srv, 0, sizeof(tacplus_server_t) * TAC_PLUS_MAXSERVERS);
+    memset(&tac_srv_addr, 0, sizeof(struct addrinfo) * TAC_PLUS_MAXSERVERS);
+    memset(&tac_sock_addr, 0, sizeof(struct sockaddr) * TAC_PLUS_MAXSERVERS);
+    memset(&tac_sock6_addr, 0, sizeof(struct sockaddr_in6) * TAC_PLUS_MAXSERVERS);
     tac_srv_no = 0;
 
     tac_service[0] = 0;
@@ -258,6 +289,7 @@ int _pam_parse (int argc, const char **argv) {
                 char *close_bracket, *server_name, *port, server_buf[256];
 
                 memset(&hints, 0, sizeof hints);
+                memset(&server_buf, 0, sizeof(server_buf));
                 hints.ai_family = AF_UNSPEC;  /* use IPv4 or IPv6, whichever */
                 hints.ai_socktype = SOCK_STREAM;
 
@@ -269,6 +301,9 @@ int _pam_parse (int argc, const char **argv) {
 
                 if (*server_buf == '[' && (close_bracket = strchr(server_buf, ']')) != NULL) { /* Check for URI syntax */
                     server_name = server_buf + 1;
+                    _pam_log (LOG_ERR,
+                        "reading server address as: %s ",
+                        server_name);
                     port = strchr(close_bracket, ':');
                     *close_bracket = '\0';
                 } else { /* Fall back to traditional syntax */
@@ -279,12 +314,16 @@ int _pam_parse (int argc, const char **argv) {
                     *port = '\0';
                     port++;
                 }
+                _pam_log (LOG_DEBUG,
+                        "sending server address to getaddrinfo as: %s ",
+                        server_name);
                 if ((rv = getaddrinfo(server_name, (port == NULL) ? "49" : port, &hints, &servers)) == 0) {
                     for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
                         set_tac_srv_addr (tac_srv_no, server);
                         set_tac_srv_key (tac_srv_no, current_secret);
                         tac_srv_no++;
                     }
+                    _pam_log(LOG_DEBUG, "%s: server index %d ", __FUNCTION__, tac_srv_no);
                     freeaddrinfo (servers);
                 } else {
                     _pam_log (LOG_ERR,
