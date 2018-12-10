@@ -375,7 +375,8 @@ int main(int argc, char **argv) {
 		utmpx.ut_type = USER_PROCESS;
 		utmpx.ut_pid = getpid();
 		xstrcpy(utmpx.ut_line, tty, sizeof(utmpx.ut_line));
-		strncpy(utmpx.ut_id, tty + C_STRLEN("tty"), sizeof(utmpx.ut_id));
+		strncpy(utmpx.ut_id, tty + C_STRLEN("tty"), sizeof(utmpx.ut_id) - 1);
+		utmpx.ut_id[sizeof(utmpx.ut_id) - 1] = '\0';
 		xstrcpy(utmpx.ut_host, "dialup", sizeof(utmpx.ut_host));
 		utmpx.ut_tv.tv_sec = tv.tv_sec;
 		utmpx.ut_tv.tv_usec = tv.tv_usec;
