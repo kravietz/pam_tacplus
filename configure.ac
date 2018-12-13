@@ -21,6 +21,8 @@ AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([pam_tacplus.c])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([config])
+dnl Checks and sets _GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 
 dnl --------------------------------------------------------------------
 dnl Checks for programs.
