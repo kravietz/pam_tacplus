@@ -31,7 +31,7 @@
 #include <string.h>
 
 tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
-int tac_srv_no = 0;
+unsigned int tac_srv_no = 0;
 
 char tac_service[64];
 char tac_protocol[64];
