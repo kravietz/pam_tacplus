@@ -10,8 +10,6 @@
 
 #include <stdio.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -56,7 +54,6 @@
 
 /* prototypes */
 void sighandler(int sig);
-unsigned long getservername(char *serv);
 void showusage(char *progname);
 void showversion(char *progname);
 void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
@@ -541,10 +538,8 @@ void showusage(char *progname) {
 	printf("Copyright 1997-2016 by Pawel Krawczyk <pawel.krawczyk@hush.com>\n");
 	printf("Usage: %s option [option, ...]\n\n", progname);
 	printf(" Action:\n");
-	printf(
-			"  -T, --authenticate  perform authentication with username and password\n");
-	printf(
-			"  -R, --authorize     perform authorization for requested service\n");
+    printf("  -T, --authenticate  perform authentication with username and password\n");
+    printf("  -R, --authorize     perform authorization for requested service\n");
 	printf("  -A, --account       account session beginning and end\n");
 	printf("  -h, --help          display this help and exit\n");
 	printf("  -V, --version       display version number and exit\n\n");
@@ -560,16 +555,13 @@ void showusage(char *progname) {
 	printf("  -c, --command       command to execute after successful AAA\n");
 	printf("       --exec         alias for --command\n\n");
 	printf(" Modifiers:\n");
-	printf(
-			"  -q, --quiet         don't display messages to screen (but still\n");
+    printf("  -q, --quiet         don't display messages to screen (but still\n");
 	printf("      --silent        report them via syslog(3))\n");
 	printf("  -w, --no-wtmp       don't write records to wtmp(5)\n");
-	printf(
-			"  -n, --no-encrypt    don't encrypt AAA packets sent to servers\n\n");
+    printf("  -n, --no-encrypt    don't encrypt AAA packets sent to servers\n\n");
 	printf("  -y, --tty           remote user tty or port\n");
 	printf("Example usage:\n\n");
-	printf(
-			"  tacc -TRA -u test1 -p test1 -s localhost -r 1.1.1.1 -k test1 -S ppp -P ip -y ttyS17\n");
+    printf("  tacc -TRA -u test1 -p test1 -s localhost -r 1.1.1.1 -k test1 -S ppp -P ip -y ttyS17\n");
 
 	exit(EXIT_ERR);
 }
@@ -583,24 +575,6 @@ void showversion(char *progname) {
 	printf("%s %u.%u.%u\n", progname, tac_ver_major, tac_ver_minor,
 			tac_ver_patch);
 	exit(EXIT_OK);
-}
-
-unsigned long getservername(char *serv) {
-	struct in_addr addr;
-	struct hostent *h;
-
-	if (inet_aton(serv, &addr) == 0) {
-		if ((h = gethostbyname(serv)) == NULL) {
-			herror("gethostbyname");
-		} else {
-			bcopy(h->h_addr, (char *)&addr, sizeof(struct in_addr));
-			return(addr.s_addr);
-		}
-	} else
-	return(addr.s_addr);
-
-	return (-1);
-}
 
 void timeout_handler(int signum __Unused) {
     syslog(LOG_ERR, "timeout reading password from user %s", g_user);
