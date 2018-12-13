@@ -74,7 +74,7 @@ void timeout_handler(int signum);
 int tac_encryption = 1;
 typedef unsigned char flag;
 flag quiet = 0;
-char *user = NULL; /* global, because of signal handler */
+char *g_user = NULL; /* global, because of signal handler */
 
 #if defined(HAVE_PUTUTXLINE)
 struct utmpx utmpx;
@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
 
 	/* check for login mode */
 	if (argc == 2 && isalpha(*argv[1])) {
-		user = argv[1];
+        g_user = argv[1];
 		do_author = do_authen = do_account = 1;
 		command = DEFAULT_COMMAND;
 		login_mode = 1;
@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
 				/*NOTREACHED*/
 				break;
 			case 'u':
-				user = optarg;
+                g_user = optarg;
 				break;
 			case 'r':
 				remote_addr = optarg;
@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
 		exit(EXIT_ERR);
 	}
 
-	if (user == NULL) {
+    if (g_user == NULL) {
 		printf("error: username is required.\n");
 		exit(EXIT_ERR);
 	}
@@ -283,7 +283,7 @@ int main(int argc, char **argv) {
 	openlog("tacc", LOG_CONS | LOG_PID, LOG_AUTHPRIV);
 
 	if (do_authen)
-		authenticate(tac_server, tac_secret, user, pass, tty, remote_addr);
+        authenticate(tac_server, tac_secret, g_user, pass, tty, remote_addr);
 
 	if (do_author) {
 		/* authorize user */
@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
 			exit(EXIT_ERR);
 		}
 
-		tac_author_send(tac_fd, user, tty, remote_addr, attr);
+        tac_author_send(tac_fd, g_user, tty, remote_addr, attr);
 
 		tac_author_read(tac_fd, &arep);
 		if (arep.status != AUTHOR_STATUS_PASS_ADD
@@ -341,8 +341,8 @@ int main(int argc, char **argv) {
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, user, tty, remote_addr,
-				attr);
+        tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, g_user, tty, remote_addr,
+                      attr);
 
 		ret = tac_acct_read(tac_fd, &arep);
 		if (ret == 0) {
@@ -373,19 +373,19 @@ int main(int argc, char **argv) {
 		xstrcpy(utmpx.ut_host, "dialup", sizeof(utmpx.ut_host));
 		utmpx.ut_tv.tv_sec = tv.tv_sec;
 		utmpx.ut_tv.tv_usec = tv.tv_usec;
-		xstrcpy(utmpx.ut_user, user, sizeof(utmpx.ut_user));
+		xstrcpy(utmpx.ut_user, g_user, sizeof(utmpx.ut_user));
 		/* ut_addr unused ... */
 		setutxent();
 		pututxline(&utmpx);
 #elif defined(HAVE_LOGWTMP)
-		logwtmp(tty, user, "dialup");
+        logwtmp(tty, g_user, "dialup");
 #endif
 	}
 
 	if (command != NULL) {
 		int ret;
 
-		syslog(LOG_DEBUG, "starting %s for %s", command, user);
+        syslog(LOG_DEBUG, "starting %s for %s", command, g_user);
 
 		signal(SIGHUP, SIG_IGN);
 		signal(SIGTERM, SIG_IGN);
@@ -443,8 +443,8 @@ int main(int argc, char **argv) {
 			exit(EXIT_ERR);
 		}
 
-		tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, user, tty, remote_addr,
-				attr);
+        tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, g_user, tty, remote_addr,
+                      attr);
 		ret = tac_acct_read(tac_fd, &arep);
 		if (ret == 0) {
 			if (!quiet)
@@ -603,7 +603,7 @@ unsigned long getservername(char *serv) {
 }
 
 void timeout_handler(int signum __Unused) {
-	syslog(LOG_ERR, "timeout reading password from user %s", user);
+    syslog(LOG_ERR, "timeout reading password from user %s", g_user);
 }
 
 #ifdef TACDEBUG_AT_RUNTIME
