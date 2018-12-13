@@ -9,7 +9,6 @@
  */
 
 #include <stdio.h>
-#include <pwd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -18,16 +17,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
-#include <errno.h>
-#include <sys/file.h>
-#include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
 #include <time.h>
 #include <getopt.h>
 #include <ctype.h>
-#include <openssl/rand.h>
-#include <stdarg.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -328,13 +321,14 @@ int main(int argc, char **argv) {
 	if (do_account) {
 		/* start accounting */
 		struct tac_attrib *attr = NULL;
+
 		sprintf(buf, "%lu", time(0));
 		tac_add_attrib(&attr, "start_time", buf);
-#ifdef HAVE_RAND_BYTES
-		RAND_bytes((unsigned char *) &task_id, sizeof(task_id));
-#else
-		RAND_pseudo_bytes((unsigned char *) &task_id, sizeof(task_id));
-#endif
+
+        // this is not crypto but merely an identifier
+        long rnd_id = random();
+        memcpy(&task_id, &rnd_id, sizeof(task_id));
+
 		sprintf(buf, "%hu", task_id);
 		tac_add_attrib(&attr, "task_id", buf);
 		tac_add_attrib(&attr, "service", service);
