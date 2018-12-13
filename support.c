@@ -296,7 +296,7 @@ int _pam_parse (int argc, const char **argv) {
                     TAC_PLUS_MAXSERVERS);
             }
         } else if (!strncmp (*argv, "secret=", 7)) {
-            int i;
+            unsigned int i;
 
             current_secret = *argv + 7;     /* points right into argv (which is const) */
 
