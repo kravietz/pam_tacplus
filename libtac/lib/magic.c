@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #ifdef HAVE_CONFIG_H
   #include "config.h"
@@ -50,29 +51,7 @@
 	static void f(void)
 #endif
 
-/* if OpenSSL library is available this legacy code will not be compiled in */
-#if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
-
-#include <openssl/rand.h>
-
-/*
- * magic - Returns the next magic number.
- */
-u_int32_t
-magic()
-{
-    u_int32_t num;
-
-#ifdef HAVE_RAND_BYTES
-    RAND_bytes((unsigned char *)&num, sizeof(num));
-#else
-    RAND_pseudo_bytes((unsigned char *)&num, sizeof(num));
-#endif
-
-    return num;
-}
-
-#elif defined(HAVE_GETRANDOM)
+#if defined(HAVE_GETRANDOM)
 
 # if defined(HAVE_SYS_RANDOM_H)
 #  include <sys/random.h>
@@ -80,24 +59,55 @@ magic()
 #  error no header containing getrandom(2) declaration
 # endif
 
-/*
- * magic - Returns the next magic number.
- */
+/* getrandom(2) is the most convenient and secure options from our point of view so it's on the first order of preference */
+
+u_int32_t
+magic()
+{
+    u_int32_t num;
+    ssize_t ret;
+
+    ret = getrandom(&num, sizeof(num), GRND_NONBLOCK);
+    if(ret < 0) {
+    	TACSYSLOG(LOG_CRIT,"%s: getrandom failed to provide random bytes: %s", __FUNCTION__, strerror(errno));
+    	exit(1);
+    }
+    if(ret < (ssize_t) sizeof(num)) {
+    	TACSYSLOG(LOG_CRIT,"%s: getrandom less bytes than expected: %ld vs %lu", __FUNCTION__, ret, sizeof(num));
+    	exit(1);
+    }
+    return num;
+}
+
+#elif defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
+
+#include <openssl/rand.h>
+
+/* RAND_bytes is OpenSSL's classic function to obtain cryptographic strength pseudo-random bytes
+   however, since the magic() function is used to generate TACACS+ session id rather than crypto keys
+   we can use RAND_pseudo_bytes() which doesn't deplete the system's entropy pool
+   */
+
 u_int32_t
 magic()
 {
     u_int32_t num;
 
-    getrandom(&num, sizeof(num), GRND_NONBLOCK);
+#ifdef HAVE_RAND_BYTES
+    RAND_bytes((unsigned char *)&num, sizeof(num));
+#elif HAVE_RAND_PSEUDO_BYTES
+    RAND_pseudo_bytes((unsigned char *)&num, sizeof(num));
+#else
+	#error Neither  RAND_bytes nor RAND_pseudo_bytes seems to be available
+#endif
     return num;
 }
 
 #else
 
-/*
- * magic_init - Initialize the magic number generator.
- *
- * Attempts to compute a random number seed which will not repeat.
+/* Finally, if nothing else works, use the legacy function that will use random(3) seeded from /dev/urandom,
+ * or just use a weak PRNG initialisation using time. But since magic() is used for session identifier and not crypto
+ * keys generation it can be used as a last resort.
  */
 INITIALIZER(magic_init)
 {
@@ -114,7 +124,7 @@ INITIALIZER(magic_init)
         }
     }
 
-    // fallback
+    // Fallback to ancient time-based PRNG seeding; if urandom worked, this doesn't "break" the entropy already collected
     gettimeofday(&t, NULL);
     seed ^= gethostid() ^ t.tv_sec ^ t.tv_usec ^ getpid();
 
