@@ -32,7 +32,7 @@
 #include "libtac.h"
 
 /* Pointer to TACACS+ connection timeout */
-int tac_timeout = 5;
+__thread int tac_timeout = 5;
 
 /* Returns file descriptor of open connection
    to the first available server from list passed
@@ -186,7 +186,7 @@ bomb:
  *   (which some ppl don't like, but it's robust and at last no more memory leaks)
  */
 char *tac_ntop(const struct sockaddr *sa) {
-    static char server_address[INET6_ADDRSTRLEN+16];
+    static __thread char server_address[INET6_ADDRSTRLEN+16];
 
     switch(sa->sa_family) {
         case AF_INET:

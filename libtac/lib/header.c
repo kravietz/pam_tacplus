@@ -32,31 +32,31 @@
  * store their values between different functions and connections.
  */
 /* Session identifier. */
-int session_id;
+__thread int session_id;
 
 /* Encryption flag. */
-int tac_encryption = 0;
+__thread int tac_encryption = 0;
 
 /* Pointer to TACACS+ shared secret string. */
 /* note: tac_secret will point to tacplus_server[i].key */
-const char *tac_secret = NULL;
+__thread const char *tac_secret = NULL;
 
 /* TACACS+ shared login string. */
-char tac_login[64]; /* default is PAP */
+__thread char tac_login[64]; /* default is PAP */
 
 /* priv_lvl */
-int tac_priv_lvl = TAC_PLUS_PRIV_LVL_MIN;
+__thread int tac_priv_lvl = TAC_PLUS_PRIV_LVL_MIN;
 
 /* Authentication Method */
-int tac_authen_method = TAC_PLUS_AUTHEN_METH_TACACSPLUS;
+__thread int tac_authen_method = TAC_PLUS_AUTHEN_METH_TACACSPLUS;
 
 /* Service requesting authentication */
-int tac_authen_service = TAC_PLUS_AUTHEN_SVC_PPP;
+__thread int tac_authen_service = TAC_PLUS_AUTHEN_SVC_PPP;
 
 /* additional runtime flags */
 
-int tac_debug_enable = 0;
-int tac_readtimeout_enable = 0;
+__thread int tac_debug_enable = 0;
+__thread int tac_readtimeout_enable = 0;
 
 /* Returns pre-filled TACACS+ packet header of given type.
  * 1. you MUST fill th->datalength and th->version

@@ -78,7 +78,7 @@ void timeout_handler(int signum);
 #define USE_SYSTEM	1
 
 /* globals */
-int tac_encryption = 1;
+__thread int tac_encryption = 1;
 typedef unsigned char flag;
 flag quiet = 0;
 char *user = NULL; /* global, because of signal handler */
