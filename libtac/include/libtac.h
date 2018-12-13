@@ -157,7 +157,7 @@ extern int tac_debug_enable;
 extern int tac_readtimeout_enable;
 
 /* connect.c */
-extern int tac_timeout;
+extern unsigned long tac_timeout;
 
 int tac_connect(struct addrinfo **, char **, int);
 int tac_connect_single(const struct addrinfo *, const char *, struct addrinfo *,

@@ -133,7 +133,8 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv, int type,
 	char *r_addr = NULL;
 	char *typemsg;
 	int status = PAM_SESSION_ERR;
-	int srv_i, tac_fd;
+	int tac_fd;
+	unsigned long srv_i;
 
 	typemsg = tac_acct_flag2str(type);
 	ctrl = _pam_parse(argc, argv);
@@ -193,7 +194,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv, int type,
 			continue;
 		}
 		if (ctrl & PAM_TAC_DEBUG)
-			syslog(LOG_DEBUG, "%s: connected with fd=%d (srv %d)", __FUNCTION__,
+			syslog(LOG_DEBUG, "%s: connected with fd=%d (srv %lu)", __FUNCTION__,
 					tac_fd, srv_i);
 
 		retval = _pam_send_account(tac_fd, type, user, tty, r_addr, cmd);
@@ -237,7 +238,7 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 	char *pass;
 	char *tty;
 	char *r_addr;
-	int srv_i;
+	unsigned long srv_i;
 	int tac_fd, status, msg, communicating;
 
 	user = pass = tty = r_addr = NULL;
@@ -284,12 +285,12 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 	status = PAM_AUTHINFO_UNAVAIL;
 	for (srv_i = 0; srv_i < tac_srv_no; srv_i++) {
 		if (ctrl & PAM_TAC_DEBUG)
-			syslog(LOG_DEBUG, "%s: trying srv %d", __FUNCTION__, srv_i);
+			syslog(LOG_DEBUG, "%s: trying srv %lu", __FUNCTION__, srv_i);
 
 		tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key,
 				NULL, tac_timeout);
 		if (tac_fd < 0) {
-			_pam_log(LOG_ERR, "connection failed srv %d: %m", srv_i);
+			_pam_log(LOG_ERR, "connection failed srv %lu: %m", srv_i);
 			active_server.addr = NULL;
 			continue;
 		}
@@ -339,7 +340,7 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 				set_active_server(&tac_srv[srv_i]);
 
 				if (ctrl & PAM_TAC_DEBUG)
-					syslog(LOG_DEBUG, "%s: active srv %d", __FUNCTION__, srv_i);
+					syslog(LOG_DEBUG, "%s: active srv %lu", __FUNCTION__, srv_i);
 
 				break;
 
@@ -744,7 +745,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 	char *tty;
 	char *r_addr;
 	const void *pam_pass = NULL;
-	int srv_i;
+	unsigned long srv_i;
 	int tac_fd, status, msg, communicating;
 
 	user = pass = tty = r_addr = NULL;
@@ -793,17 +794,17 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 	status = PAM_TRY_AGAIN;
 	for (srv_i = 0; srv_i < tac_srv_no; srv_i++) {
 		if (ctrl & PAM_TAC_DEBUG)
-			syslog(LOG_DEBUG, "%s: trying srv %d", __FUNCTION__, srv_i);
+			syslog(LOG_DEBUG, "%s: trying srv %lu", __FUNCTION__, srv_i);
 
 		tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key,
 				NULL, tac_timeout);
 		if (tac_fd < 0) {
-			_pam_log(LOG_ERR, "connection failed srv %d: %m", srv_i);
+			_pam_log(LOG_ERR, "connection failed srv %lu: %m", srv_i);
 			continue;
 		}
 		if (PAM_PRELIM_CHECK == (flags & PAM_PRELIM_CHECK)) {
 			if (PAM_TAC_DEBUG == (ctrl & PAM_TAC_DEBUG))
-				syslog(LOG_DEBUG, "%s: finishing PAM_PRELIM_CHECK with srv %d",
+				syslog(LOG_DEBUG, "%s: finishing PAM_PRELIM_CHECK with srv %lu",
 						__FUNCTION__, srv_i);
 
 			close(tac_fd);
@@ -856,7 +857,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 				set_active_server(&tac_srv[srv_i]);
 
 				if (ctrl & PAM_TAC_DEBUG)
-					syslog(LOG_DEBUG, "%s: active srv %d", __FUNCTION__, srv_i);
+					syslog(LOG_DEBUG, "%s: active srv %lu", __FUNCTION__, srv_i);
 
 				break;
 

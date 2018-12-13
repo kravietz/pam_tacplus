@@ -24,11 +24,15 @@
 #define PAM_SM_SESSION
 #define PAM_SM_PASSWORD
 
+#include "config.h"
 #include "support.h"
 #include "pam_tacplus.h"
 
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
 
 tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
 unsigned int tac_srv_no = 0;
@@ -301,19 +305,24 @@ int _pam_parse (int argc, const char **argv) {
             current_secret = *argv + 7;     /* points right into argv (which is const) */
 
             /* if 'secret=' was given after a 'server=' parameter, fill in the current secret */
-            for(i = tac_srv_no-1; i >= 0; i--) {
+            for(i = tac_srv_no-1; i != 0; i--) {
                 if (tac_srv[i].key != NULL)
                     break;
 
                 set_tac_srv_key (i, current_secret);
             }
         } else if (!strncmp (*argv, "timeout=", 8)) {
-            /* FIXME atoi() doesn't handle invalid numeric strings well */
-            tac_timeout = atoi(*argv + 8);
 
-            if (tac_timeout < 0) {
+#ifdef HAVE_STRTOL
+            tac_timeout = strtol(*argv + 8, NULL, 10);
+
+#else
+            tac_timeout = atoi(*argv + 8);
+#endif
+            if(tac_timeout == LONG_MAX) {
+                _pam_log(LOG_ERR, "timeout parameter cannot be parsed as integer: %s", *argv);
                 tac_timeout = 0;
-            } else { 
+            } else {
                 tac_readtimeout_enable = 1;
             }
         } else {
@@ -322,7 +331,7 @@ int _pam_parse (int argc, const char **argv) {
     }
 
     if (ctrl & PAM_TAC_DEBUG) {
-        int n;
+        unsigned long n;
 
         _pam_log(LOG_DEBUG, "%d servers defined", tac_srv_no);
 
