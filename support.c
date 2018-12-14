@@ -28,8 +28,6 @@
 #include "support.h"
 #include "pam_tacplus.h"
 
-#include <stdlib.h>
-#include <string.h>
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
@@ -336,7 +334,8 @@ int _pam_parse (int argc, const char **argv) {
         _pam_log(LOG_DEBUG, "%d servers defined", tac_srv_no);
 
         for(n = 0; n < tac_srv_no; n++) {
-            _pam_log(LOG_DEBUG, "server[%d] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr), tac_srv[n].key);
+            _pam_log(LOG_DEBUG, "server[%u] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr),
+                     tac_srv[n].key);
         }
 
         _pam_log(LOG_DEBUG, "tac_service='%s'", tac_service);
