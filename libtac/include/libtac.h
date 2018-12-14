@@ -98,10 +98,10 @@ struct tac_attrib {
 
 struct areply {
 	struct tac_attrib *attr;
-	char *msg;
-	int status :8;
-	int flags :8;
-	int seq_no :8;
+    unsigned char *msg;
+    unsigned int status :8;
+    unsigned int flags :8;
+    unsigned int seq_no :8;
 };
 
 #ifndef TAC_PLUS_MAXSERVERS		
