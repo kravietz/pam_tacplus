@@ -298,12 +298,12 @@ int _pam_parse (int argc, const char **argv) {
                     TAC_PLUS_MAXSERVERS);
             }
         } else if (!strncmp (*argv, "secret=", 7)) {
-            unsigned int i;
+            int i;
 
             current_secret = *argv + 7;     /* points right into argv (which is const) */
 
             /* if 'secret=' was given after a 'server=' parameter, fill in the current secret */
-            for(i = tac_srv_no-1; i != 0; i--) {
+            for(i = tac_srv_no-1; i >= 0; i--) {
                 if (tac_srv[i].key != NULL)
                     break;
 
