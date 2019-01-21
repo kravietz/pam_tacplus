@@ -39,6 +39,7 @@ extern unsigned int tac_srv_no;
 extern char tac_service[64];
 extern char tac_protocol[64];
 extern char tac_prompt[64];
+extern struct addrinfo *tac_src_addr_info;
 void tac_copy_addr_info (struct addrinfo *p_dst, const struct addrinfo *p_src);
 
 int _pam_parse (int, const char **);
