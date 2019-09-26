@@ -98,7 +98,7 @@ struct tac_attrib {
 
 struct areply {
 	struct tac_attrib *attr;
-    unsigned char *msg;
+    char *msg;
     unsigned int status :8;
     unsigned int flags :8;
     unsigned int seq_no :8;
