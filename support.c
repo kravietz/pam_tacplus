@@ -243,7 +243,7 @@ int _pam_parse (int argc, const char **argv) {
         } else if (!strncmp (*argv, "prompt=", 7)) { /* authentication */
             xstrcpy (tac_prompt, *argv + 7, sizeof(tac_prompt));
             /* Replace _ with space */
-            unsigned chr;
+            unsigned long chr;
             for (chr = 0; chr < strlen(tac_prompt); chr++) {
                 if (tac_prompt[chr] == '_') {
                     tac_prompt[chr] = ' ';
@@ -334,7 +334,7 @@ int _pam_parse (int argc, const char **argv) {
         _pam_log(LOG_DEBUG, "%d servers defined", tac_srv_no);
 
         for(n = 0; n < tac_srv_no; n++) {
-            _pam_log(LOG_DEBUG, "server[%u] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr),
+            _pam_log(LOG_DEBUG, "server[%lu] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr),
                      tac_srv[n].key);
         }
 
