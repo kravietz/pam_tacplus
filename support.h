@@ -39,18 +39,41 @@ extern unsigned int tac_srv_no;
 extern char tac_service[64];
 extern char tac_protocol[64];
 extern char tac_prompt[64];
-void tac_copy_addr_info (struct addrinfo *p_dst, const struct addrinfo *p_src);
 
-int _pam_parse (int, const char **);
-unsigned long _resolve_name (char *);
-unsigned long _getserveraddr (char *serv);
-int tacacs_get_password (pam_handle_t *, int, int, char **);
-int converse (pam_handle_t *, int, const struct pam_message *, struct pam_response **);
-void _pam_log (int, const char *, ...);
-void *_xcalloc (size_t);
+void tac_copy_addr_info(struct addrinfo *p_dst, const struct addrinfo *p_src);
+
+int _pam_parse(int, const char **);
+
+unsigned long _resolve_name(char *);
+
+unsigned long _getserveraddr(char *serv);
+
+int tacacs_get_password(pam_handle_t *, int, int, char **);
+
+int converse(pam_handle_t *, int, const struct pam_message *, struct pam_response **);
+
+void _pam_log(int, const char *, ...);
+
+void *_xcalloc(size_t);
+
 char *_pam_get_user(pam_handle_t *);
+
 char *_pam_get_terminal(pam_handle_t *);
+
 char *_pam_get_rhost(pam_handle_t *);
+
+/* Used to mute gcc/clang "unused parameter" warnings */
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#endif
+
+#ifdef __GNUC__
+#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#  define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
 
 #endif  /* PAM_TACPLUS_SUPPORT_H */
 

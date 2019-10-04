@@ -520,12 +520,9 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 
 /* no-op function to satisfy PAM authentication module */
 PAM_EXTERN
-int pam_sm_setcred(pam_handle_t * pamh, int flags, int argc, const char **argv) {
+int pam_sm_setcred(pam_handle_t *UNUSED(pamh), int UNUSED(flags), int argc, const char **argv) {
 
 	int ctrl = _pam_parse(argc, argv);
-
-	pamh = pamh;
-	flags = flags;				/* unused */
 
 	if (ctrl & PAM_TAC_DEBUG)
 		syslog(LOG_DEBUG, "%s: called (pam_tacplus v%u.%u.%u)", __FUNCTION__,
@@ -539,8 +536,8 @@ int pam_sm_setcred(pam_handle_t * pamh, int flags, int argc, const char **argv) 
  * returns PAM_SUCCESS if the service is allowed
  */
 PAM_EXTERN
-int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
-		const char **argv) {
+int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
+                     const char **argv) {
 
 	int retval, ctrl, status = PAM_AUTH_ERR;
 	char *user;
@@ -549,8 +546,6 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
 	struct areply arep;
 	struct tac_attrib *attr = NULL;
 	int tac_fd;
-
-	flags = flags;				/* unused */
 
 	user = tty = r_addr = NULL;
 	memset(&arep, 0, sizeof(arep));
@@ -704,8 +699,8 @@ int pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc,
  * it may be also directed to all specified servers
  */
 PAM_EXTERN
-int pam_sm_open_session(pam_handle_t * pamh, int flags, int argc,
-		const char **argv) {
+int pam_sm_open_session(pam_handle_t *pamh, int UNUSED(flags), int argc,
+                        const char **argv) {
 #if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
 # if defined(HAVE_RAND_BYTES)
 	RAND_bytes((unsigned char *) &task_id, sizeof(task_id));
@@ -715,7 +710,6 @@ int pam_sm_open_session(pam_handle_t * pamh, int flags, int argc,
 #else
 	task_id=(short int) magic();
 #endif
-	flags = flags;				/* unused */
 
 	return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_START, NULL);
 } /* pam_sm_open_session */
@@ -725,10 +719,7 @@ int pam_sm_open_session(pam_handle_t * pamh, int flags, int argc,
  * were problems connection to the server
  */
 PAM_EXTERN
-int pam_sm_close_session(pam_handle_t * pamh, int flags, int argc,
-		const char **argv) {
-
-	flags = flags;				/* unused */
+int pam_sm_close_session(pam_handle_t *pamh, int UNUSED(flags), int argc, const char **argv) {
 
 	return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_STOP, NULL);
 } /* pam_sm_close_session */
