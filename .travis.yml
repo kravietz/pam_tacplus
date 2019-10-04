@@ -1,10 +1,12 @@
+---
 language: c
 dist: xenial
 compiler:
-- gcc
+  - gcc
+
 before_install:
   - sudo apt-get install -y pamtester tacacs+
-- autoreconf -i
+  - autoreconf -i
 
 # https://scan.coverity.com/travis_ci
 addons:
