@@ -14,7 +14,7 @@ addons:
     update: true
   coverity_scan:
     project:
-      name: kravietz/pam_tacplus
+      name: jeroennijhof/pam_tacplus
       version: 1.5.0-pre
       description: Travic-CI scan
     notification_email: pawel.krawczyk@hush.com
