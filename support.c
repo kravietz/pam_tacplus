@@ -306,7 +306,7 @@ int _pam_parse(int argc, const char **argv) {
             } else {
 
                 /* if 'secret=' was given after a 'server=' parameter, fill in the current secret */
-                for (i = tac_srv_no - 1; i != 0; i--) {
+                for (i = tac_srv_no - 1; i >= 0; i--) {
                     if (tac_srv[i].key != NULL)
                         break;
 
