@@ -3,18 +3,22 @@ dist: xenial
 compiler:
 - gcc
 before_install:
+  - sudo apt-get install -y pamtester tacacs+
 - autoreconf -i
 
 # https://scan.coverity.com/travis_ci
 addons:
+  apt:
+    update: true
   coverity_scan:
     project:
       name: kravietz/pam_tacplus
-      version: 1.4.1
+      version: 1.5.0-pre
       description: Travic-CI scan
     notification_email: pawel.krawczyk@hush.com
-    build_command_prepend: "./configure"
+    build_command_prepend: ./configure
     build_command: make
+    branch_pattern: master
 
 # https://docs.travis-ci.com/user/encryption-keys/
 env:
