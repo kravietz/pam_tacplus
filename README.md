@@ -66,7 +66,7 @@ has following effects on authentication:
 	  pam\_tacplus will try to authenticate the user against the other
 	  servers until it succeeds
 
-	* the `first_hit' option has been deprecated
+	* the `first_hit` option has been deprecated
 
 	* when the authentication function gets a positive reply from
 	  a server, it saves its address for future use by account
@@ -83,12 +83,12 @@ independently from the other functions. This allows you to account user
 sessions on different servers than those used for authentication and
 authorization.
 
-	* normally, without the `acct_all' modifier, the extra servers
+	* normally, without the `acct_all` modifier, the extra servers
 	  on the list will be considered as backup servers, mostly like
 	  in point 1. i.e. they will be used only if the first server
 	  on the list will fail to accept our accounting packets.
 
-	* with `acct_all' pam_tacplus will try to deliver the accounting
+	* with `acct_all` pam_tacplus will try to deliver the accounting
 	  packets to all servers on the list; failure of one of the servers
 	  will make it try another one. This is useful when your have several accounting, billing or
 	  logging hosts and want to have the accounting information appear
