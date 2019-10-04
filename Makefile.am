@@ -77,5 +77,4 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libtac.pc
 
 test:
-
-.PHONY: coverity test
+	bash -x test.sh
