@@ -6,7 +6,7 @@
 
 set -exo pipefail
 
-sudo apt-get install -y pamtester tacacs+
+sudo apt-get install -y pamtester tacacs+ expect
 
 sudo tee /etc/tacacs+/tac_plus.conf <<_EOT
 accounting file = /var/log/tac_plus.acct
