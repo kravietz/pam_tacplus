@@ -8,4 +8,4 @@ before_install:
   - sudo apt-get install -y libpam-dev
 
 script: autoreconf -i && ./configure && make
-dist: trusty
+dist: bionic
