@@ -1,12 +1,20 @@
 language: c
-
-compiler:
-  - gcc
-  - clang
-
-before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y libpam-dev
-
-script: autoreconf -i && ./configure && make
 dist: bionic
+compiler:
+- gcc
+- clang
+before_install:
+- apt-get -qq update
+- apt-get install -y libpam-dev
+before_install:
+- autoreconf -i
+after_success:
+- make coverity
+- 'curl --form token=${COVERITY_API_KEY} --form email=${COVERITY_API_EMAIL} --form file=@build.tar.gz --form version="1.4.1" --form description="Latest master build" https://scan.coverity.com/builds?project=jeroennijhof%2Fpam_tacplus'
+
+# set COVERITY_API_KEY and COVERITY_API_EMAIL
+# https://docs.travis-ci.com/user/encryption-keys/
+env:
+  global:
+  - secure: Ysqr4g7ZSHniA+mlJ1kfXszyYUwm/XINOh6cHTrsHekcBM+EB5hw8A8RZm1p/ud4t9idaIizvNGBSR0hmC/Flx12JGh1ugU5W3mqHWuOXuI/B11eNDmhFd2R+riniLVLHAQhg1+ELlDLJhHxB8o08vRXcATMtdik/RawUDqDP44E/Fm4129wgPypSZ5t1je6SG5g0M1OeYgppRweUt+1/roFeexlunBYUDr/9kWvrUdcAUPnTgkiQr+79wd61ie7eQqSh4JqLSVI0rwN90JEz8lYgSsKqIOHAN6IQaKHwxuP6c72Oi6eYNI9uTKcQmdFhNOOQE5NGq3F2Nm2lMRM92WdlHnQRts/wYjq21XAyNPo03d6GZK4wWTmtEJrVsjVW3yvr9guhLKOM+aQgMu7yTm9i7iRCrlCVTb/SfXNyg+XzXRBzJ03Ol/u+KuWVB1P+K37R2nHvrxpXrPnvTSl0TLzTz3TB1XpQrRVyIVTF1tGFmisKqVIz2TO+iyjHMbS9eY6wMG/o46Kx/eib/4vqHSM8r3iFI0qSFw980xRp9HuDsV1IX8wVY9gSA3laky0UOMyHhMPIjRGS3qGX0pdunU0jX6Fhdxs7xrcqgrfsV6kSFl3YQJ5hYqW3qldMeZfby+Xv2H94EWCCAEGINYughc4NjfNYlqw9iad5VGz5XM=
+  - secure: BvwREC6yDYZY4B6sMOCzQY2g3NoVSAmInfpGK2NGCJZhRUOGwloYs49CEiH4Cq87TAe2PTn/YfRjjJ1V4qkCeJ0SHiQ43FWSQHHcGZv3Qq24bJAPNDFOUHQTcvaIRcDbnzylyrHDWiY0mAYbUCQZN7AwYpjYqoeeKlhMJDA+XDdU1p1MoO+hLjNiLEIC1Wn9h1jdufXpr6HAb8+jQ7fskeEr6DgVUhSAK89yUoiTHJlevtMlYaOtEUpNY/NS3ARzkG4kKBQ0bkvv/dsZGur8Ea6B3gGxIJCODmxQfEbSQxalfrF4a9JJKpoLyuGp81cTUM4jIBeJispPaqnh3CHNAirDwqV9tGLgKF8d4lN9pv2SX1/9l4NN1aIVrTP0aEeKIg4Y98OXyoB1NkC1ZvkdujiuyyJrcKp7PbLo7cwVkR3fgBnRi1EIzq31vZm1f5kzKB4lJy41+txFb/xsRhX8TbphSH57H6EqEqWg9a8qhfkCW/YqQ6dnPCLNuTtjWqGbLWOBnYYzVq3STHhvI6gdeGQYE8WLg7Ac8ni07C8K5uXm6qal/W3g/YJ3Cu3B+JxDy5Gmtm/MvfWycLI5DobXXqDRmvrsU5fmiHr02W+sK2q9Gynbt2Vy8SsBFMgICESV4wC+H/Jb0qEWqedGAFJ4AH0knv1+QLG0GvuT4mdBmzU=
