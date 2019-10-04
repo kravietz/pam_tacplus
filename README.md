@@ -1,8 +1,8 @@
 [![Build Status](https://travis-ci.org/kravietz/pam_tacplus.svg?branch=master)](https://travis-ci.org/kravietz/pam_tacplus)
 [![GitHub forks](https://img.shields.io/github/forks/kravietz/pam_tacplus.svg)](https://github.com/kravietz/pam_tacplus/network)
 [![GitHub license](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://raw.githubusercontent.com/jeroennijhof/pam_tacplus/master/COPYING)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/jeroennijhof/pam_tacplus.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jeroennijhof/pam_tacplus/alerts/)
-[![Coverity](https://scan.coverity.com/projects/5499/badge.svg)](https://scan.coverity.com/projects/pam_tacplus)
+[![LGTM alerts](https://img.shields.io/lgtm/alerts/g/jeroennijhof/pam_tacplus.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jeroennijhof/pam_tacplus/alerts/)
+[![Coverity](https://scan.coverity.com/projects/19343/badge.svg)](https://scan.coverity.com/projects/kravietz-pam_tacplus)
 
 # TACACS+ client toolkit
 
