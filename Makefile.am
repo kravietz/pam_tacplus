@@ -76,10 +76,6 @@ MAINTAINERCLEANFILES = Makefile.in config.h.in configure aclocal.m4 \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libtac.pc
 
-coverity:
-	rm -rf cov-int
-	cov-build --dir cov-int make
-	tar cvzf build.tar.gz cov-int/
 test:
 
 .PHONY: coverity test
