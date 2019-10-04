@@ -2,27 +2,23 @@
 language: c
 dist: xenial
 compiler:
-  - gcc
-
+- gcc
 before_install:
-  - sudo apt-get install -y pamtester tacacs+
-  - autoreconf -i
-
-# https://scan.coverity.com/travis_ci
+- echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+- sudo apt-get install -y pamtester tacacs+
+- autoreconf -i
 addons:
   apt:
     update: true
   coverity_scan:
     project:
-      name: jeroennijhof/pam_tacplus
+      name: kravietz/pam_tacplus
       version: 1.5.0-pre
       description: Travic-CI scan
     notification_email: pawel.krawczyk@hush.com
-    build_command_prepend: ./configure
+    build_command_prepend: "./configure"
     build_command: make
-    branch_pattern: master
-
-# https://docs.travis-ci.com/user/encryption-keys/
+    branch_pattern: coverity_scan
 env:
   global:
-    secure: ueAz7nQjmf8kNDogfspWYzPwqLakoszpqQBRSj9jxBO6dDFpadfX8Sbsy7F5qpTpu+QrHb1QPybGUSbHS2ris3WyWsLZXGydpc4M5ynggTWVS151IvuT1ASKAMHCRRtN8tBWtjYj1bARnQLhnHA20aWR266b+07e4Sl755qaX4MozP2k+tqbaUYSIVqXDJIXPwEIHMIPIrsmsOtOuwktUX3zvjE145eCpGjzLIDCoay18W+wtO6KQ44to3sDIihA8i44eo2a87z1aPuvv5WAUKP/is0c270okuwiNr0KHI5g6ke1/fYphLKFioA1AbLidOmvoxIIpvkSHMyr0hYiSJIjgIvr6xKhU1XuF6Ohvn5PqsKORXJa67rtDIDZSlQZkvojAFx6yQ8F2BXjQECzbWBNeJ7JRpinKBep6qSn5qz96eufQQrn/85zwYPSXfyh5GJ8AMKDI2Tx4XBk5u5sV7fTryITwQO4FdGPQsJlKgFa1568sQC2UDNiL+yUOA/4FEOrbjXhzBwjukyMR9wtLCqGVHrU/93Ub7PbJLbaJxhldm+o/TY/xUBzSP/BWRgNPoKBteAK4N2JhYyzDvEflEA5SfgGgjhlf4Z8FhaPw/rk13aqq02mKALe8z3fK6WUlT1eqhlNjZ5AGqudy2qL2hbgsMAEIaflQcabUv7BRGw=
+    secure: EQkiZmA76dy+HEDY+x76DGDs65Pr33Dgt+k4G5p75vIFVSZoN2s4s/6gvaofRYrqbiC7XqxmeOIx7BXXo2OJVbKRAMVU5iBux4IYDZ++Oe8a4p06qeRXytbLIS20YwmeqhkgEik5o25lL2gH1V5gdlPWwnFcx8h1/ExuD5ow/jubfNrrahekzPcRBZjZk9JDOBDtt8eDF2PQsuyH3VFMyqPjdt5qJPKVcZ29QL9eAWuF/5ctZ0zPvY3Jd+jBSXhRjwoPK8L6PRFkjT3gG8ucUBm+tX0hxB1IUkWvnH8WpgvFT4cMgquqAG5Fq98BigZVGnvo31fVbe/6g/PZzUJdXe3/zfVAfj1spdIGJnIQDcpdLrQiAywkQlZ/n6GSVuh6lHMj8B9YeEg2qyFZ6moCoYsOpmN5sz6e1xFmw4oDT8x5c5XmK1+VJQ3EKLiJbM06/9hYCELtMDvlmWsoq3qa3Y6218Gnult+u+iwHtPEl320h07KDC0rO/jC7dniN9cZ1paFKYV3YjaB/bbacHMjEUo802oxcu2Btqa8ciX4jbkOAn2FbtDcfzzjrv39mEshqALkb0acY6EWVDpLxUWcZbXJ/yISdael6ZTmYcXpV8Ec5kYSwFsSmRh3xSdhPz4pkGnz4csU4dBhJaTnj1uVJlH2/3JdoAYjtMtzZPypMZM=
