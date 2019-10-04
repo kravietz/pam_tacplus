@@ -80,5 +80,6 @@ coverity:
 	rm -rf cov-int
 	cov-build --dir cov-int make
 	tar cvzf build.tar.gz cov-int/
+test:
 
-.PHONY: coverity
+.PHONY: coverity test
