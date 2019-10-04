@@ -37,7 +37,7 @@ void *xrealloc(void *ptr, size_t size) {
 	if (val == 0) {
 		TACSYSLOG(
 				LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned) size);
-		exit(1);
+        abort();
 	}
 	return val;
 }
@@ -49,7 +49,7 @@ char *xstrdup(const char *s) {
 
 	if ((p = strdup(s)) == NULL) {
 		TACSYSLOG(LOG_ERR, "%s: strdup(%s) failed: %m", __FUNCTION__, s);
-		exit(1);
+        abort();
 	}
 	return p;
 }
