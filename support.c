@@ -297,21 +297,14 @@ int _pam_parse(int argc, const char **argv) {
                          TAC_PLUS_MAXSERVERS);
             }
         } else if (!strncmp(*argv, "secret=", 7)) {
-            unsigned int i;
-
             current_secret = *argv + 7;     /* points right into argv (which is const) */
 
+            // this is possible because server structure is initialized only on the server= occurence
             if (tac_srv_no == 0) {
                 _pam_log(LOG_ERR, "secret set but no servers configured yet");
             } else {
-
-                /* if 'secret=' was given after a 'server=' parameter, fill in the current secret */
-                for (i = tac_srv_no - 1; i >= 0; i--) {
-                    if (tac_srv[i].key != NULL)
-                        break;
-
-                    set_tac_srv_key(i, current_secret);
-                }
+                // set secret for the last server configured
+                set_tac_srv_key(tac_srv_no - 1, current_secret);
             }
         } else if (!strncmp(*argv, "timeout=", 8)) {
 
