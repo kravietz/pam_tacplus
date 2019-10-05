@@ -39,7 +39,7 @@ _EOT
 
 sudo service tacacs_plus restart
 
-tail -20 /var/log/syslog
+sudo tail -20 /var/log/syslog
 
 sudo expect <<_EOT
 set timeout -1
