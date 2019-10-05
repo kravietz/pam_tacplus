@@ -7,7 +7,7 @@
 set -exo pipefail
 
 # preserve PATH to clang
-sudo -E make install
+sudo -E PATH="${PATH}" make install
 
 sudo tee /etc/tacacs+/tac_plus.conf <<_EOT
 accounting file = /var/log/tac_plus.acct
