@@ -6,6 +6,8 @@
 
 set -exo pipefail
 
+sudo make install
+
 sudo tee /etc/tacacs+/tac_plus.conf <<_EOT
 accounting file = /var/log/tac_plus.acct
 

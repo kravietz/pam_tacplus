@@ -7,8 +7,6 @@ compiler:
 before_install:
   - sudo apt-get install -y pamtester tacacs+ expect
   - env TACC=yes autoreconf -iv
-script:
-  - sudo make install
 addons:
   apt:
     update: true
