@@ -31,10 +31,10 @@ user = testuser2 {
 _EOT
 
 sudo tee /etc/pam.d/test <<_EOT
-auth       required     /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123
-account    required     /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 service=ppp protocol=ip
-password   required     /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123
-session    required     /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 server=127.0.0.2 secret=testkey123 service=ppp protocol=ip
+auth       required     /lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123
+account    required     /lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 service=ppp protocol=ip
+password   required     /lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123
+session    required     /lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 server=127.0.0.2 secret=testkey123 service=ppp protocol=ip
 _EOT
 
 sudo service tacacs_plus restart
@@ -46,7 +46,7 @@ sudo service tacacs_plus restart
 sudo tail -20 /var/log/syslog
 sudo tail -20 /var/log/auth.log
 
-ls -l /usr/local/lib/security/pam_tacplus.so
+ls -l /lib/security/pam_tacplus.so
 
 sudo expect <<_EOT || true
 set timeout -1
