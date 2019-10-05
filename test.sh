@@ -39,7 +39,9 @@ sudo service tacacs_plus restart
 
 sudo tail -20 /var/log/syslog
 
-sudo expect <<_EOT
+ls -l /usr/local/lib/security/pam_tacplus.so
+
+sudo expect <<_EOT || true
 set timeout -1
 spawn pamtester -v -I rhost=localhost test testuser1 authenticate acct_mgmt open_session close_session
 match_max 100000
