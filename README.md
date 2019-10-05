@@ -64,8 +64,11 @@ The module is available on most Linux distibutions:
 To compile from source, the code uses standard GNU `autotools`:
 ```
 $ ./auto.sh
-$ ./configure && make && sudo make install
+$ ./configure --libdir=/lib && make && sudo make install
 ```
+The `--libdir` option ensured `pam_tacplus.so` ends up in `/lib/security` along with
+other PAM  modules rather than in `/usr/local`.
+
 ### Quick start
 Install TACACS+ server `tacacs+` and PAM testing program [pamtester](http://pamtester.sourceforge.net/):
 ```
@@ -75,8 +78,8 @@ Create `/etc/pam.d/test` with the following contents:
 ```
 #%PAM-1.0
 auth       required /lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123
-account	   required	/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 service=ppp protocol=ip
-session    required	/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 server=127.0.0.2 secret=testkey123 service=ppp protocol=ip
+account	   required /lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 service=ppp protocol=ip
+session    required /lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 server=127.0.0.2 secret=testkey123 service=ppp protocol=ip
 ```
 Ensure `/etc/tacacs+/tac_plus.conf` contains the following options:
 ```

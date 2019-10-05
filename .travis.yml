@@ -5,7 +5,6 @@ compiler:
 - gcc
 - clang
 before_install:
-- echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 - env TACC=yes autoreconf -iv
 addons:
   apt:
@@ -16,7 +15,7 @@ addons:
       version: 1.5.0-pre
       description: Travic-CI scan
     notification_email: pawel.krawczyk@hush.com
-    build_command_prepend: "./configure"
+    build_command_prepend: ./configure
     build_command: make
     branch_pattern: coverity_scan
 env:

@@ -7,6 +7,9 @@
 set -exo pipefail
 
 sudo apt-get install -y pamtester tacacs+ expect
+#./configure --libdir=/lib
+#make clean && make
+#sudo make install
 
 sudo tee /etc/tacacs+/tac_plus.conf <<_EOT
 accounting file = /var/log/tac_plus.acct
@@ -27,11 +30,18 @@ user = testuser2 {
 }
 _EOT
 
+sudo tee /etc/pam.d/test <<_EOT
+auth       required     /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123
+account    required     /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 service=ppp protocol=ip
+password   required     /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123
+session    required     /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 server=127.0.0.2 secret=testkey123 service=ppp protocol=ip
+_EOT
+
 sudo service tacacs_plus restart
 
 tail -20 /var/log/syslog
 
-expect <<_EOT
+sudo expect <<_EOT
 set timeout -1
 spawn pamtester -v -I rhost=localhost test testuser1 authenticate acct_mgmt open_session close_session
 match_max 100000
@@ -43,7 +53,7 @@ expect "pamtester: successfully authenticated\r"
 expect eof
 _EOT
 
-tail -20 /var/log/syslog
+sudo tail -20 /var/log/syslog
 
 expect <<_EOT
 set timeout -1
