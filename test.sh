@@ -6,11 +6,6 @@
 
 set -exo pipefail
 
-sudo apt-get install -y pamtester tacacs+ expect
-./configure --libdir=/lib
-make clean
-sudo make install
-
 sudo tee /etc/tacacs+/tac_plus.conf <<_EOT
 accounting file = /var/log/tac_plus.acct
 
@@ -42,6 +37,14 @@ sudo service tacacs_plus restart
 /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 \
     --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 \
     --secret testkey123 --service ppp --protocol ip --login pap
+
+/usr/local/bin/tacc --authenticate --authorize --account --username testuser1 \
+    --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 \
+    --secret testkey123 --service ppp --protocol ip --login pap && false
+
+/usr/local/bin/tacc --authenticate --authorize --account --username testuser1 \
+    --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 \
+    --secret badkey --service ppp --protocol ip --login pap && false
 
 sudo tail -20 /var/log/syslog
 sudo tail -20 /var/log/auth.log
