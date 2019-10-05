@@ -29,6 +29,8 @@ _EOT
 
 sudo service tacacs_plus restart
 
+tail -20 /var/log/syslog
+
 expect <<_EOT
 set timeout -1
 spawn pamtester -v -I rhost=localhost test testuser1 authenticate acct_mgmt open_session close_session
@@ -41,6 +43,8 @@ expect "pamtester: successfully authenticated\r"
 expect eof
 _EOT
 
+tail -20 /var/log/syslog
+
 expect <<_EOT
 set timeout -1
 spawn pamtester -v -I rhost=localhost test testuserX authenticate acct_mgmt open_session close_session
@@ -48,7 +52,7 @@ match_max 100000
 expect -exact "pamtester: invoking pam_start(test, testuserX, ...)\r
 pamtester: performing operation - authenticate\r
 Password: "
-send -- "invalid\r"
+send -- "badpass\r"
 expect "pamtester: Authentication failure\r"
 expect eof
 _EOT
