@@ -1,6 +1,9 @@
 ---
 language: c
 dist: bionic
+cache:
+  directories:
+    - config
 compiler:
   - gcc
   - clang

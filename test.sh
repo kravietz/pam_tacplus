@@ -6,6 +6,10 @@
 
 set -exo pipefail
 
+echo "TRAVIS_COMPILER=${TRAVIS_COMPILER}"
+echo "CC=${CC}"
+command -v "${CC})"
+
 sudo make install
 
 sudo tee /etc/tacacs+/tac_plus.conf <<_EOT
