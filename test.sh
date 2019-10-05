@@ -8,7 +8,7 @@ set -exo pipefail
 
 echo "TRAVIS_COMPILER=${TRAVIS_COMPILER}"
 echo "CC=${CC}"
-command -v "${CC})"
+command -v "${CC}"
 
 sudo make install
 
