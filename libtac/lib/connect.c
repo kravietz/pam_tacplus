@@ -164,9 +164,9 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     retval = fd;
 
     /* set current tac_secret */
-    tac_encryption = 0;
+    /* tac_encryption = 0; */
     if (key != NULL && *key) {
-        tac_encryption = 1;
+        /* tac_encryption = 1; */
         tac_secret = key;
     }
 
