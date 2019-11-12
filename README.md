@@ -4,6 +4,8 @@
 [![LGTM alerts](https://img.shields.io/lgtm/alerts/g/jeroennijhof/pam_tacplus.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jeroennijhof/pam_tacplus/alerts/)
 [![Coverity](https://scan.coverity.com/projects/19343/badge.svg)](https://scan.coverity.com/projects/kravietz-pam_tacplus)
 
+**Funding:** If you are a commercial user of `pam_tacplus` please consider sponsoring the project through [LiberaPay](https://liberapay.com/webcookies). This code base has been live since late 90's and requires a significant effort to keep up with modern environments.
+
 # TACACS+ client toolkit
 
 This repository contains three modules that are typically used to perform requests to a TACACS+ server:
