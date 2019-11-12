@@ -4,7 +4,7 @@
 [![LGTM alerts](https://img.shields.io/lgtm/alerts/g/jeroennijhof/pam_tacplus.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jeroennijhof/pam_tacplus/alerts/)
 [![Coverity](https://scan.coverity.com/projects/19343/badge.svg)](https://scan.coverity.com/projects/kravietz-pam_tacplus)
 
-**Funding:** If you are a commercial user of `pam_tacplus` please consider sponsoring the project through [LiberaPay](https://liberapay.com/webcookies) or BTC `12UM3Rskes39DosZUwZKVqeiPxCnupJTux`. This code base has been live since late 90's and requires a significant effort to keep up with modern environments.
+**Funding:** If you are a commercial user of `pam_tacplus` please consider sponsoring the project through [LiberaPay](https://liberapay.com/webcookies) or cryptocurrencies ([keybase.io/kravietz](https://keybase.io/kravietz)). This code base has been live since late 90's and requires a significant effort to keep up with modern environments.
 
 # TACACS+ client toolkit
 
