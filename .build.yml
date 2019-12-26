@@ -8,6 +8,8 @@ packages:
 - build-essential
 - libtool
 - automake
+- libpam-dev
+- libssl-dev
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:

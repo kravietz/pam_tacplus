@@ -64,6 +64,7 @@ The module is available on most Linux distibutions:
 ```
 To compile from source, the code uses standard GNU `autotools`:
 ```
+$ sudo apt install libpam-tacplus autoconf build-essential libtool automake libpam-dev libssl-dev
 $ autoreconf -i
 $ ./configure && make && sudo make install
 ```
