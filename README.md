@@ -3,6 +3,7 @@
 [![GitHub license](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://raw.githubusercontent.com/jeroennijhof/pam_tacplus/master/COPYING)
 [![LGTM alerts](https://img.shields.io/lgtm/alerts/g/jeroennijhof/pam_tacplus.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jeroennijhof/pam_tacplus/alerts/)
 [![Coverity](https://scan.coverity.com/projects/19343/badge.svg)](https://scan.coverity.com/projects/kravietz-pam_tacplus)
+[![builds.sr.ht status](https://builds.sr.ht/~kravietz/pam-tacplus.svg)](https://builds.sr.ht/~kravietz/pam-tacplus?)
 
 # TACACS+ client toolkit
 
