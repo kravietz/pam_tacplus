@@ -6,6 +6,8 @@ packages:
 - libpam-tacplus
 - autoconf
 - build-essential
+- libtool
+- automake
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
