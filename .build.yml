@@ -5,6 +5,7 @@ image: ubuntu/lts
 packages:
 - libpam-tacplus
 - autoconf
+- build-essential
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
