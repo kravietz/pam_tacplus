@@ -50,6 +50,10 @@ extern "C" {
 #define __CLANG_PREREQ(maj, min) (0)
 #endif
 
+#ifndef __GNUC_PREREQ
+# define __GNUC_PREREQ(ma, mi) 0
+#endif
+
 #if __GNUC_PREREQ(3, 2) || __CLANG_PREREQ(4, 0)
 #define __Unused __attribute__ ((unused))
 #else

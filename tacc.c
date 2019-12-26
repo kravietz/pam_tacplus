@@ -19,6 +19,8 @@
 #include <time.h>
 #include <getopt.h>
 #include <ctype.h>
+#include <signal.h>
+#include <sys/time.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
