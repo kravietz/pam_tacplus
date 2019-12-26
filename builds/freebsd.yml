@@ -1,0 +1,16 @@
+---
+# build manifest for SourceHut
+# https://man.sr.ht/builds.sr.ht/
+image: freebsd/latest
+packages:
+- autoconf
+- libtool
+- automake
+sources:
+- https://git.sr.ht/~kravietz/pam-tacplus
+tasks:
+- configure: |
+        cd pam-tacplus
+        autoreconf -i
+        ./configure
+        make
