@@ -73,7 +73,7 @@ magic()
     	exit(1);
     }
     if(ret < (ssize_t) sizeof(num)) {
-    	TACSYSLOG(LOG_CRIT,"%s: getrandom less bytes than expected: %ld vs %lu", __FUNCTION__, ret, sizeof(num));
+    	TACSYSLOG(LOG_CRIT,"%s: getrandom less bytes than expected: %zd vs %zu", __FUNCTION__, ret, sizeof(num));
     	exit(1);
     }
     return num;
