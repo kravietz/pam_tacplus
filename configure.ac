@@ -14,13 +14,15 @@ AC_PREREQ(2.59)
 AC_COPYRIGHT([
 See the included file: COPYING for copyright information.
 ])
-AC_INIT(pam_tacplus, 1.4.1, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
+AC_INIT(pam_tacplus, 1.5.0-pre, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
 
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([pam_tacplus.c])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([config])
+dnl Checks and sets _GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 
 dnl --------------------------------------------------------------------
 dnl Checks for programs.
@@ -52,8 +54,8 @@ esac
 dnl --------------------------------------------------------------------
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h])
-AC_CHECK_HEADERS([syslog.h unistd.h openssl/md5.h openssl/rand.h sys/random.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h limits.h])
+AC_CHECK_HEADERS([syslog.h unistd.h openssl/md5.h openssl/rand.h sys/random.h bsd/string.h])
 AC_CHECK_HEADER(security/pam_appl.h, [], [AC_MSG_ERROR([PAM libraries missing. Install with "yum install pam-devel" or "apt-get install libpam-dev".])] )
 AM_CONDITIONAL(MY_MD5, [test "$ac_cv_header_openssl_md5_h" = "no" ])
 AM_CONDITIONAL(TACC, [test "$ac_cv_lib_crypto_RAND_bytes" = "yes" || test "$ac_cv_lib_crypto_RAND_pseudo_bytes" = "yes"])
@@ -86,7 +88,7 @@ dnl Checks for library functions.
 AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp getrandom])
+AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp getrandom strtol strlcpy abort])
 
 dnl --------------------------------------------------------------------
 dnl Switch for pam module dir

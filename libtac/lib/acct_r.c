@@ -45,7 +45,7 @@ int tac_acct_read(int fd, struct areply *re) {
     if (tac_readtimeout_enable &&
         tac_read_wait(fd,tac_timeout*1000, TAC_PLUS_HDR_SIZE,&timeleft) < 0 ) {
         TACSYSLOG(LOG_ERR,\
-            "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
+            "%s: reply timeout after %lu secs", __FUNCTION__, tac_timeout);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
         free(tb);
@@ -90,7 +90,7 @@ int tac_acct_read(int fd, struct areply *re) {
     if (tac_readtimeout_enable &&
         tac_read_wait(fd,timeleft,ulen_from_header,NULL) < 0 ) {
         TACSYSLOG(LOG_ERR,\
-            "%s: reply timeout after %u secs", __FUNCTION__, tac_timeout);
+            "%s: reply timeout after %lu secs", __FUNCTION__, tac_timeout);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
         free(tb);

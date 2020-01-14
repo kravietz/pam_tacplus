@@ -24,40 +24,43 @@
 #define PAM_SM_SESSION
 #define PAM_SM_PASSWORD
 
+#include "config.h"
 #include "support.h"
 #include "pam_tacplus.h"
 
-#include <stdlib.h>
-#include <string.h>
+#ifdef HAVE_LIMITS_H
+
+#include <limits.h>
+
+#endif
 
 tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
-int tac_srv_no = 0;
+unsigned int tac_srv_no = 0;
 
 char tac_service[64];
 char tac_protocol[64];
 char tac_prompt[64];
 struct addrinfo tac_srv_addr[TAC_PLUS_MAXSERVERS];
 struct sockaddr tac_sock_addr[TAC_PLUS_MAXSERVERS];
+
 struct sockaddr_in6 tac_sock6_addr[TAC_PLUS_MAXSERVERS];
 char tac_srv_key[TAC_PLUS_MAXSERVERS][TAC_SECRET_MAX_LEN+1];
 
-void _pam_log(int err, const char *format,...) {
+void _pam_log(int err, const char *format, ...) {
     char msg[256];
     va_list args;
 
     va_start(args, format);
     vsnprintf(msg, sizeof(msg), format, args);
-    openlog("PAM-tacplus", LOG_PID, LOG_AUTH);
-    syslog(err, "%s", msg);
+    syslog(err, "PAM-tacplus: %s", msg);
     va_end(args);
-    closelog();
 }
 
 char *_pam_get_user(pam_handle_t *pamh) {
     int retval;
     char *user;
 
-    retval = pam_get_user(pamh, (void *)&user, "Username: ");
+    retval = pam_get_user(pamh, (void *) &user, "Username: ");
     if (retval != PAM_SUCCESS || user == NULL || *user == '\0') {
         _pam_log(LOG_ERR, "unable to obtain username");
         user = NULL;
@@ -69,10 +72,10 @@ char *_pam_get_terminal(pam_handle_t *pamh) {
     int retval;
     char *tty;
 
-    retval = pam_get_item(pamh, PAM_TTY, (void *)&tty);
+    retval = pam_get_item(pamh, PAM_TTY, (void *) &tty);
     if (retval != PAM_SUCCESS || tty == NULL || *tty == '\0') {
         tty = ttyname(STDIN_FILENO);
-        if(tty == NULL || *tty == '\0')
+        if (tty == NULL || *tty == '\0')
             tty = "unknown";
     }
     return tty;
@@ -82,84 +85,84 @@ char *_pam_get_rhost(pam_handle_t *pamh) {
     int retval;
     char *rhost;
 
-    retval = pam_get_item(pamh, PAM_RHOST, (void *)&rhost);
+    retval = pam_get_item(pamh, PAM_RHOST, (void *) &rhost);
     if (retval != PAM_SUCCESS || rhost == NULL || *rhost == '\0') {
         rhost = "unknown";
     }
     return rhost;
 }
 
-int converse(pam_handle_t * pamh, int nargs, const struct pam_message *message,
-    struct pam_response **response) {
+int converse(pam_handle_t *pamh, int nargs, const struct pam_message *message,
+             struct pam_response **response) {
 
     int retval;
     struct pam_conv *conv;
 
-    if ((retval = pam_get_item (pamh, PAM_CONV, (const void **)&conv)) == PAM_SUCCESS) {
+    if ((retval = pam_get_item(pamh, PAM_CONV, (const void **) &conv)) == PAM_SUCCESS) {
         retval = conv->conv(nargs, &message, response, conv->appdata_ptr);
 
         if (retval != PAM_SUCCESS) {
             _pam_log(LOG_ERR, "(pam_tacplus) converse returned %d", retval);
-            _pam_log(LOG_ERR, "that is: %s", pam_strerror (pamh, retval));
+            _pam_log(LOG_ERR, "that is: %s", pam_strerror(pamh, retval));
         }
     } else {
-        _pam_log (LOG_ERR, "(pam_tacplus) converse failed to get pam_conv");
+        _pam_log(LOG_ERR, "(pam_tacplus) converse failed to get pam_conv");
     }
 
     return retval;
 }
 
 /* stolen from pam_stress */
-int tacacs_get_password (pam_handle_t * pamh, int flags __Unused,
-    int ctrl, char **password) {
+int tacacs_get_password(pam_handle_t *pamh, int flags __Unused,
+                        int ctrl, char **password) {
 
     const void *pam_pass;
     char *pass = NULL;
 
     if (ctrl & PAM_TAC_DEBUG)
-        syslog (LOG_DEBUG, "%s: called", __FUNCTION__);
+        syslog(LOG_DEBUG, "%s: called", __FUNCTION__);
 
-    if ( (ctrl & (PAM_TAC_TRY_FIRST_PASS | PAM_TAC_USE_FIRST_PASS))
+    if ((ctrl & (PAM_TAC_TRY_FIRST_PASS | PAM_TAC_USE_FIRST_PASS))
         && (pam_get_item(pamh, PAM_AUTHTOK, &pam_pass) == PAM_SUCCESS)
-        && (pam_pass != NULL) ) {
-         if ((pass = strdup(pam_pass)) == NULL)
-              return PAM_BUF_ERR;
+        && (pam_pass != NULL)) {
+        if ((pass = strdup(pam_pass)) == NULL)
+            return PAM_BUF_ERR;
     } else if ((ctrl & PAM_TAC_USE_FIRST_PASS)) {
-         _pam_log(LOG_WARNING, "no forwarded password");
-         return PAM_PERM_DENIED;
+        _pam_log(LOG_WARNING, "no forwarded password");
+        return PAM_PERM_DENIED;
     } else {
-         struct pam_message msg;
-         struct pam_response *resp = NULL;
-         int retval;
+        struct pam_message msg;
+        struct pam_response *resp = NULL;
+        int retval;
 
-         /* set up conversation call */
-         msg.msg_style = PAM_PROMPT_ECHO_OFF;
+        /* set up conversation call */
+        msg.msg_style = PAM_PROMPT_ECHO_OFF;
 
-         if (!tac_prompt[0]) {
-             msg.msg = "Password: ";
-         } else {
-             msg.msg = tac_prompt;
-         }
+        if (!tac_prompt[0]) {
+            msg.msg = "Password: ";
+        } else {
+            msg.msg = tac_prompt;
+        }
 
-         if ((retval = converse (pamh, 1, &msg, &resp)) != PAM_SUCCESS)
-             return retval;
+        if ((retval = converse(pamh, 1, &msg, &resp)) != PAM_SUCCESS)
+            return retval;
 
-         if (resp != NULL) {
-             if (resp->resp == NULL && (ctrl & PAM_TAC_DEBUG))
-                 _pam_log (LOG_DEBUG, "pam_sm_authenticate: NULL authtok given");
+        if (resp != NULL) {
+            if (resp->resp == NULL && (ctrl & PAM_TAC_DEBUG))
+                _pam_log(LOG_DEBUG, "pam_sm_authenticate: NULL authtok given");
 
-             pass = resp->resp;    /* remember this! */
-             resp->resp = NULL;
+            pass = resp->resp;    /* remember this! */
+            resp->resp = NULL;
 
-             free(resp);
-             resp = NULL;
-         } else {
-             if (ctrl & PAM_TAC_DEBUG) {
-               _pam_log (LOG_DEBUG, "pam_sm_authenticate: no error reported");
-               _pam_log (LOG_DEBUG, "getting password, but NULL returned!?");
-             }
-             return PAM_CONV_ERR;
-         }
+            free(resp);
+            resp = NULL;
+        } else {
+            if (ctrl & PAM_TAC_DEBUG) {
+                _pam_log(LOG_DEBUG, "pam_sm_authenticate: no error reported");
+                _pam_log(LOG_DEBUG, "getting password, but NULL returned!?");
+            }
+            return PAM_CONV_ERR;
+        }
     }
 
     /*
@@ -168,14 +171,13 @@ int tacacs_get_password (pam_handle_t * pamh, int flags __Unused,
     */
     *password = pass;       /* this *MUST* be free()'d by this module */
 
-    if(ctrl & PAM_TAC_DEBUG)
+    if (ctrl & PAM_TAC_DEBUG)
         syslog(LOG_DEBUG, "%s: obtained password", __FUNCTION__);
 
     return PAM_SUCCESS;
 }
 
-void tac_copy_addr_info (struct addrinfo *p_dst, const struct addrinfo *p_src)
-{
+void tac_copy_addr_info(struct addrinfo *p_dst, const struct addrinfo *p_src) {
     if (p_dst && p_src) {
         p_dst->ai_flags = p_src->ai_flags;
         p_dst->ai_family = p_src->ai_family;
@@ -201,6 +203,7 @@ static void set_tac_srv_addr (unsigned int srv_no, const struct addrinfo *addr)
 {
     _pam_log(LOG_DEBUG, "%s: server [%s]", __FUNCTION__,
                         tac_ntop(addr->ai_addr));
+
     if (srv_no < TAC_PLUS_MAXSERVERS) {
         if (addr) {
           if (addr->ai_family == AF_INET6) {
@@ -227,11 +230,10 @@ static void set_tac_srv_addr (unsigned int srv_no, const struct addrinfo *addr)
     }
 }
 
-static void set_tac_srv_key (unsigned int srv_no, const char *key)
-{
+static void set_tac_srv_key(unsigned int srv_no, const char *key) {
     if (srv_no < TAC_PLUS_MAXSERVERS) {
         if (key) {
-            strncpy (tac_srv_key[srv_no], key, TAC_SECRET_MAX_LEN-1);
+            strncpy(tac_srv_key[srv_no], key, TAC_SECRET_MAX_LEN - 1);
             tac_srv[srv_no].key = tac_srv_key[srv_no];
         }
         else {
@@ -242,7 +244,7 @@ static void set_tac_srv_key (unsigned int srv_no, const char *key)
     }
 }
 
-int _pam_parse (int argc, const char **argv) {
+int _pam_parse(int argc, const char **argv) {
     int ctrl = 0;
     const char *current_secret = NULL;
 
@@ -259,31 +261,31 @@ int _pam_parse (int argc, const char **argv) {
     tac_login[0] = 0;
 
     for (ctrl = 0; argc-- > 0; ++argv) {
-        if (!strcmp (*argv, "debug")) { /* all */
+        if (!strcmp(*argv, "debug")) { /* all */
             ctrl |= PAM_TAC_DEBUG;
-        } else if (!strcmp (*argv, "use_first_pass")) {
+        } else if (!strcmp(*argv, "use_first_pass")) {
             ctrl |= PAM_TAC_USE_FIRST_PASS;
-        } else if (!strcmp (*argv, "try_first_pass")) { 
+        } else if (!strcmp(*argv, "try_first_pass")) {
             ctrl |= PAM_TAC_TRY_FIRST_PASS;
-        } else if (!strncmp (*argv, "service=", 8)) { /* author & acct */
-            xstrcpy (tac_service, *argv + 8, sizeof(tac_service));
-        } else if (!strncmp (*argv, "protocol=", 9)) { /* author & acct */
-            xstrcpy (tac_protocol, *argv + 9, sizeof(tac_protocol));
-        } else if (!strncmp (*argv, "prompt=", 7)) { /* authentication */
-            xstrcpy (tac_prompt, *argv + 7, sizeof(tac_prompt));
+        } else if (!strncmp(*argv, "service=", 8)) { /* author & acct */
+            xstrcpy(tac_service, *argv + 8, sizeof(tac_service));
+        } else if (!strncmp(*argv, "protocol=", 9)) { /* author & acct */
+            xstrcpy(tac_protocol, *argv + 9, sizeof(tac_protocol));
+        } else if (!strncmp(*argv, "prompt=", 7)) { /* authentication */
+            xstrcpy(tac_prompt, *argv + 7, sizeof(tac_prompt));
             /* Replace _ with space */
-            unsigned chr;
+            unsigned long chr;
             for (chr = 0; chr < strlen(tac_prompt); chr++) {
                 if (tac_prompt[chr] == '_') {
                     tac_prompt[chr] = ' ';
                 }
             }
-        } else if (!strncmp (*argv, "login=", 6)) {
-            xstrcpy (tac_login, *argv + 6, sizeof(tac_login));
-        } else if (!strcmp (*argv, "acct_all")) {
+        } else if (!strncmp(*argv, "login=", 6)) {
+            xstrcpy(tac_login, *argv + 6, sizeof(tac_login));
+        } else if (!strcmp(*argv, "acct_all")) {
             ctrl |= PAM_TAC_ACCT;
-        } else if (!strncmp (*argv, "server=", 7)) { /* authen & acct */
-            if(tac_srv_no < TAC_PLUS_MAXSERVERS) { 
+        } else if (!strncmp(*argv, "server=", 7)) { /* authen & acct */
+            if (tac_srv_no < TAC_PLUS_MAXSERVERS) {
                 struct addrinfo hints, *servers, *server;
                 int rv;
                 char *close_bracket, *server_name, *port, server_buf[256];
@@ -299,7 +301,8 @@ int _pam_parse (int argc, const char **argv) {
                 }
                 strcpy(server_buf, *argv + 7);
 
-                if (*server_buf == '[' && (close_bracket = strchr(server_buf, ']')) != NULL) { /* Check for URI syntax */
+                if (*server_buf == '[' &&
+                    (close_bracket = strchr(server_buf, ']')) != NULL) { /* Check for URI syntax */
                     server_name = server_buf + 1;
                     _pam_log (LOG_ERR,
                         "reading server address as: %s ",
@@ -318,55 +321,60 @@ int _pam_parse (int argc, const char **argv) {
                         "sending server address to getaddrinfo as: %s ",
                         server_name);
                 if ((rv = getaddrinfo(server_name, (port == NULL) ? "49" : port, &hints, &servers)) == 0) {
-                    for(server = servers; server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
-                        set_tac_srv_addr (tac_srv_no, server);
-                        set_tac_srv_key (tac_srv_no, current_secret);
+                    for (server = servers;
+                         server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
+                        set_tac_srv_addr(tac_srv_no, server);
+                        set_tac_srv_key(tac_srv_no, current_secret);
                         tac_srv_no++;
                     }
                     _pam_log(LOG_DEBUG, "%s: server index %d ", __FUNCTION__, tac_srv_no);
                     freeaddrinfo (servers);
                 } else {
-                    _pam_log (LOG_ERR,
-                        "skip invalid server: %s (getaddrinfo: %s)",
-                        server_name, gai_strerror(rv));
+                    _pam_log(LOG_ERR,
+                             "skip invalid server: %s (getaddrinfo: %s)",
+                             server_name, gai_strerror(rv));
                 }
             } else {
                 _pam_log(LOG_ERR, "maximum number of servers (%d) exceeded, skipping",
-                    TAC_PLUS_MAXSERVERS);
+                         TAC_PLUS_MAXSERVERS);
             }
-        } else if (!strncmp (*argv, "secret=", 7)) {
-            int i;
-
+        } else if (!strncmp(*argv, "secret=", 7)) {
             current_secret = *argv + 7;     /* points right into argv (which is const) */
 
-            /* if 'secret=' was given after a 'server=' parameter, fill in the current secret */
-            for(i = tac_srv_no-1; i >= 0; i--) {
-                if (tac_srv[i].key != NULL)
-                    break;
-
-                set_tac_srv_key (i, current_secret);
+            // this is possible because server structure is initialized only on the server= occurence
+            if (tac_srv_no == 0) {
+                _pam_log(LOG_ERR, "secret set but no servers configured yet");
+            } else {
+                // set secret for the last server configured
+                set_tac_srv_key(tac_srv_no - 1, current_secret);
             }
-        } else if (!strncmp (*argv, "timeout=", 8)) {
-            /* FIXME atoi() doesn't handle invalid numeric strings well */
-            tac_timeout = atoi(*argv + 8);
+        } else if (!strncmp(*argv, "timeout=", 8)) {
 
-            if (tac_timeout < 0) {
+#ifdef HAVE_STRTOL
+            tac_timeout = strtol(*argv + 8, NULL, 10);
+
+#else
+            tac_timeout = atoi(*argv + 8);
+#endif
+            if (tac_timeout == LONG_MAX) {
+                _pam_log(LOG_ERR, "timeout parameter cannot be parsed as integer: %s", *argv);
                 tac_timeout = 0;
-            } else { 
+            } else {
                 tac_readtimeout_enable = 1;
             }
         } else {
-            _pam_log (LOG_WARNING, "unrecognized option: %s", *argv);
+            _pam_log(LOG_WARNING, "unrecognized option: %s", *argv);
         }
     }
 
     if (ctrl & PAM_TAC_DEBUG) {
-        int n;
+        unsigned long n;
 
         _pam_log(LOG_DEBUG, "%d servers defined", tac_srv_no);
 
-        for(n = 0; n < tac_srv_no; n++) {
-            _pam_log(LOG_DEBUG, "server[%d] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr), tac_srv[n].key);
+        for (n = 0; n < tac_srv_no; n++) {
+            _pam_log(LOG_DEBUG, "server[%lu] { addr=%s, key='%s' }", n, tac_ntop(tac_srv[n].addr->ai_addr),
+                     tac_srv[n].key);
         }
 
         _pam_log(LOG_DEBUG, "tac_service='%s'", tac_service);

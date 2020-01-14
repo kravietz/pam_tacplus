@@ -22,12 +22,20 @@
 
 #include "xalloc.h"
 
+#ifdef HAVE_BSD_STRING_H
+#include <bsd/string.h>
+#endif
+
 void *xcalloc(size_t nmemb, size_t size) {
 	void *val = calloc(nmemb, size);
 	if (val == 0) {
 		TACSYSLOG(
 				LOG_ERR, "%s: calloc(%u,%u) failed", __FUNCTION__, (unsigned) nmemb, (unsigned) size);
-		exit(1);
+#ifdef HAVE_ABORT
+        abort()
+#else
+        exit(EXIT_FAILURE);
+#endif
 	}
 	return val;
 }
@@ -37,7 +45,11 @@ void *xrealloc(void *ptr, size_t size) {
 	if (val == 0) {
 		TACSYSLOG(
 				LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned) size);
-		exit(1);
+#ifdef HAVE_ABORT
+        abort()
+#else
+        exit(EXIT_FAILURE);
+#endif
 	}
 	return val;
 }
@@ -49,7 +61,11 @@ char *xstrdup(const char *s) {
 
 	if ((p = strdup(s)) == NULL) {
 		TACSYSLOG(LOG_ERR, "%s: strdup(%s) failed: %m", __FUNCTION__, s);
-		exit(1);
+#ifdef HAVE_ABORT
+        abort()
+#else
+        exit(EXIT_FAILURE);
+#endif
 	}
 	return p;
 }
@@ -60,20 +76,35 @@ char *xstrdup(const char *s) {
 char *xstrcpy(char *dst, const char *src, size_t dst_size) {
 	if (dst == NULL) {
 		TACSYSLOG(LOG_ERR, "xstrcpy(): dst == NULL");
-		abort();
+#ifdef HAVE_ABORT
+        abort()
+#else
+        exit(EXIT_FAILURE);
+#endif
 	}
 	if (src == NULL) {
 		TACSYSLOG(LOG_ERR, "xstrcpy(): src == NULL");
-		abort();
+#ifdef HAVE_ABORT
+        abort()
+#else
+        exit(EXIT_FAILURE);
+#endif
 	}
 	if (!dst_size)
 		return NULL;
 
 	if (strlen(src) >= dst_size) {
 		TACSYSLOG(LOG_ERR, "xstrcpy(): argument too long, aborting");
-		abort();
-	}
-
-	return strcpy(dst, src);
+#ifdef HAVE_ABORT
+        abort()
+#else
+        exit(EXIT_FAILURE);
+#endif
+    }
+#ifdef HAVE_STRLCPY
+    return strlcpy(dst, src, dst_size);
+#else
+    return strncpy(dst, src, dst_size);
+#endif
 }
 

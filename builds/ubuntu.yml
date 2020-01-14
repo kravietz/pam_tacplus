@@ -1,0 +1,20 @@
+---
+# build manifest for SourceHut
+# https://man.sr.ht/builds.sr.ht/
+image: ubuntu/lts
+packages:
+- libpam-tacplus
+- autoconf
+- build-essential
+- libtool
+- automake
+- libpam-dev
+- libssl-dev
+sources:
+- https://git.sr.ht/~kravietz/pam-tacplus
+tasks:
+- configure: |
+        cd pam-tacplus
+        autoreconf -i
+        ./configure
+        make
