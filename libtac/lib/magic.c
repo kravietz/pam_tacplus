@@ -18,6 +18,10 @@
  * See `CHANGES' file for revision history.
  */
 
+#ifdef HAVE_CONFIG_H
+  #include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -26,10 +30,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-
-#ifdef HAVE_CONFIG_H
-  #include "config.h"
-#endif
 
 #include "magic.h"
 
