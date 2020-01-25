@@ -116,6 +116,7 @@ int converse(pam_handle_t *pamh, int nargs, const struct pam_message *message,
 int tacacs_get_password(pam_handle_t *pamh, int flags __Unused,
                         int ctrl, char **password) {
 
+    (void) flags;
     const void *pam_pass;
     char *pass = NULL;
 
