@@ -96,7 +96,7 @@ typedef unsigned int u_int32_t;
 
 struct tac_attrib {
 	char *attr;
-	u_char attr_len;
+	unsigned char attr_len;
 	struct tac_attrib *next;
 };
 
@@ -169,12 +169,12 @@ int tac_connect_single(const struct addrinfo *, const char *, struct addrinfo *,
 char *tac_ntop(const struct sockaddr *);
 
 int tac_authen_send(int, const char *, const char *, const char *, const char *,
-		u_char);
+		unsigned char);
 int tac_authen_read(int, struct areply *);
 int tac_cont_send_seq(int, const char *, int);
 #define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)
-HDR *_tac_req_header(u_char, int);
-void _tac_crypt(u_char *, const HDR *);
+HDR *_tac_req_header(unsigned char, int);
+void _tac_crypt(unsigned char *, const HDR *);
 void tac_add_attrib(struct tac_attrib **, char *, char *);
 void tac_free_attrib(struct tac_attrib **);
 char *tac_acct_flag2str(int);

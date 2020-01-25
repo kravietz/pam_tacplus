@@ -43,7 +43,7 @@ int tac_author_read(int fd, struct areply *re) {
 	struct author_reply *tb = NULL;
 	size_t len_from_header, len_from_body;
 	ssize_t packet_read;
-	u_char *pktp = NULL;
+	unsigned char *pktp = NULL;
 	char *msg = NULL;
 	int timeleft = 0;
 	re->msg = NULL;
@@ -114,7 +114,7 @@ int tac_author_read(int fd, struct areply *re) {
 	}
 
 	/* decrypt the body */
-	_tac_crypt((u_char *) tb, &th);
+	_tac_crypt((unsigned char *) tb, &th);
 
 	/* Convert network byte order to host byte order */
 	tb->msg_len = ntohs(tb->msg_len);
@@ -127,7 +127,7 @@ int tac_author_read(int fd, struct areply *re) {
 	len_from_body = TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE + tb->msg_len
 			+ tb->data_len;
 
-	pktp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
+	pktp = (unsigned char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
 
 	/* cycle through the arguments supplied in the packet */
 	for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
@@ -141,7 +141,7 @@ int tac_author_read(int fd, struct areply *re) {
 			free(tb);
 			return re->status;
 		}
-		len_from_body += sizeof(u_char); /* add arg length field's size*/
+		len_from_body += sizeof(unsigned char); /* add arg length field's size*/
 		len_from_body += *pktp; /* add arg length itself */
 		pktp++;
 	}
@@ -160,8 +160,8 @@ int tac_author_read(int fd, struct areply *re) {
 	if (tb->msg_len) {
 		char *msg = (char *) xcalloc(1, tb->msg_len + 1);
 		bcopy(
-				(u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
-						+ (tb->arg_cnt) * sizeof(u_char), msg, tb->msg_len);
+				(unsigned char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
+						+ (tb->arg_cnt) * sizeof(unsigned char), msg, tb->msg_len);
 		msg[(int) tb->msg_len] = '\0';
 		re->msg = msg; /* freed by caller */
 	}
@@ -170,8 +170,8 @@ int tac_author_read(int fd, struct areply *re) {
 	if (tb->data_len) {
 		char *smsg = (char *) xcalloc(1, tb->data_len + 1);
 		bcopy(
-				(u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
-						+ (tb->arg_cnt) * sizeof(u_char) + tb->msg_len, smsg,
+				(unsigned char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE
+						+ (tb->arg_cnt) * sizeof(unsigned char) + tb->msg_len, smsg,
 				tb->data_len);
 		smsg[(int) tb->data_len] = '\0';
 		TACSYSLOG(LOG_ERR, "%s: reply message: %s", __FUNCTION__, smsg);
@@ -190,7 +190,7 @@ int tac_author_read(int fd, struct areply *re) {
 		/*FALLTHRU*/
 
 	case TAC_PLUS_AUTHOR_STATUS_PASS_ADD: {
-		u_char *argp;
+		unsigned char *argp;
 
 		if (!re->msg)
 			re->msg = xstrdup(author_ok_msg);
@@ -198,8 +198,8 @@ int tac_author_read(int fd, struct areply *re) {
 
 		/* add attributes received to attribute list returned to
 		 the client */
-		pktp = (u_char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
-		argp = pktp + (tb->arg_cnt * sizeof(u_char)) + tb->msg_len
+		pktp = (unsigned char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
+		argp = pktp + (tb->arg_cnt * sizeof(unsigned char)) + tb->msg_len
 				+ tb->data_len;
 		TACSYSLOG(LOG_DEBUG, "Args cnt %d", tb->arg_cnt);
 		/* argp points to current argument string

@@ -34,7 +34,7 @@
 
 /* assume digest points to a buffer MD5_LEN size */
 static void
-digest_chap(u_char digest[MD5_LBLOCK], uint8_t id,
+digest_chap(unsigned char digest[MD5_LBLOCK], uint8_t id,
             const char *pass, unsigned pass_len,
             const char *chal, unsigned chal_len) {
 
@@ -46,8 +46,8 @@ digest_chap(u_char digest[MD5_LBLOCK], uint8_t id,
      * for a single call.
      */
     MD5_Update(&mdcontext, &id, sizeof(id));
-    MD5_Update(&mdcontext, (const u_char *)pass, pass_len);
-    MD5_Update(&mdcontext, (const u_char *)chal, chal_len);
+    MD5_Update(&mdcontext, (const unsigned char *)pass, pass_len);
+    MD5_Update(&mdcontext, (const unsigned char *)chal, chal_len);
     MD5_Final(digest, &mdcontext);
 }
 
@@ -62,7 +62,7 @@ digest_chap(u_char digest[MD5_LBLOCK], uint8_t id,
  *             LIBTAC_STATUS_ASSEMBLY_ERR
  */
 int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
-		const char *r_addr, u_char action) {
+		const char *r_addr, unsigned char action) {
 
 	HDR *th; /* TACACS+ packet header */
 	struct authen_start tb; /* message body */
@@ -72,7 +72,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 	int ret = 0;
 	char *chal = "1234123412341234";
 	char *token = NULL;
-	u_char *pkt = NULL;
+	unsigned char *pkt = NULL;
 	const uint8_t id = 5;
 
 	th = _tac_req_header(TAC_PLUS_AUTHEN, 0);
@@ -99,7 +99,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 	r_addr_len = strlen(r_addr);
 
 	if (!strcmp(tac_login, "chap")) {
-		u_char digest[MD5_LBLOCK];
+		unsigned char digest[MD5_LBLOCK];
 
 		digest_chap(digest, id, pass, pass_len, chal, chal_len);
 
@@ -159,7 +159,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 	}
 
 	/* build the packet */
-	pkt = (u_char *) xcalloc(1, bodylength + 10);
+	pkt = (unsigned char *) xcalloc(1, bodylength + 10);
 
 	bcopy(&tb, pkt + pkt_len, sizeof(tb)); /* packet body beginning */
 	pkt_len += sizeof(tb);

@@ -66,7 +66,7 @@ int tac_readtimeout_enable = 0;
  * field depends on the TACACS+ request type and thus it
  * cannot be predefined.
  */
-HDR *_tac_req_header(u_char type, int cont_session) {
+HDR *_tac_req_header(unsigned char type, int cont_session) {
     HDR *th;
 
     th=(HDR *) xcalloc(1, TAC_PLUS_HDR_SIZE);

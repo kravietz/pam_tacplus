@@ -41,7 +41,7 @@ int tac_cont_send_seq(int fd, const char *pass, int seq) {
 	int pass_len, bodylength, w;
 	int pkt_len = 0;
 	int ret = 0;
-	u_char *pkt = NULL;
+	unsigned char *pkt = NULL;
 
 	th = _tac_req_header(TAC_PLUS_AUTHEN, 1);
 
@@ -75,7 +75,7 @@ int tac_cont_send_seq(int fd, const char *pass, int seq) {
 	}
 
 	/* build the packet */
-	pkt = (u_char *) xcalloc(1, bodylength);
+	pkt = (unsigned char *) xcalloc(1, bodylength);
 
 	bcopy(&tb, pkt + pkt_len, TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE); /* packet body beginning */
 	pkt_len += TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE;

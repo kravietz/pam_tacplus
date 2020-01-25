@@ -37,14 +37,14 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 
 	HDR *th;
 	struct author tb;
-	u_char user_len, port_len, r_addr_len;
+	unsigned char user_len, port_len, r_addr_len;
 	struct tac_attrib *a;
 	int i = 0; /* attributes count */
 	int pkt_len = 0; /* current packet length */
 	int pktl = 0; /* temporary storage for previous pkt_len values */
 	int w; /* write() return value */
-	u_char *pkt = NULL; /* packet building pointer */
-	/* u_char *pktp; *//* obsolete */
+	unsigned char *pkt = NULL; /* packet building pointer */
+	/* unsigned char *pktp; *//* obsolete */
 	int ret = 0;
 
 	th = _tac_req_header(TAC_PLUS_AUTHOR, 0);
@@ -59,9 +59,9 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 					__FUNCTION__, user,
 					tty, r_addr, tac_encryption ? "yes" : "no");
 
-	user_len = (u_char) strlen(user);
-	port_len = (u_char) strlen(tty);
-	r_addr_len = (u_char) strlen(r_addr);
+	user_len = (unsigned char) strlen(user);
+	port_len = (unsigned char) strlen(tty);
+	r_addr_len = (unsigned char) strlen(r_addr);
 
 	tb.authen_method = tac_authen_method;
 	tb.priv_lvl = tac_priv_lvl;
@@ -83,7 +83,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 	tb.r_addr_len = r_addr_len;
 
 	/* allocate packet */
-	pkt = (u_char *) xcalloc(1, TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE);
+	pkt = (unsigned char *) xcalloc(1, TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE);
 	pkt_len = sizeof(tb);
 
 	/* fill attribute length fields */
@@ -91,7 +91,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 	while (a) {
 		pktl = pkt_len;
 		pkt_len += sizeof(a->attr_len);
-		pkt = (u_char*) xrealloc(pkt, pkt_len);
+		pkt = (unsigned char*) xrealloc(pkt, pkt_len);
 
 		/* bad method: realloc() is allowed to return different pointer
 		 with each call
@@ -120,7 +120,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 #define PUTATTR(data, len) \
     pktl = pkt_len; \
     pkt_len += len; \
-    pkt = (u_char*) xrealloc(pkt, pkt_len); \
+    pkt = (unsigned char*) xrealloc(pkt, pkt_len); \
     bcopy(data, pkt + pktl, len);
 
 	/* fill user and port fields */
