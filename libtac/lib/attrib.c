@@ -29,14 +29,14 @@ void tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
 
 void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
     struct tac_attrib *a;
-    u_char l1 = (u_char) strlen(name);
-    u_char l2;
+    unsigned char l1 = (unsigned char) strlen(name);
+    unsigned char l2;
     int total_len;
 
     if (value == NULL) {
         l2 = 0;
     } else {
-        l2 = (u_char) strlen(value);
+        l2 = (unsigned char) strlen(value);
     }
     total_len = l1 + l2 + 1; /* "name" + "=" + "value" */
 
