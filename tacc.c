@@ -498,6 +498,7 @@ int main(int argc, char **argv) {
 }
 
 void sighandler(int sig __Unused) {
+    (void) sig;
     TACDEBUG(LOG_DEBUG, "caught signal %d", sig);
 }
 
@@ -602,12 +603,14 @@ void showversion(char *progname) {
 }
 
 void timeout_handler(int signum __Unused) {
+    (void) signum;
     syslog(LOG_ERR, "timeout reading password from user %s", g_user);
 }
 
 #ifdef TACDEBUG_AT_RUNTIME
 void logmsg(int level __Unused, const char *fmt, ...)
 {
+    (void) level;
     va_list ap;
 
     va_start(ap, fmt);
