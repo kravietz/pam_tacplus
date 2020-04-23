@@ -24,3 +24,10 @@ override_dh_install:
 	cp debian/tacplus debian/libpam-tacplus/usr/share/pam-configs/
 	dh_install
 
+override_dh_auto_test:
+	mkdir -p /etc/pam.d
+	sudo cp test/test /etc/pam.d/test
+	sudo mkdir -p /etc/tacacs+/
+	sudo cp test/tac_plus.conf /etc/tacacs+
+	dh_auto_test
+	sudo rm -rf /etc/pam.d/test /etc/tacacs+/tac_plus.conf
