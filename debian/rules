@@ -9,6 +9,8 @@
 #export DH_VERBOSE=1
 SHELL := sh -e
 
+export TACC=yes
+
 %:
 	dh  $@ --with autoreconf
 
