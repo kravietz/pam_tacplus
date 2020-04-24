@@ -14,7 +14,7 @@ if TACC
 bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
 tacc_LDADD = libtac.la
-tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@
+tacc_CFLAGS = $(AM_CFLAGS) -g -O0 -I $(top_srcdir)/libtac/include @rt_debug_defines@
 endif
 
 libtac_includedir = $(includedir)/libtac
@@ -51,7 +51,7 @@ libtac_la_SOURCES += \
 libtac/lib/md5.c \
 libtac/lib/md5.h
 endif
-libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@
+libtac_la_CFLAGS = $(AM_CFLAGS) -g -O0 -I $(top_srcdir)/libtac/include @rt_debug_defines@
 libtac_la_LDFLAGS = -version-info 2:0:0 -shared
 
 moduledir = @pamdir@
@@ -60,7 +60,7 @@ pam_tacplus_la_SOURCES = pam_tacplus.h \
 pam_tacplus.c \
 support.h \
 support.c
-pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/libtac/lib
+pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -g -O0 -I $(top_srcdir)/libtac/include -I $(top_srcdir)/libtac/lib
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 
