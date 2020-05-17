@@ -343,7 +343,7 @@ int main(int argc, char **argv) {
         /* start accounting */
         struct tac_attrib *attr = NULL;
 
-        sprintf(buf, "%lu", time(0));
+        sprintf(buf, "%llu", time(0));
         tac_add_attrib(&attr, "start_time", buf);
 
         // this is not crypto but merely an identifier
@@ -452,7 +452,7 @@ int main(int argc, char **argv) {
     if (do_account) {
         /* stop accounting */
         struct tac_attrib *attr = NULL;
-        sprintf(buf, "%lu", time(0));
+        sprintf(buf, "%llu", time(0));
         tac_add_attrib(&attr, "stop_time", buf);
         sprintf(buf, "%hu", task_id);
         tac_add_attrib(&attr, "task_id", buf);
