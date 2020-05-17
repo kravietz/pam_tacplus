@@ -86,10 +86,14 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 	char buf[64];
 	struct tac_attrib *attr;
 	int retval;
+	time_t t;
+	struct tm tm;
 
 	attr = (struct tac_attrib *) xcalloc(1, sizeof(struct tac_attrib));
 
-	sprintf(buf, "%lu", (unsigned long) time(NULL));
+	t = time(NULL);
+	gmtime_r(&t, &tm);
+	strftime(buf, sizeof(buf), "%s", &tm);
 
 	if (type == TAC_PLUS_ACCT_FLAG_START) {
 		tac_add_attrib(&attr, "start_time", buf);
