@@ -5,7 +5,9 @@
 [![Coverity](https://scan.coverity.com/projects/19343/badge.svg)](https://scan.coverity.com/projects/kravietz-pam_tacplus)
 [![builds.sr.ht status](https://builds.sr.ht/~kravietz/pam-tacplus.svg)](https://builds.sr.ht/~kravietz/pam-tacplus?)
 
-**Funding:** If you are a commercial user of `pam_tacplus` please consider sponsoring the project through [LiberaPay](https://liberapay.com/webcookies) or cryptocurrencies ([keybase.io/kravietz](https://keybase.io/kravietz)). This code base has been live since late 90's and requires a significant effort to keep up with modern environments.
+**Funding:** If you are a commercial user of `pam_tacplus` please consider sponsoring the project through [LiberaPay](https://liberapay.com/webcookies).
+This code base has been live since late 90's and requires a significant effort to keep up with modern environments.
+
 
 # TACACS+ client toolkit
 
