@@ -34,6 +34,13 @@
 /* Pointer to TACACS+ connection timeout */
 unsigned long tac_timeout = 5;
 
+unsigned int tac_dscp = 0;
+
+void tac_set_dscp(uint8_t val) {
+    /* Value should already be left shifted by 2 bits (those are used for ECN) */
+    tac_dscp = val;
+}
+
 /* Returns file descriptor of open connection
    to the first available server from list passed
    in server table.
@@ -89,6 +96,24 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         TACSYSLOG(LOG_ERR,"%s: socket creation error: %s", __FUNCTION__,
             strerror(errno));
         goto bomb;
+    }
+
+    switch (server->ai_family) {
+        case AF_INET:
+            rc = setsockopt(fd, IPPROTO_IP, IP_TOS, &tac_dscp, sizeof tac_dscp);
+            break;
+        case AF_INET6:
+            rc = setsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &tac_dscp, sizeof tac_dscp);
+            break;
+        default:
+            rc = 0;
+    }
+    if (rc < 0) {
+        TACSYSLOG(LOG_ERR,"%s: setsockopt(%s) error: %s", __FUNCTION__,
+            server->ai_family == AF_INET ? "IP_TOS" : "IPV6_TCLASS",
+            strerror(errno));
+        close(fd);
+        return LIBTAC_STATUS_CONN_ERR;
     }
 
     /* get flags for restoration later */
