@@ -23,11 +23,11 @@
 #include "libtac.h"
 #include "xalloc.h"
 
-void tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
-    tac_add_attrib_pair(attr, name, '=', value);
+int tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
+    return tac_add_attrib_pair(attr, name, '=', value);
 }
 
-void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
+int tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
     struct tac_attrib *a;
     size_t l1 = strlen(name);
     size_t l2;
@@ -37,7 +37,7 @@ void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *v
         TACSYSLOG(LOG_WARNING,\
             "%s: attribute `%s' exceeds max. %d characters, skipping",\
             __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN-1);
-        return;
+        return LIBTAC_STATUS_ATTRIB_TOO_LONG;
     }
 
     total_len = l1 + 1; /* "name" + "sep" */
@@ -52,7 +52,7 @@ void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *v
         TACSYSLOG(LOG_WARNING,\
             "%s: attribute `%s' total length exceeds %d characters, skipping",\
             __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN);
-        return;
+        return LIBTAC_STATUS_ATTRIB_TOO_LONG;
     }
 
     total_len += l2;
@@ -85,6 +85,8 @@ void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *v
     }
     *(a->attr+total_len) = '\0';      /* add 0 for safety */
     a->next = NULL; /* make sure it's null */
+
+    return 0;
 }
 
 void tac_free_attrib(struct tac_attrib **attr) {

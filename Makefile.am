@@ -52,7 +52,7 @@ libtac/lib/md5.c \
 libtac/lib/md5.h
 endif
 libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@
-libtac_la_LDFLAGS = -version-info 2:0:0 -shared
+libtac_la_LDFLAGS = -version-info 3:0:0 -shared
 
 moduledir = @pamdir@
 module_LTLIBRARIES = pam_tacplus.la

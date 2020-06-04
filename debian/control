@@ -8,13 +8,13 @@ Homepage: https://github.com/jeroennijhof/pam_tacplus
 
 Package: libpam-tacplus
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libpam-runtime, libtac2
+Depends: ${shlibs:Depends}, ${misc:Depends}, libpam-runtime, libtac3
 Description: PAM module for using TACACS+ as an authentication service
  This PAM module support authentication, authorization (account management) and
  accounting (session management) performed using TACACS+ protocol designed by
  Cisco.
 
-Package: libtac2
+Package: libtac3
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: TACACS+ protocol library 
@@ -30,7 +30,7 @@ Description: TACACS+ client program
 Package: libtac-dev
 Section: libdevel
 Architecture: any
-Depends: ${misc:Depends}, libtac2 (= ${binary:Version}), libc6-dev|libc-dev
+Depends: ${misc:Depends}, libtac3 (= ${binary:Version}), libc6-dev|libc-dev
 Description: Development files for TACACS+ protocol library 
  Contains C header files and development files for libtac, a TACACS+ protocol
  implementation.
