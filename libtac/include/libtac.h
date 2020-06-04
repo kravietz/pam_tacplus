@@ -94,6 +94,9 @@ extern void logmsg __P((int, const char*, ...));
 typedef unsigned int u_int32_t;
 #endif
 
+#define TAC_PLUS_ATTRIB_MAX_LEN 255
+#define TAC_PLUS_ATTRIB_MAX_CNT 255
+
 struct tac_attrib {
 	char *attr;
 	unsigned char attr_len;
@@ -131,15 +134,17 @@ struct areply {
  *   all negative, tacplus status codes are >= 0
  */
 
-#define LIBTAC_STATUS_ASSEMBLY_ERR  -1
-#define LIBTAC_STATUS_PROTOCOL_ERR  -2
-#define LIBTAC_STATUS_READ_TIMEOUT  -3
-#define LIBTAC_STATUS_WRITE_TIMEOUT -4
-#define LIBTAC_STATUS_WRITE_ERR     -5
-#define LIBTAC_STATUS_SHORT_HDR     -6
-#define LIBTAC_STATUS_SHORT_BODY    -7
-#define LIBTAC_STATUS_CONN_TIMEOUT  -8
-#define LIBTAC_STATUS_CONN_ERR      -9
+#define LIBTAC_STATUS_ASSEMBLY_ERR    -1
+#define LIBTAC_STATUS_PROTOCOL_ERR    -2
+#define LIBTAC_STATUS_READ_TIMEOUT    -3
+#define LIBTAC_STATUS_WRITE_TIMEOUT   -4
+#define LIBTAC_STATUS_WRITE_ERR       -5
+#define LIBTAC_STATUS_SHORT_HDR       -6
+#define LIBTAC_STATUS_SHORT_BODY      -7
+#define LIBTAC_STATUS_CONN_TIMEOUT    -8
+#define LIBTAC_STATUS_CONN_ERR        -9
+#define LIBTAC_STATUS_ATTRIB_TOO_LONG -10
+#define LIBTAC_STATUS_ATTRIB_TOO_MANY -11
 
 /* Runtime flags */
 
@@ -175,7 +180,7 @@ int tac_cont_send_seq(int, const char *, int);
 #define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)
 HDR *_tac_req_header(unsigned char, int);
 void _tac_crypt(unsigned char *, const HDR *);
-void tac_add_attrib(struct tac_attrib **, char *, char *);
+int tac_add_attrib(struct tac_attrib **, char *, char *);
 void tac_free_attrib(struct tac_attrib **);
 char *tac_acct_flag2str(int);
 int tac_acct_send(int, int, const char *, char *, char *, struct tac_attrib *);
@@ -186,7 +191,10 @@ char *xstrcpy(char *, const char *, size_t);
 char *_tac_check_header(HDR *, int);
 int tac_author_send(int, const char *, char *, char *, struct tac_attrib *);
 int tac_author_read(int, struct areply *);
-void tac_add_attrib_pair(struct tac_attrib **, char *, char, char *);
+int tac_add_attrib_pair(struct tac_attrib **, char *, char, char *);
+int tac_add_attrib_truncate(struct tac_attrib **attr, char *name, char *value);
+int tac_add_attrib_pair_truncate(struct tac_attrib **attr, char *name,
+		char sep, char *value);
 int tac_read_wait(int, int, int, int *);
 
 /* magic.c */
