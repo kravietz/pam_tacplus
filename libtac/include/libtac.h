@@ -163,6 +163,7 @@ extern int tac_readtimeout_enable;
 /* connect.c */
 extern unsigned long tac_timeout;
 
+void tac_set_dscp(uint8_t val);
 int tac_connect(struct addrinfo **, char **, int);
 int tac_connect_single(const struct addrinfo *, const char *, struct addrinfo *,
 		int);
