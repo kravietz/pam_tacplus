@@ -190,6 +190,9 @@ char *_tac_check_header(HDR *, int);
 int tac_author_send(int, const char *, char *, char *, struct tac_attrib *);
 int tac_author_read(int, struct areply *);
 int tac_add_attrib_pair(struct tac_attrib **, char *, char, char *);
+int tac_add_attrib_truncate(struct tac_attrib **attr, char *name, char *value);
+int tac_add_attrib_pair_truncate(struct tac_attrib **attr, char *name,
+		char sep, char *value);
 int tac_read_wait(int, int, int, int *);
 
 /* magic.c */

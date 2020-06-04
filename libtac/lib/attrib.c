@@ -23,11 +23,9 @@
 #include "libtac.h"
 #include "xalloc.h"
 
-int tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
-    return tac_add_attrib_pair(attr, name, '=', value);
-}
-
-int tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
+static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
+                                char sep, char *value, int truncate)
+{
     struct tac_attrib *a;
     size_t l1 = strlen(name);
     size_t l2;
@@ -49,10 +47,15 @@ int tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *va
     }
 
     if (l2 > TAC_PLUS_ATTRIB_MAX_LEN-total_len) {
-        TACSYSLOG(LOG_WARNING,\
-            "%s: attribute `%s' total length exceeds %d characters, skipping",\
-            __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN);
-        return LIBTAC_STATUS_ATTRIB_TOO_LONG;
+        if (truncate) {
+            l2 = TAC_PLUS_ATTRIB_MAX_LEN-total_len;
+        }
+        else {
+            TACSYSLOG(LOG_WARNING,\
+                "%s: attribute `%s' total length exceeds %d characters, skipping",\
+                __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN);
+            return LIBTAC_STATUS_ATTRIB_TOO_LONG;
+        }
     }
 
     total_len += l2;
@@ -87,6 +90,22 @@ int tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *va
     a->next = NULL; /* make sure it's null */
 
     return 0;
+}
+
+int tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
+    return tac_add_attrib_pair(attr, name, '=', value);
+}
+
+int tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
+    return _tac_add_attrib_pair(attr, name, sep, value, 0);
+}
+
+int tac_add_attrib_truncate(struct tac_attrib **attr, char *name, char *value) {
+    return tac_add_attrib_pair_truncate(attr, name, '=', value);
+}
+
+int tac_add_attrib_pair_truncate(struct tac_attrib **attr, char *name, char sep, char *value) {
+    return _tac_add_attrib_pair(attr, name, sep, value, 1);
 }
 
 void tac_free_attrib(struct tac_attrib **attr) {
