@@ -95,6 +95,7 @@ typedef unsigned int u_int32_t;
 #endif
 
 #define TAC_PLUS_ATTRIB_MAX_LEN 255
+#define TAC_PLUS_ATTRIB_MAX_CNT 255
 
 struct tac_attrib {
 	char *attr;
@@ -143,6 +144,7 @@ struct areply {
 #define LIBTAC_STATUS_CONN_TIMEOUT    -8
 #define LIBTAC_STATUS_CONN_ERR        -9
 #define LIBTAC_STATUS_ATTRIB_TOO_LONG -10
+#define LIBTAC_STATUS_ATTRIB_TOO_MANY -11
 
 /* Runtime flags */
 

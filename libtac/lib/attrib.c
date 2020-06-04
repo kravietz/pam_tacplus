@@ -29,6 +29,7 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
     struct tac_attrib *a;
     size_t l1 = strlen(name);
     size_t l2;
+    unsigned int attr_cnt = 0;
     size_t total_len;
 
     if (l1 > TAC_PLUS_ATTRIB_MAX_LEN-1) { /* take sep into account */
@@ -67,8 +68,17 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
     } else {
         /* find the last allocated block */
         a = *attr;
-        while(a->next != NULL)
+        while(a->next != NULL) {
             a = a->next; /* a holds last allocated block */
+            attr_cnt++;
+        }
+
+        if (attr_cnt+1 >= TAC_PLUS_ATTRIB_MAX_CNT) { /* take new attrib into account */
+            TACSYSLOG(LOG_WARNING,\
+                "%s: Maximum number of attributes exceeded, skipping",\
+                __FUNCTION__);
+            return LIBTAC_STATUS_ATTRIB_TOO_MANY;
+        }
 
         a->next = (struct tac_attrib *) xcalloc(1, sizeof(struct tac_attrib));
         a = a->next; /* set current block pointer to the new one */
