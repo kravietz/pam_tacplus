@@ -29,23 +29,33 @@ void tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
 
 void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
     struct tac_attrib *a;
-    unsigned char l1 = (unsigned char) strlen(name);
-    unsigned char l2;
-    int total_len;
+    size_t l1 = strlen(name);
+    size_t l2;
+    size_t total_len;
+
+    if (l1 > TAC_PLUS_ATTRIB_MAX_LEN-1) { /* take sep into account */
+        TACSYSLOG(LOG_WARNING,\
+            "%s: attribute `%s' exceeds max. %d characters, skipping",\
+            __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN-1);
+        return;
+    }
+
+    total_len = l1 + 1; /* "name" + "sep" */
 
     if (value == NULL) {
         l2 = 0;
     } else {
-        l2 = (unsigned char) strlen(value);
+        l2 = strlen(value);
     }
-    total_len = l1 + l2 + 1; /* "name" + "=" + "value" */
 
-    if (total_len > 255) {
+    if (l2 > TAC_PLUS_ATTRIB_MAX_LEN-total_len) {
         TACSYSLOG(LOG_WARNING,\
-            "%s: attribute `%s' total length exceeds 255 characters, skipping",\
-            __FUNCTION__, name);
+            "%s: attribute `%s' total length exceeds %d characters, skipping",\
+            __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN);
         return;
     }
+
+    total_len += l2;
 
     /* initialize the list if application passed us a null pointer */
     if(*attr == NULL) {

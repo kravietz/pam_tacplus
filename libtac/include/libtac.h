@@ -94,6 +94,8 @@ extern void logmsg __P((int, const char*, ...));
 typedef unsigned int u_int32_t;
 #endif
 
+#define TAC_PLUS_ATTRIB_MAX_LEN 255
+
 struct tac_attrib {
 	char *attr;
 	unsigned char attr_len;
