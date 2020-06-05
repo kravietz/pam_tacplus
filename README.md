@@ -84,9 +84,9 @@ apt install tacacs+ pamtester
 Create `/etc/pam.d/test` with the following contents:
 ```
 #%PAM-1.0
-auth       required /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123
-account	   required /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 service=ppp protocol=ip
-session    required /usr/local/lib/security/pam_tacplus.so debug server=127.0.0.1 secret=testkey123 server=127.0.0.2 secret=testkey123 service=ppp protocol=ip
+auth       required /usr/local/lib/security/pam_tacplus.so server=127.0.0.1 secret=testkey123
+account	   required /usr/local/lib/security/pam_tacplus.so server=127.0.0.1 secret=testkey123 service=ppp protocol=ip
+session    required /usr/local/lib/security/pam_tacplus.so server=127.0.0.1 secret=testkey123 server=127.0.0.2 secret=testkey123 service=ppp protocol=ip
 ```
 Ensure `/etc/tacacs+/tac_plus.conf` contains the following options:
 ```
