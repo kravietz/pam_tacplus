@@ -21,7 +21,7 @@ The following core TACACS+ functions are supported:
 
 | TACACS+ name   |           PAM name | What it does                        |
 |----------------|--------------------|-------------------------------------|
-| Authentication | Authenticate       | Is the user who he/she claims?      |
+| Authentication | Authenticate       | Is the user who they claim?         |
 | Authorization  | Account management | Is the user entitled to service X?  |
 | Account        | Session open/close | Record beginning and end of service |
 
@@ -231,8 +231,8 @@ Consider `login' application:
    replied with either positive or negative response. If the reponse
    is negative, the whole thing is over
 5. PAM calls another function from `pam_tacplus` &mdash; `pam_sm_acct_mgmt()`.
-   This function is expected to verify whether the user is allowed
-   to get the service he's requesting (in this case: unix shell).
+   This function is expected to verify whether the users are allowed
+   to get the service they are requesting (in this case: unix shell).
    The function again verifies the permission on TACACS+ server. Assume
    the server granted the user with requested service.
 6. Before user gets the shell, PAM calls one another function from
