@@ -41,6 +41,11 @@ void tac_set_dscp(uint8_t val) {
     tac_dscp = val;
 }
 
+
+void tac_enable_readtimeout(int enable) {
+        tac_readtimeout_enable = !!enable;
+}
+
 /* Returns file descriptor of open connection
    to the first available server from list passed
    in server table.
