@@ -23,6 +23,8 @@
 #include "libtac.h"
 #include "messages.h"
 
+#include <string.h>
+
 /* This function returns structure containing
  1. status (granted/denied)
  2. message for the user
