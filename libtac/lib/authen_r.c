@@ -23,6 +23,8 @@
 #include "libtac.h"
 #include "messages.h"
 
+#include <arpa/inet.h>
+
 /* reads packet from TACACS+ server; returns:
  *  TAC_PLUS_AUTHEN_STATUS_PASS if the authentication succeded
  *  an other integer if failed. Check tacplus.h for all possible values
