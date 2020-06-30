@@ -38,7 +38,7 @@
  *         LIBTAC_STATUS_PROTOCOL_ERR
  *   >= 0 : server response, see TAC_PLUS_AUTHOR_STATUS_...
  */
-int tac_author_read(int fd, struct areply *re) {
+int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout) {
 	HDR th;
 	struct author_reply *tb = NULL;
 	size_t len_from_header, len_from_body;
@@ -51,11 +51,11 @@ int tac_author_read(int fd, struct areply *re) {
 
 	bzero(re, sizeof(struct areply));
 	if (tac_readtimeout_enable
-			&& tac_read_wait(fd, tac_timeout * 1000, TAC_PLUS_HDR_SIZE,
+			&& tac_read_wait(fd, timeout * 1000, TAC_PLUS_HDR_SIZE,
 					&timeleft) < 0) {
 
 		TACSYSLOG(
-				LOG_ERR, "%s: reply timeout after %lu secs", __FUNCTION__, tac_timeout);
+				LOG_ERR, "%s: reply timeout after %lu secs", __FUNCTION__, timeout);
 		re->msg = xstrdup(author_syserr_msg);
 		re->status = LIBTAC_STATUS_READ_TIMEOUT;
 		free(tb);
@@ -97,7 +97,7 @@ int tac_author_read(int fd, struct areply *re) {
 			&& tac_read_wait(fd, timeleft, len_from_header, NULL) < 0) {
 
 		TACSYSLOG(
-				LOG_ERR, "%s: reply timeout after %lu secs", __FUNCTION__, tac_timeout);
+				LOG_ERR, "%s: reply timeout after %lu secs", __FUNCTION__, timeout);
 		re->msg = xstrdup(author_syserr_msg);
 		re->status = LIBTAC_STATUS_READ_TIMEOUT;
 		free(tb);
@@ -260,4 +260,8 @@ int tac_author_read(int fd, struct areply *re) {
 
 	free(tb);
 	return re->status;
+}
+
+int tac_author_read(int fd, struct areply *re) {
+	return tac_author_read_timeout(fd, re, tac_timeout);
 }
