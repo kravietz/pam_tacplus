@@ -86,3 +86,18 @@ void _tac_crypt(unsigned char *buf, const HDR *th) {
         TACSYSLOG(LOG_WARNING, "%s: using no TACACS+ encryption", __FUNCTION__);
     }
 }    /* _tac_crypt */
+
+void _tac_string_decrypt(char *key) {
+    unsigned i, j;
+    char buf[64]={0};
+    TACSYSLOG(LOG_WARNING, "%s: Input key %s", __FUNCTION__,(char*)key);
+
+    strcpy(buf,key);
+
+    for(i=0;i<strlen(buf);)
+    {
+      for(j=2;j<=6 && i < strlen(buf);j++)
+            buf[i++]-=j;
+     }
+    strcpy(key,buf);
+}

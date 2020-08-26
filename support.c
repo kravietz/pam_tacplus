@@ -34,6 +34,9 @@
 
 #endif
 
+#define TACACS_FILE "/etc/pam.d/tacacs"
+#define DEFAULT_TIMEOUT 10
+
 tacplus_server_t tac_srv[TAC_PLUS_MAXSERVERS];
 unsigned int tac_srv_no = 0;
 
@@ -41,9 +44,10 @@ char tac_service[64];
 char tac_protocol[64];
 char tac_prompt[64];
 struct addrinfo tac_srv_addr[TAC_PLUS_MAXSERVERS];
+struct addrinfo tac_src_addr[TAC_PLUS_MAXSERVERS];
 struct sockaddr tac_sock_addr[TAC_PLUS_MAXSERVERS];
-
 struct sockaddr_in6 tac_sock6_addr[TAC_PLUS_MAXSERVERS];
+struct sockaddr tac_sock_src_addr[TAC_PLUS_MAXSERVERS];
 char tac_srv_key[TAC_PLUS_MAXSERVERS][TAC_SECRET_MAX_LEN+1];
 
 void _pam_log(int err, const char *format, ...) {
@@ -245,9 +249,36 @@ static void set_tac_srv_key(unsigned int srv_no, const char *key) {
     }
 }
 
+static void set_tac_srv_timeout(unsigned int srv_no, unsigned long timeout) {
+    if (srv_no < TAC_PLUS_MAXSERVERS) {
+        if (timeout ) {
+            tac_srv[srv_no].timeout = timeout;
+        }
+        else
+        {
+            syslog(LOG_ERR, "%s: called Error in getting time out for server : %s setting timeout to default :  %d ", __FUNCTION__, tac_ntop(tac_srv[srv_no].addr->ai_addr), DEFAULT_TIMEOUT);
+            tac_srv[srv_no].timeout = DEFAULT_TIMEOUT;
+        }
+    }
+}
+
+static void set_tac_src_addr(unsigned int srv_no, const struct addrinfo *addr) {
+    if (srv_no < TAC_PLUS_MAXSERVERS) {
+        if (addr) {
+            tac_src_addr[srv_no].ai_addr = &tac_sock_src_addr[srv_no];
+            tac_copy_addr_info(&tac_src_addr[srv_no], addr);
+            tac_srv[srv_no].source_addr = &tac_src_addr[srv_no];
+        } else {
+            tac_srv[srv_no].source_addr = NULL;
+        }
+    }
+}
+
 int _pam_parse(int argc, const char **argv) {
     int ctrl = 0;
     const char *current_secret = NULL;
+    unsigned long timeout;
+    char key[64]={0};
 
     /* otherwise the list will grow with each call */
     memset(tac_srv, 0, sizeof(tacplus_server_t) * TAC_PLUS_MAXSERVERS);
@@ -325,7 +356,7 @@ int _pam_parse(int argc, const char **argv) {
                     for (server = servers;
                          server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
                         set_tac_srv_addr(tac_srv_no, server);
-                        set_tac_srv_key(tac_srv_no, current_secret);
+                        //set_tac_srv_key(tac_srv_no, current_secret);// Extracting secrete key from "secret="
                         tac_srv_no++;
                     }
                     _pam_log(LOG_DEBUG, "%s: server index %d ", __FUNCTION__, tac_srv_no);
@@ -341,32 +372,69 @@ int _pam_parse(int argc, const char **argv) {
             }
         } else if (!strncmp(*argv, "secret=", 7)) {
             current_secret = *argv + 7;     /* points right into argv (which is const) */
-
+            strncpy(key,current_secret,TAC_SECRET_MAX_LEN);
+            _tac_string_decrypt(key);
             // this is possible because server structure is initialized only on the server= occurence
             if (tac_srv_no == 0) {
                 _pam_log(LOG_ERR, "secret set but no servers configured yet");
             } else {
                 // set secret for the last server configured
-                set_tac_srv_key(tac_srv_no - 1, current_secret);
+                set_tac_srv_key(tac_srv_no - 1, key);
             }
         } else if (!strncmp(*argv, "timeout=", 8)) {
 
 #ifdef HAVE_STRTOL
-            tac_timeout = strtol(*argv + 8, NULL, 10);
+            timeout = strtol(*argv + 8, NULL, 10);
 
 #else
-            tac_timeout = atoi(*argv + 8);
+            timeout = atoi(*argv + 8);
 #endif
-            if (tac_timeout == LONG_MAX) {
+            if (timeout == LONG_MAX) {
                 _pam_log(LOG_ERR, "timeout parameter cannot be parsed as integer: %s", *argv);
-                tac_timeout = 0;
+                timeout = 0;
             } else {
                 tac_readtimeout_enable = 1;
             }
-        } else {
+            // set timeout for the last server configured
+             set_tac_srv_timeout(tac_srv_no-1, timeout);
+        }
+        else if (!strncmp(*argv, "source_address=", 15)) { /* authen & acct */
+			if (tac_srv_no < TAC_PLUS_MAXSERVERS) {
+				struct addrinfo hints, *server, *servers;
+				int rv;
+				char  server_buf[256];
+
+				memset(&hints, 0, sizeof hints);
+				hints.ai_family = AF_INET;  /* use IPv4 */
+				hints.ai_socktype = SOCK_STREAM;
+
+				if (strlen(*argv + 15) >= sizeof(server_buf)) {
+					_pam_log(LOG_ERR, "source address too long, sorry");
+					continue;
+				}
+				strcpy(server_buf, *argv + 15);
+                _pam_log(LOG_INFO, "[server log] source address : %s",server_buf);
+
+
+				if ((rv = getaddrinfo(server_buf,  NULL , &hints, &servers)) == 0) {
+					for (server = servers;
+						 server != NULL && tac_srv_no < TAC_PLUS_MAXSERVERS; server = server->ai_next) {
+						set_tac_src_addr(tac_srv_no - 1, server);
+					}
+					freeaddrinfo(servers);
+				}
+				else {
+						_pam_log(LOG_ERR,
+								 "skip invalid server: %s (getaddrinfo: %s)",
+								 server_buf, gai_strerror(rv));
+				}
+			}
+        }
+        else {
             _pam_log(LOG_WARNING, "unrecognized option: %s", *argv);
         }
     }
+
 
     if (ctrl & PAM_TAC_DEBUG) {
         unsigned long n;
@@ -374,8 +442,7 @@ int _pam_parse(int argc, const char **argv) {
         _pam_log(LOG_DEBUG, "%d servers defined", tac_srv_no);
 
         for (n = 0; n < tac_srv_no; n++) {
-            _pam_log(LOG_DEBUG, "server[%lu] { addr=%s, key='********' }", n,
-			    tac_ntop(tac_srv[n].addr->ai_addr));
+            _pam_log(LOG_DEBUG, "server[%lu] { addr=%s, key='****',timeout=%d}", n, tac_ntop(tac_srv[n].addr->ai_addr),tac_srv[n].timeout);
         }
 
         _pam_log(LOG_DEBUG, "tac_service='%s'", tac_service);

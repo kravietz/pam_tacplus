@@ -49,6 +49,8 @@ int tac_author_read(int fd, struct areply *re) {
 	re->msg = NULL;
 	unsigned int r = 0;
 
+        TACSYSLOG(LOG_ERR, "%s:[timeout] reply timeout %lu secs", __FUNCTION__, tac_timeout);
+
 	bzero(re, sizeof(struct areply));
 	if (tac_readtimeout_enable
 			&& tac_read_wait(fd, tac_timeout * 1000, TAC_PLUS_HDR_SIZE,

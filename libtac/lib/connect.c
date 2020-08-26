@@ -86,8 +86,20 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
 
     if(server == NULL) {
         TACSYSLOG(LOG_ERR, "%s: no TACACS+ server defined", __FUNCTION__);
+        retval = LIBTAC_STATUS_SERVER_NOT_CONFIGURED; /* not configured */
         goto bomb;
     }
+    // Make sure that "secret=" keyword found and it's value is not null
+    if(key == NULL) {
+         TACSYSLOG(LOG_ERR, "%s: TACACS+ server secret key not configured", __FUNCTION__);
+         retval = LIBTAC_STATUS_SEC_KEY_NOT_CONFIGURED; /* not configured */
+         goto bomb;
+     }
+     else if(*key == '\0') {
+         TACSYSLOG(LOG_ERR, "%s: TACACS+ server secret key not configured", __FUNCTION__);
+         retval = LIBTAC_STATUS_SEC_KEY_NOT_CONFIGURED; /* not configured */
+         goto bomb;
+     }
 
     /* format server address into a string  for use in messages */
     ip = tac_ntop(server->ai_addr);
@@ -131,7 +143,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         if (bind(fd, srcaddr->ai_addr, srcaddr->ai_addrlen) < 0) {
             TACSYSLOG(LOG_ERR, "%s: Failed to bind source address: %s",
                 __FUNCTION__, strerror(errno));
-            goto bomb;
+            //Don't exit on bind error.
         }
     }
 
@@ -139,9 +151,12 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     /* FIX this..for some reason errno = 0 on AIX... */
     if((rc == -1) && (errno != EINPROGRESS) && (errno != 0)) {
         TACSYSLOG(LOG_ERR,\
-            "%s: connection to %s failed: %m", __FUNCTION__, ip);
+            "%s: connection to %s failed: %m", __FUNCTION__, ip); /* unreachable */
+        retval = LIBTAC_STATUS_CONN_ERR;
         goto bomb;
     }
+    /* set timeout to global variable tac_timeout to be further used for tac_authen_send,  tac_authen_read */
+    tac_timeout = timeout;
 
     /* set fds for select */
     FD_ZERO(&readfds);
@@ -158,7 +173,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
 
     /* timeout */
     if ( rc == 0 ) {
-        retval = LIBTAC_STATUS_CONN_TIMEOUT;
+        retval = LIBTAC_STATUS_CONN_TIMEOUT; /* timeout error*/
         goto bomb;
     }
 
