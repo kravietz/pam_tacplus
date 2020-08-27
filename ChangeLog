@@ -1,3 +1,11 @@
+1.6.0
+* Allow selection of source addresses
+* Support for DSCP marking packets
+* Make most network requests timeout aware
+* Fix Debian build scripts
+* OpenSSL licensing clarifications
+* Use more neutral terminology
+
 1.4.1
 * Numerous minor cleanups and fixes
 * Tacc now supports --login flag to indicate intended TACPLUS+ login type
