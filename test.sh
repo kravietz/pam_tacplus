@@ -80,3 +80,5 @@ send -- "badpass\r"
 expect "pamtester: Authentication failure\r"
 expect eof
 _EOT
+
+
