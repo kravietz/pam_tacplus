@@ -117,8 +117,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         TACSYSLOG(LOG_ERR,"%s: setsockopt(%s) error: %s", __FUNCTION__,
             server->ai_family == AF_INET ? "IP_TOS" : "IPV6_TCLASS",
             strerror(errno));
-        close(fd);
-        return LIBTAC_STATUS_CONN_ERR;
+        goto bomb;
     }
 
     /* get flags for restoration later */
