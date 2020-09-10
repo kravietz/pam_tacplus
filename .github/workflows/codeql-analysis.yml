@@ -56,6 +56,8 @@ jobs:
 
     - run: |
        autoreconf -f -v -i
+       sudo apt install -y libpam-dev libssl-dev
+       ./configure
        make
 
     - name: Perform CodeQL Analysis
