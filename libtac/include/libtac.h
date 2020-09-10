@@ -120,7 +120,7 @@ struct areply {
 #endif
 
 #ifndef TAC_PLUS_MAX_ARGCOUNT
-#define TAC_PLUS_MAX_ARGCOUNT 100 /* maximum number of arguments passed in packet */
+#define TAC_PLUS_MAX_ARGCOUNT TAC_PLUS_ATTRIB_MAX_CNT /* maximum number of arguments passed in packet */
 #endif
 
 #ifndef TAC_PLUS_PORT
