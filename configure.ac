@@ -58,7 +58,7 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h str
 AC_CHECK_HEADERS([syslog.h unistd.h openssl/md5.h openssl/rand.h sys/random.h bsd/string.h])
 AC_CHECK_HEADER(security/pam_appl.h, [], [AC_MSG_ERROR([PAM libraries missing. Install with "yum install pam-devel" or "apt-get install libpam-dev".])] )
 AM_CONDITIONAL(MY_MD5, [test "$ac_cv_header_openssl_md5_h" = "no" ])
-AM_CONDITIONAL(TACC, [test "$ac_cv_lib_crypto_RAND_bytes" = "yes" || test "$ac_cv_lib_crypto_RAND_pseudo_bytes" = "yes"])
+AM_CONDITIONAL(TACC, [true])
 
 dnl --------------------------------------------------------------------
 dnl Checks for typedefs, structures, and compiler characteristics.
