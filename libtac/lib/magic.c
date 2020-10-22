@@ -81,26 +81,42 @@ magic()
 
 #elif defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
 
+#include <openssl/err.h>
 #include <openssl/rand.h>
 
 /* RAND_bytes is OpenSSL's classic function to obtain cryptographic strength pseudo-random bytes
-   however, since the magic() function is used to generate TACACS+ session id rather than crypto keys
-   we can use RAND_pseudo_bytes() which doesn't deplete the system's entropy pool
+   however, we can use RAND_pseudo_bytes() which doesn't deplete the system's entropy pool, so long
+   as it returns a "cryptographically strong" result - since session_id is an input to the TACACS+
+   "encryption" ("obfuscation" by modern standards - RFC 8907) algorithm.
    */
 
 u_int32_t
 magic()
 {
     u_int32_t num;
+    int ret;
 
 #ifdef HAVE_RAND_BYTES
-    RAND_bytes((unsigned char *)&num, sizeof(num));
+    ret = RAND_bytes((unsigned char *)&num, sizeof(num));
 #elif HAVE_RAND_PSEUDO_BYTES
-    RAND_pseudo_bytes((unsigned char *)&num, sizeof(num));
+    ret = RAND_pseudo_bytes((unsigned char *)&num, sizeof(num));
 #else
 	#error Neither  RAND_bytes nor RAND_pseudo_bytes seems to be available
 #endif
-    return num;
+
+    /* RAND_bytes success / RAND_pseudo_bytes "cryptographically strong" result */
+    if (ret == 1)
+        return num;
+
+    TACSYSLOG(LOG_CRIT,"%s: "
+#ifdef HAVE_RAND_BYTES
+                       "RAND_bytes "
+#else
+                       "RAND_pseudo_bytes "
+#endif
+                       "failed; ret: %d err: %ld", __FUNCTION__, ret, ERR_get_error());
+
+    exit(1);
 }
 
 #else
