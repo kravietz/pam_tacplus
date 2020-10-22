@@ -718,6 +718,12 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
 PAM_EXTERN
 int pam_sm_open_session(pam_handle_t *pamh, int UNUSED(flags), int argc,
                         const char **argv) {
+
+/* Task ID has no need to be cryptographically strong so we don't
+ * check for failures of the RAND functions. If they fail then we are
+ * as well sending the accounting request regardless of whether any value
+ * was written to task_id.
+ */
 #if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
 # if defined(HAVE_RAND_BYTES)
 	RAND_bytes((unsigned char *) &task_id, sizeof(task_id));
