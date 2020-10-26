@@ -100,8 +100,13 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 	} else if (type == TAC_PLUS_ACCT_FLAG_STOP) {
 		tac_add_attrib(&attr, "stop_time", buf);
 	}
-	sprintf(buf, "%hu", task_id);
+
+	if (task_id == 0)
+		snprintf(buf, sizeof(buf), "%d", getpid());
+	else
+		snprintf(buf, sizeof(buf), "%hu", task_id);
 	tac_add_attrib(&attr, "task_id", buf);
+
 	tac_add_attrib(&attr, "service", tac_service);
 	if (tac_protocol[0] != '\0')
 		tac_add_attrib(&attr, "protocol", tac_protocol);
@@ -718,6 +723,11 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
 PAM_EXTERN
 int pam_sm_open_session(pam_handle_t *pamh, int UNUSED(flags), int argc,
                         const char **argv) {
+
+/* Task ID has no need to be cryptographically strong so we don't
+ * check for failures of the RAND functions. If we fail to get an ID we
+ * fallback to using our PID (in _pam_send_account).
+ */
 #if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
 # if defined(HAVE_RAND_BYTES)
 	RAND_bytes((unsigned char *) &task_id, sizeof(task_id));
@@ -727,6 +737,10 @@ int pam_sm_open_session(pam_handle_t *pamh, int UNUSED(flags), int argc,
 #else
 	task_id=(short int) magic();
 #endif
+
+	if (task_id == 0)
+		syslog(LOG_INFO, "%s: failed to generate random task ID, "
+				"falling back to PID", __FUNCTION__);
 
 	return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_START, NULL);
 } /* pam_sm_open_session */
