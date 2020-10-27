@@ -1,3 +1,6 @@
+1.6.1
+* Fixed security issue (CVE-2020-27743) which could result in packet encryption operate uninitialized in case of RAND_bytes() failure
+
 1.6.0
 * Allow selection of source addresses
 * Support for DSCP marking packets
