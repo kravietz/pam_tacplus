@@ -21,4 +21,4 @@
 
 int tac_ver_major = 1;
 int tac_ver_minor = 10;
-int tac_ver_patch = 0; /* patchlevel */
+int tac_ver_patch = 1; /* patchlevel */
