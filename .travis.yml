@@ -1,5 +1,11 @@
 ---
 language: c
+
+
+arch:
+ - amd64
+ - ppc64le
+ 
 dist: bionic
 cache:
   directories:
