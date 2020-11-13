@@ -100,6 +100,9 @@ AC_SUBST(pamdir)
 AC_ARG_ENABLE(doc, AS_HELP_STRING([--disable-doc], [do not build docs]))
 AM_CONDITIONAL(DOC, test "x$enable_doc" != "xno")
 
+AC_ARG_ENABLE(werror, AS_HELP_STRING([--disable-werror], [do not build with -Werror]))
+AM_CONDITIONAL(ENABLE_WERROR, test "x$enable_werror" != "xno")
+
 dnl --------------------------------------------------------------------
 dnl Switch for run-time debugging
 AC_ARG_ENABLE(runtime-debugging, [AS_HELP_STRING([--enable-runtime-debugging],
