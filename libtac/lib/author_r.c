@@ -41,6 +41,8 @@
 int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout) {
 	HDR th;
 	struct author_reply *tb = NULL;
+	char *tb_byte_p = NULL;
+	size_t tb_bytes_read;
 	size_t len_from_header, len_from_body;
 	ssize_t packet_read;
 	unsigned char *pktp = NULL;
@@ -93,25 +95,39 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout) {
 	tb = (struct author_reply *) xcalloc(1, len_from_header);
 
 	/* read reply packet body */
-	if (tac_readtimeout_enable
-			&& tac_read_wait(fd, timeleft, len_from_header, NULL) < 0) {
+	tb_bytes_read = 0;
+	/* Treat as char* for pointer arithmetic in byte sized chunks below */
+	tb_byte_p = (char *) tb;
+	do {
+		if (tac_readtimeout_enable
+			&& tac_read_wait(fd, timeleft, len_from_header, &timeleft) < 0) {
 
-		TACSYSLOG(
-				LOG_ERR, "%s: reply timeout after %lu secs", __FUNCTION__, timeout);
-		re->msg = xstrdup(author_syserr_msg);
-		re->status = LIBTAC_STATUS_READ_TIMEOUT;
-		free(tb);
-		return re->status;
-	}
-	packet_read = read(fd, tb, len_from_header);
-	if (packet_read < (ssize_t) len_from_header) {
-		TACSYSLOG(
-				LOG_ERR, "%s: short reply body, read %zd of %zu", __FUNCTION__, packet_read, len_from_header);
-		re->msg = xstrdup(author_syserr_msg);
-		re->status = LIBTAC_STATUS_SHORT_BODY;
-		free(tb);
-		return re->status;
-	}
+			TACSYSLOG(
+					LOG_ERR, "%s: reply timeout after %lu secs", __FUNCTION__, timeout);
+			re->msg = xstrdup(author_syserr_msg);
+			re->status = LIBTAC_STATUS_READ_TIMEOUT;
+			free(tb);
+			return re->status;
+		}
+		packet_read = read(fd, tb_byte_p, len_from_header - tb_bytes_read);
+		if (packet_read <= 0) {
+			/* 0 indicates EOF, -1 is error. Either way, the reply body is
+			 * short
+			 */
+			TACSYSLOG(
+					LOG_ERR, "%s: short reply body, read %zu of %zu", __FUNCTION__, tb_bytes_read, len_from_header);
+			re->msg = xstrdup(author_syserr_msg);
+			re->status = LIBTAC_STATUS_SHORT_BODY;
+			free(tb);
+			return re->status;
+		}
+		if (packet_read < (ssize_t) len_from_header) {
+			TACDEBUG(
+					LOG_DEBUG, "%s: read bytes %zu to %zu of response body", __FUNCTION__, tb_bytes_read, tb_bytes_read + packet_read - 1);
+		}
+		tb_bytes_read += packet_read;
+		tb_byte_p += packet_read;
+	} while (tb_bytes_read < len_from_header);
 
 	/* decrypt the body */
 	_tac_crypt((unsigned char *) tb, &th);
@@ -132,8 +148,8 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout) {
 	/* cycle through the arguments supplied in the packet */
 	for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
 			r++) {
-		if ((ssize_t) len_from_body > packet_read
-				|| ((void *) pktp - (void *) tb) > packet_read) {
+		if (len_from_body > tb_bytes_read
+				|| ((void *) pktp - (void *) tb) > (ssize_t) tb_bytes_read) {
 			TACSYSLOG(
 					LOG_ERR, "%s: arguments supplied in packet seem to exceed its size", __FUNCTION__);
 			re->msg = xstrdup(protocol_err_msg);
