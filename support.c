@@ -166,10 +166,6 @@ int tacacs_get_password(pam_handle_t *pamh, int flags __Unused,
         }
     }
 
-    /*
-       FIXME *password can still turn out as NULL
-       and it can't be free()d when it's NULL
-    */
     *password = pass;       /* this *MUST* be free()'d by this module */
 
     if (ctrl & PAM_TAC_DEBUG)
