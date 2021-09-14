@@ -145,6 +145,9 @@ struct areply {
 #define LIBTAC_STATUS_CONN_ERR        -9
 #define LIBTAC_STATUS_ATTRIB_TOO_LONG -10
 #define LIBTAC_STATUS_ATTRIB_TOO_MANY -11
+#define LIBTAC_STATUS_SERVER_NOT_CONFIGURED     -12
+#define LIBTAC_STATUS_SECRET_KEY_ERR            -13
+#define LIBTAC_STATUS_SEC_KEY_NOT_CONFIGURED    -14
 
 /* Runtime flags */
 
@@ -183,6 +186,7 @@ int tac_cont_send_seq(int, const char *, int);
 #define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)
 HDR *_tac_req_header(unsigned char, int);
 void _tac_crypt(unsigned char *, const HDR *);
+void _tac_string_decrypt(char *key);
 int tac_add_attrib(struct tac_attrib **, char *, char *);
 void tac_free_attrib(struct tac_attrib **);
 char *tac_acct_flag2str(int);

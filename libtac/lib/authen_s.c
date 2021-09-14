@@ -129,6 +129,8 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 		} else {
 			tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
 		}
+
+        TACSYSLOG(LOG_ERR, "%s: tac_login : %s auth-type : %x",__FUNCTION__, tac_login, tb.authen_type);
 	}
 
 	/* data field is not used in ASCII login */

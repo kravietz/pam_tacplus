@@ -47,11 +47,15 @@
 # include "magic.h"
 #endif
 
+#define TACACS_RETRY 3
+
 /* address of server discovered by pam_sm_authenticate */
 static tacplus_server_t active_server;
 struct addrinfo active_addrinfo;
 struct sockaddr active_sockaddr;
 struct sockaddr_in6 active_sockaddr6;
+struct addrinfo active_src_addrinfo;
+struct sockaddr active_src_sockaddr;
 char active_key[TAC_SECRET_MAX_LEN+1];
 
 /* accounting task identifier */
@@ -73,10 +77,14 @@ static void set_active_server (const tacplus_server_t *tac_svr)
 	}
 	tac_copy_addr_info (&active_addrinfo, tac_svr->addr);
 	strncpy (active_key, tac_svr->key ? tac_svr->key : "", TAC_SECRET_MAX_LEN-1);
+        active_src_addrinfo.ai_addr = &active_src_sockaddr;
+        tac_copy_addr_info (&active_src_addrinfo, tac_svr->source_addr);
 	active_server.addr = &active_addrinfo;
     syslog(LOG_DEBUG, "%s: active server set as [%s]", __FUNCTION__,
 				tac_ntop(active_server.addr->ai_addr));
 	active_server.key = active_key;
+        active_server.source_addr = &active_src_addrinfo;
+        active_server.timeout = tac_svr->timeout;
 }
 
 /* Helper functions */
@@ -209,7 +217,7 @@ int _pam_account(pam_handle_t *pamh, int argc, const char **argv, int type,
 	status = PAM_SESSION_ERR;
 	for (srv_i = 0; srv_i < tac_srv_no; srv_i++) {
 		tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key,
-				NULL, tac_timeout);
+				tac_srv[srv_i].source_addr, tac_timeout);
 		if (tac_fd < 0) {
 			_pam_log(LOG_WARNING, "%s: error sending %s (fd)", __FUNCTION__,
 					typemsg);
@@ -261,7 +269,7 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 	char *tty;
 	char *r_addr;
 	unsigned long srv_i;
-	int tac_fd, status, msg, communicating;
+        int tac_fd, status, msg, communicating, retryCounter=0;
 
 	user = pass = tty = r_addr = NULL;
 
@@ -280,7 +288,8 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 	retval = tacacs_get_password(pamh, flags, ctrl, &pass);
 	if (retval != PAM_SUCCESS || pass == NULL || *pass == '\0') {
 		_pam_log(LOG_ERR, "unable to obtain password");
-		free(pass);
+                 if(pass != NULL)
+                     free(pass);
 		return PAM_CRED_INSUFFICIENT;
 	}
 
@@ -305,16 +314,35 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 		syslog(LOG_DEBUG, "%s: rhost [%s] obtained", __FUNCTION__, r_addr);
 
 	status = PAM_AUTHINFO_UNAVAIL;
+
+    while(retryCounter < TACACS_RETRY && status != PAM_SUCCESS)
+    {
+	if(tac_srv_no == 0)
+	    _pam_log(LOG_ERR, "%s : Server is not configured", __FUNCTION__);
+
 	for (srv_i = 0; srv_i < tac_srv_no; srv_i++) {
 		if (ctrl & PAM_TAC_DEBUG)
 			syslog(LOG_DEBUG, "%s: trying srv %lu", __FUNCTION__, srv_i);
 
-		tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key,
-				NULL, tac_timeout);
-		if (tac_fd < 0) {
-			_pam_log(LOG_ERR, "connection failed srv %lu: %m", srv_i);
-			active_server.addr = NULL;
-			continue;
+            syslog(LOG_ERR, "%s : Server : %s key : **** timeout : %d retry count :%d ",__FUNCTION__, tac_ntop(tac_srv[srv_i].addr->ai_addr),
+                    tac_srv[srv_i].timeout, retryCounter);
+
+            tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key,
+                                        tac_srv[srv_i].source_addr, tac_srv[srv_i].timeout);
+
+            if (tac_fd < 0) {
+                _pam_log(LOG_ERR, "connection failed srv %lu: %m", srv_i);
+                if(tac_fd == LIBTAC_STATUS_CONN_ERR)
+
+                    _pam_log(LOG_ERR, "%s : Server : %s is unreachable", __FUNCTION__, tac_ntop(tac_srv[srv_i].addr->ai_addr));
+                else if(tac_fd == LIBTAC_STATUS_SERVER_NOT_CONFIGURED)
+                    _pam_log(LOG_ERR, "%s : Server not configured", __FUNCTION__);
+                else if(tac_fd == LIBTAC_STATUS_CONN_TIMEOUT)
+                    _pam_log(LOG_ERR, "%s : Timeout occured ", __FUNCTION__);
+                else if(tac_fd == LIBTAC_STATUS_SEC_KEY_NOT_CONFIGURED)
+                    _pam_log(LOG_ERR, "%s : Server : %s secret key is not configured", __FUNCTION__, tac_ntop(tac_srv[srv_i].addr->ai_addr));
+                active_server.addr = NULL;
+                continue;
 		}
 		if (tac_authen_send(tac_fd, user, pass, tty, r_addr,
 				TAC_PLUS_AUTHEN_LOGIN) < 0) {
@@ -330,66 +358,80 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 			struct pam_message conv_msg = { .msg_style = 0, .msg = NULL };
 			struct pam_response *resp = NULL;
 
-			msg = tac_authen_read(tac_fd, &re);
+                msg = tac_authen_read(tac_fd, &re);
+                if(msg == LIBTAC_STATUS_SECRET_KEY_ERR)
+                {
+                    _pam_log(LOG_ERR, "Server : %s Secret key Mismatched",tac_ntop(tac_srv[srv_i].addr->ai_addr));
+                    status = PAM_AUTHINFO_UNAVAIL; /* to look for next server */
+                    communicating = 0; /* for breaking while loop condition */
+                    continue;
+                }
 
 			if (NULL != re.msg) {
 				conv_msg.msg = re.msg;
 			}
 
-			/* talk the protocol */
-			switch (msg) {
-			case TAC_PLUS_AUTHEN_STATUS_PASS:
-				/* success */
-				if (ctrl & PAM_TAC_DEBUG)
-					syslog(LOG_DEBUG,
-							"tacacs status: TAC_PLUS_AUTHEN_STATUS_PASS");
+                /* talk the protocol */
+                switch (msg) {
+                case TAC_PLUS_AUTHEN_STATUS_PASS:
+                    /* success */
+                    if (ctrl & PAM_TAC_DEBUG)
+                        syslog(LOG_DEBUG,
+                                "tacacs status: TAC_PLUS_AUTHEN_STATUS_PASS with server[%ld] addr = %s", srv_i, tac_ntop(tac_srv[srv_i].addr->ai_addr));
 
-				if (NULL != conv_msg.msg) {
-					conv_msg.msg_style = PAM_TEXT_INFO;
-					retval = converse(pamh, 1, &conv_msg, &resp);
-					if (PAM_SUCCESS == retval) {
-						if (PAM_TAC_DEBUG == (ctrl & PAM_TAC_DEBUG))
-							syslog(LOG_DEBUG, "send msg=\"%s\"", conv_msg.msg);
-					} else {
-						_pam_log(LOG_WARNING,
-								"%s: error sending msg=\"%s\", retval=%d",
-								__FUNCTION__, conv_msg.msg, retval);
-					}
+                    if (NULL != conv_msg.msg) {
+                        conv_msg.msg_style = PAM_TEXT_INFO;
+                        retval = converse(pamh, 1, &conv_msg, &resp);
+                        if (PAM_SUCCESS == retval) {
+                            if (PAM_TAC_DEBUG == (ctrl & PAM_TAC_DEBUG))
+                                syslog(LOG_DEBUG, "send msg=\"%s\"", conv_msg.msg);
+                        } else {
+                            _pam_log(LOG_WARNING,
+                                    "%s: error sending msg=\"%s\", retval=%d",
+                                    __FUNCTION__, conv_msg.msg, retval);
+                        }
 
-				}
-				status = PAM_SUCCESS;
-				communicating = 0;
-				set_active_server(&tac_srv[srv_i]);
+                    }
+                    status = PAM_SUCCESS;
+                    communicating = 0;
+                    set_active_server(&tac_srv[srv_i]);
 
-				if (ctrl & PAM_TAC_DEBUG)
-					syslog(LOG_DEBUG, "%s: active srv %lu", __FUNCTION__, srv_i);
+                    if (ctrl & PAM_TAC_DEBUG)
+                        syslog(LOG_DEBUG, "%s: active srv %lu", __FUNCTION__, srv_i);
+                    break;
 
-				break;
+                case TAC_PLUS_AUTHEN_STATUS_FAIL:
+                    if (ctrl & PAM_TAC_DEBUG)
+                        syslog(LOG_DEBUG,
+                                "tacacs status: TAC_PLUS_AUTHEN_STATUS_FAIL with server[%ld] addr = %s", srv_i, tac_ntop(tac_srv[srv_i].addr->ai_addr));
 
-			case TAC_PLUS_AUTHEN_STATUS_FAIL:
-				if (ctrl & PAM_TAC_DEBUG)
-					syslog(LOG_DEBUG,
-							"tacacs status: TAC_PLUS_AUTHEN_STATUS_FAIL");
+                    if (NULL != conv_msg.msg) {
+                        conv_msg.msg_style = PAM_ERROR_MSG;
+                        retval = converse(pamh, 1, &conv_msg, &resp);
+                        if (PAM_SUCCESS == retval) {
+                            if (PAM_TAC_DEBUG == (ctrl & PAM_TAC_DEBUG))
+                                syslog(LOG_DEBUG, "send msg=\"%s\"", conv_msg.msg);
+                        } else {
+                            _pam_log(LOG_WARNING,
+                                    "%s: error sending msg=\"%s\", retval=%d",
+                                    __FUNCTION__, conv_msg.msg, retval);
+                        }
 
-				if (NULL != conv_msg.msg) {
-					conv_msg.msg_style = PAM_ERROR_MSG;
-					retval = converse(pamh, 1, &conv_msg, &resp);
-					if (PAM_SUCCESS == retval) {
-						if (PAM_TAC_DEBUG == (ctrl & PAM_TAC_DEBUG))
-							syslog(LOG_DEBUG, "send msg=\"%s\"", conv_msg.msg);
-					} else {
-						_pam_log(LOG_WARNING,
-								"%s: error sending msg=\"%s\", retval=%d",
-								__FUNCTION__, conv_msg.msg, retval);
-					}
-
-				}
-				status = PAM_AUTH_ERR;
-				communicating = 0;
-
-				_pam_log(LOG_ERR, "auth failed: %d", msg);
-
-				break;
+                    }
+                    /* Authentication is failed for present server ,
+                     * with status as "PAM_AUTH_ERR" or "PAM_SUCCESS" , it will break the loop and will not go to next server
+                     * check if there are any servers available
+                     * if not available assign status value as  "PAM_AUTH_ERR"
+                     * if avilable then assign status value , other then these 2 values(PAM_AUTH_ERR, PAM_SUCCESS)
+                     */
+                    if(srv_i+1 < tac_srv_no)
+                        status = PAM_AUTHINFO_UNAVAIL;
+                    else
+                        status = PAM_AUTH_ERR;
+                    communicating = 0;
+                    _pam_log(LOG_ERR, "auth failed: %d", msg);
+                    retryCounter = TACACS_RETRY; // since user authentication failed..no retry required
+                    break;
 
 			case TAC_PLUS_AUTHEN_STATUS_GETDATA:
 				if (PAM_TAC_DEBUG == (ctrl & PAM_TAC_DEBUG))
@@ -524,6 +566,8 @@ int pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc,
 
 		if (status == PAM_SUCCESS || status == PAM_AUTH_ERR)
 			break;
+        }
+        retryCounter++;
 	}
 	if (status != PAM_SUCCESS && status != PAM_AUTH_ERR)
 		_pam_log(LOG_ERR, "no more servers to connect");
@@ -625,10 +669,20 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
 	if (tac_protocol[0] != '\0')
 		tac_add_attrib(&attr, "protocol", tac_protocol);
 
-	tac_fd = tac_connect_single(active_server.addr, active_server.key, NULL,
-			tac_timeout);
+    _pam_log(LOG_DEBUG, "Called : %s , source : %s", __FUNCTION__, tac_ntop(active_server.source_addr->ai_addr));
+
+	tac_fd = tac_connect_single(active_server.addr, active_server.key, active_server.source_addr,
+            active_server.timeout);
 	if (tac_fd < 0) {
 		_pam_log(LOG_ERR, "TACACS+ server unavailable");
+        if(tac_fd == LIBTAC_STATUS_CONN_ERR)
+            _pam_log(LOG_ERR, "%s : Server : %s is unreachable", __FUNCTION__, tac_ntop(active_server.addr->ai_addr));
+        else if(tac_fd == LIBTAC_STATUS_SERVER_NOT_CONFIGURED)
+            _pam_log(LOG_ERR, "%s : Server not configured", __FUNCTION__);
+        else if(tac_fd == LIBTAC_STATUS_CONN_TIMEOUT)
+            _pam_log(LOG_ERR, "%s : Timeout occured ", __FUNCTION__);
+        else if(tac_fd == LIBTAC_STATUS_SEC_KEY_NOT_CONFIGURED)
+            _pam_log(LOG_ERR, "%s : Server : %s secret key is not configured", __FUNCTION__, tac_ntop(active_server.addr->ai_addr));
 		return PAM_AUTH_ERR;
 	}
 
@@ -819,7 +873,7 @@ int pam_sm_chauthtok(pam_handle_t * pamh, int flags, int argc,
 			syslog(LOG_DEBUG, "%s: trying srv %lu", __FUNCTION__, srv_i);
 
 		tac_fd = tac_connect_single(tac_srv[srv_i].addr, tac_srv[srv_i].key,
-				NULL, tac_timeout);
+				tac_srv[srv_i].source_addr, tac_timeout);
 		if (tac_fd < 0) {
 			_pam_log(LOG_ERR, "connection failed srv %lu: %m", srv_i);
 			continue;

@@ -45,6 +45,8 @@ int tac_authen_read_timeout(int fd, struct areply *re, unsigned long timeout) {
 
 	memset(re, 0, sizeof(struct areply));
 
+        TACSYSLOG(LOG_ERR, "%s:[timeout] reply timeout %lu secs", __FUNCTION__, tac_timeout);
+
 	/* read the reply header */
 	if (tac_readtimeout_enable
 			&& tac_read_wait(fd, timeout * 1000, TAC_PLUS_HDR_SIZE,
@@ -120,9 +122,9 @@ int tac_authen_read_timeout(int fd, struct areply *re, unsigned long timeout) {
 		TACSYSLOG(
 				LOG_ERR, "%s: inconsistent reply body, incorrect key?", __FUNCTION__);
 		re->msg = xstrdup(protocol_err_msg);
-		re->status = LIBTAC_STATUS_PROTOCOL_ERR;
+        	re->status = LIBTAC_STATUS_SECRET_KEY_ERR;
 		free(tb);
-		return re->status;
+        	return LIBTAC_STATUS_SECRET_KEY_ERR;
 	}
 
 	/* save status and clean up */
