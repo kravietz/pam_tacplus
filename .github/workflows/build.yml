@@ -53,11 +53,28 @@ jobs:
         run: autoreconf -i && ./configure
       - name: Run build-wrapper
         run: |
-          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make clean all
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
-
+      - name: Unofficial Coverity Scan
+        uses: vapier/coverity-scan-action@v0
+        with:
+          # Project name in Coverity Scan.
+          project: kravietz/pam_tacplus
+          # Secret project token for accessing Coverity Scan.
+          token: ${{ secrets.COVERITY_TOKEN }}
+          # Where Coverity Scan should send notifications.
+          email: pawel.krawczyk@hush.com
+          # Which Coverity Scan language pack to download.
+          build_language: cxx
+          # Which Coverity Scan platform pack to download.
+          build_platform: linux64
+          # Command to pass to cov-build.
+          command: make clean all
+          version: ${{ github.sha }}
+          # (Informational) A description for this particular build.
+          description: coverity-scan-action ${{ github.repository }} / ${{ github.ref }}
