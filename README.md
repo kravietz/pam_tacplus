@@ -78,7 +78,14 @@ You can use `./configure --libdir=/lib` option to ensure `pam_tacplus.so`
  In such case you need to adjust the below lines in `/etc/pam.d` file accordingly.
 
 ### Quick start
-Install TACACS+ server `tacacs+` and PAM testing program [pamtester](http://pamtester.sourceforge.net/):
+We are going to need:
+* the open-source `tac_plus` TACACS+ server
+* PAM testing utility [pamtester](http://pamtester.sourceforge.net/)
+
+**Note:** In Ubuntu 20.04 the [tacacs+](https://launchpad.net/ubuntu/+source/tacacs+)
+package is no longer available, so you have to install [from source](http://www.shrubbery.net/tac_plus/).
+
+Install packages (up to Ubuntu 18.04):
 ```
 apt install tacacs+ pamtester
 ```
