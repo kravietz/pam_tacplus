@@ -66,9 +66,15 @@ static void set_active_server(const tacplus_server_t *tac_svr)
 	memset(&active_sockaddr, 0, sizeof(struct sockaddr));
 	memset(&active_sockaddr6, 0, sizeof(struct sockaddr_in6));
 
+<<<<<<< HEAD
 	if (tac_svr->addr == NULL)
 	{
 		_pam_log(LOG_ERR, "internal error: null value passed to set_active_server()");
+=======
+	if (tac_srv == NULL || tac_svr->addr == NULL)
+	{
+		_pam_log(LOG_ERR, "internal error: null values passed to set_active_server()");
+>>>>>>> 514af5e (Ensure tac_srv is not null)
 		return;
 	}
 
@@ -1148,6 +1154,7 @@ finish:
 	if (ctrl & PAM_TAC_DEBUG)
 		syslog(LOG_DEBUG, "%s: exit with pam status: %d", __FUNCTION__, status);
 
+<<<<<<< HEAD
 	if (pass != NULL)
 	{
 #ifdef HAVE_MEMSET_S
@@ -1157,6 +1164,11 @@ finish:
 #else
 		memset(pass, 0, strlen(pass));
 #endif
+=======
+	if (NULL != pass)
+	{
+		bzero(pass, strlen(pass));
+>>>>>>> 514af5e (Ensure tac_srv is not null)
 		free(pass);
 		pass = NULL;
 	}
