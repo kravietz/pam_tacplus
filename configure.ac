@@ -74,13 +74,33 @@ if test "x$enable_am_ldcflags" != "xno"; then
 	AC_MSG_CHECKING([whether CC supports $flag])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 	    [AC_MSG_RESULT([yes])]
-	    [AM_CFLAGS="$AM_CFLAGS $flag"]
+	    [CFLAGS="$CFLAGS $flag"],
 	    [AC_MSG_RESULT([no])]
 	)
-	CFLAGS="$my_save_cflags"
+	CFLAGS="$CFLAGS $my_save_cflags"
     done
-    AC_SUBST([AM_CFLAGS])
-    AC_SUBST([AM_LDFLAGS])
+fi
+
+AC_ARG_ENABLE(asan,
+	[AS_HELP_STRING([--enable-asan],[enable gcc asan])],
+        asan=$enableval, asan=no)
+
+AC_MSG_CHECKING(gcc sanitizer)
+if test "x$enable_asan" == "xyes"; then
+	AC_MSG_RESULT(yes)
+	for flag in -fsanitize=address -fsanitize=pointer-compare -fsanitize=pointer-subtract -fsanitize=leak -fsanitize=undefined  -fcf-protection=full; do
+	my_save_cflags="$CFLAGS"
+	CFLAGS=$flag
+	AC_MSG_CHECKING([whether CC supports $flag])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+	    [AC_MSG_RESULT([yes])]
+	    [CFLAGS="$CFLAGS $flag"],
+	    [AC_MSG_RESULT([no])]
+	)
+	CFLAGS="$CFLAGS $my_save_cflags"
+    done
+else
+	AC_MSG_RESULT(no)
 fi
 
 dnl --------------------------------------------------------------------

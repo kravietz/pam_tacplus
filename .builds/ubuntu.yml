@@ -16,5 +16,5 @@ tasks:
 - configure: |
         cd pam-tacplus
         autoreconf -i
-        ./configure
+        ./configure --enable-asan
         make
