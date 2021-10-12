@@ -254,7 +254,6 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout) {
 	}
 		free(tb);
 		return re->status;
-		break;
 	}
 
 	switch (tb->status) {
