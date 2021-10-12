@@ -198,11 +198,11 @@ void tac_copy_addr_info(struct addrinfo *p_dst, const struct addrinfo *p_src) {
 
 static void set_tac_srv_addr (unsigned int srv_no, const struct addrinfo *addr)
 {
-    _pam_log(LOG_DEBUG, "%s: server [%s]", __FUNCTION__,
-                        tac_ntop(addr->ai_addr));
-
     if (srv_no < TAC_PLUS_MAXSERVERS) {
         if (addr) {
+
+          _pam_log(LOG_DEBUG, "%s: server [%s]", __FUNCTION__, tac_ntop(addr->ai_addr));
+          
           if (addr->ai_family == AF_INET6) {
             tac_srv_addr[srv_no].ai_addr = (struct sockaddr *)&tac_sock6_addr[srv_no];
           } else {
