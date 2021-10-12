@@ -18,4 +18,6 @@ tasks:
         autoreconf -i
         ./configure --enable-asan
         make
-- test: bash -x test.sh
+- test: |
+        cd pam-tacplus
+        bash -x test.sh
