@@ -48,7 +48,7 @@ struct tac_plus_pak_hdr {
 #define TAC_PLUS_UNENCRYPTED_FLAG    0x01    /* packet is unencrypted */
 #define TAC_PLUS_SINGLE_CONNECT_FLAG 0x04    /* multiplexing supported */
 
-    int session_id;    /* session identifier FIXME: Is this needed? */
+    int session_id;    /* session identifier */
     int datalength;    /* length of encrypted data following this
                           header datalength bytes of encrypted data */
 };
