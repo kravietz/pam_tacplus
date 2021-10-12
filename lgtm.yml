@@ -1,0 +1,13 @@
+---
+path_classifiers:
+  test:
+    - test
+extraction:
+  cpp:
+     prepare:
+        packages: 
+          - libpam-dev
+     configure:
+        command:
+        - autoreconf -f -v -i
+        - ./configure --enable-asan
