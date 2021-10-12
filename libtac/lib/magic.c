@@ -60,6 +60,8 @@
 
 u_int32_t magic_secondary(void);
 
+u_int32_t magic_secondary(void);
+
 /* getrandom(2) is the most convenient and secure options from our point of view so it's on the first order of preference */
 
 u_int32_t
