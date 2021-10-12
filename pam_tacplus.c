@@ -687,6 +687,7 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
 	if (tac_fd < 0)
 	{
 		_pam_log(LOG_ERR, "TACACS+ server unavailable");
+		tac_free_attrib(&attr);
 		return PAM_AUTH_ERR;
 	}
 
