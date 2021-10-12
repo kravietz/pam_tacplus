@@ -66,9 +66,9 @@ static void set_active_server(const tacplus_server_t *tac_svr)
 	memset(&active_sockaddr, 0, sizeof(struct sockaddr));
 	memset(&active_sockaddr6, 0, sizeof(struct sockaddr_in6));
 
-	if (tac_srv == NULL || tac_svr->addr == NULL)
+	if (tac_svr->addr == NULL)
 	{
-		_pam_log(LOG_ERR, "internal error: null values passed to set_active_server()");
+		_pam_log(LOG_ERR, "internal error: null value passed to set_active_server()");
 		return;
 	}
 
