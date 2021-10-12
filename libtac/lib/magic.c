@@ -59,16 +59,24 @@
 #  error no header containing getrandom(2) declaration
 # endif
 
+u_int32_t magic_secondary(void);
+
 /* getrandom(2) is the most convenient and secure options from our point of view so it's on the first order of preference */
 
 u_int32_t
-magic()
+magic_primary()
 {
     u_int32_t num;
     ssize_t ret;
 
     ret = getrandom(&num, sizeof(num), GRND_NONBLOCK);
     if(ret < 0) {
+        /* EAGAIN indicates that getrandom() is not yet ready; use alternative functions
+         * instead when this happens */
+        if(errno == EAGAIN) {
+            TACSYSLOG(LOG_WARNING,"%s: getrandom not ready yet, using alternatives", __FUNCTION__);
+            return magic_secondary();
+        }
     	TACSYSLOG(LOG_CRIT,"%s: getrandom failed to provide random bytes: %s", __FUNCTION__, strerror(errno));
     	exit(1);
     }
@@ -79,7 +87,9 @@ magic()
     return num;
 }
 
-#elif defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
+#endif
+
+#if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
 
 #include <openssl/err.h>
 #include <openssl/rand.h>
@@ -91,7 +101,7 @@ magic()
    */
 
 u_int32_t
-magic()
+magic_secondary()
 {
     u_int32_t num;
     int ret;
@@ -149,13 +159,25 @@ INITIALIZER(magic_init)
 }
 
 /*
- * magic - Returns the next magic number.
+ * magic_secondary - Least preferable option with the random() function.
  */
 u_int32_t
-magic()
+magic_secondary()
 {
     return (u_int32_t)random();
 }
 
 #endif
 
+/*
+ * magic - Returns the next magic number.
+ */
+u_int32_t
+magic()
+{
+#if defined(HAVE_GETRANDOM)
+    return magic_primary();
+#else
+    return magic_secondary();
+#endif
+}
