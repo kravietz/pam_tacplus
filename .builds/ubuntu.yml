@@ -18,3 +18,4 @@ tasks:
         autoreconf -i
         ./configure --enable-asan
         make
+- test: bash -x test.sh
