@@ -146,8 +146,7 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout) {
 	pktp = (unsigned char *) tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
 
 	/* cycle through the arguments supplied in the packet */
-	for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
-			r++) {
+	for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT; r++) {
 		if (len_from_body > tb_bytes_read
 				|| ((void *) pktp - (void *) tb) > (ssize_t) tb_bytes_read) {
 			TACSYSLOG(
@@ -220,8 +219,7 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout) {
 		TACSYSLOG(LOG_DEBUG, "Args cnt %d", tb->arg_cnt);
 		/* argp points to current argument string
 		 pktp points to current argument length */
-		for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT;
-				r++) {
+		for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT; r++) {
 			char buff[256];
 			char *sep;
 			char *value;
