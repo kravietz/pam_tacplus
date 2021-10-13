@@ -568,7 +568,7 @@ void showusage(char *progname) {
     a = rindex(progname, '/');
     progname = (a == NULL) ? progname : ++a;
 
-    printf("%s -- simple TACACS+ client and login, version %u.%u.%u\n",
+    printf("%s -- simple TACACS+ client and login, libtac version %u.%u.%u\n",
            progname, tac_ver_major, tac_ver_minor, tac_ver_patch);
     printf("Copyright 1997-2016 by Pawel Krawczyk <pawel.krawczyk@hush.com>\n");
     printf("Usage: %s option [option, ...]\n\n", progname);
