@@ -7,6 +7,8 @@ packages:
 - libtool
 - automake
 - tacacs
+- expect
+- pamtester
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
@@ -16,6 +18,23 @@ tasks:
         ./configure --enable-asan
         make
 - test: |
+        echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f test/testuser1.pass
         cd pam-tacplus
         sudo make install
         bash -x test.sh
+- setup-test: |
+        cd pam-tacplus
+        sudo make install
+        sudo ldconfig
+        echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f test/testuser1.pass
+        sudo install -o root test/linux.pam.conf /etc/pam.d/test
+        sudo install -o root test/tac_plus.shrubbery.conf /usr/local/etc/tac_plus.conf
+        echo 'tac_plus_enable="YES"' | sudo tee -a /etc/rc.conf.local
+        sudo service tac_plus start
+- test-tacc: |
+        /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
+        /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap || true
+        /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret badkey --service ppp --protocol ip --login pap || true
+- test-expect: |        
+        expect test/test1.expect
+        expect test/test2.expect
