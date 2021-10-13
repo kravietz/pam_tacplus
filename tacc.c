@@ -74,7 +74,6 @@ void timeout_handler(int signum);
 #define USE_SYSTEM    1
 
 /* globals */
-int tac_encryption = 1;
 typedef unsigned char flag;
 flag quiet = 0;
 char *g_user = NULL; /* global, because of signal handler */
@@ -150,6 +149,9 @@ int main(int argc, char **argv) {
     pid_t pid;
 #endif
     struct areply arep;
+
+    /* global from libtac.h */
+    tac_encryption = 1;
 
     /* options */
     flag log_wtmp = 1;
