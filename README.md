@@ -82,17 +82,31 @@ You can use `./configure --libdir=/lib` option to ensure `pam_tacplus.so`
  In such case you need to adjust the below lines in `/etc/pam.d` file accordingly.
 
 ### Quick start
+### TACACS+ server
+To do anything with TACACS+ protocol we need a TACACS+ server. Here's where fun begins
+as of 2021. There are two TACACS+ servers currently available - they have the same name and temptingly similar
+but different configuration syntax:
+
+* pro-bono-publico [tac_plus](https://www.pro-bono-publico.de/projects/tac_plus.html), available in FreeBSD [net/tacacs](https://www.freshports.org/net/tacacs/)
+* shrubbery [tac_plus](http://www.shrubbery.net/tac_plus/), available as [tacacs+](https://launchpad.net/ubuntu/+source/tacacs+)
+
+Unfortunately, as of Ubuntu 20.04 the [tacacs+](https://launchpad.net/ubuntu/+source/tacacs+)
+package is no longer available. Unless on Ubuntu 18.04 or FreeBSD, you'll need to install from source. 
+
 We are going to need:
+
 * the open-source `tac_plus` TACACS+ server
 * PAM testing utility [pamtester](http://pamtester.sourceforge.net/)
 
-**Note:** In Ubuntu 20.04 the [tacacs+](https://launchpad.net/ubuntu/+source/tacacs+)
-package is no longer available, so you have to install [from source](http://www.shrubbery.net/tac_plus/).
+### pamtester
+I recommend PAM testing utility [pamtester](http://pamtester.sourceforge.net/):
 
-Install packages (up to Ubuntu 18.04):
 ```
-apt install tacacs+ pamtester
+apt install pamtester
 ```
+
+### PAM configuration
+
 Create `/etc/pam.d/test` with the following contents:
 ```
 #%PAM-1.0
@@ -100,7 +114,7 @@ auth       required /usr/local/lib/security/pam_tacplus.so server=127.0.0.1 secr
 account	   required /usr/local/lib/security/pam_tacplus.so server=127.0.0.1 secret=testkey123 service=ppp protocol=ip
 session    required /usr/local/lib/security/pam_tacplus.so server=127.0.0.1 secret=testkey123 server=127.0.0.2 secret=testkey123 service=ppp protocol=ip
 ```
-Ensure `/etc/tacacs+/tac_plus.conf` contains the following options:
+Ensure `/etc/tacacs+/tac_plus.conf` contains the following options (`shrubbery` syntax):
 ```
 key = testkey123
 user = testuser1 {
