@@ -24,4 +24,5 @@ tasks:
 - test: |
         cd pam-tacplus
         sudo make install
+        sudo ldconfig
         bash -x test.sh
