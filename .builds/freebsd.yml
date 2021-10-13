@@ -32,5 +32,8 @@ tasks:
         /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret badkey --service ppp --protocol ip --login pap || true
 - test-expect: |
         cd pam-tacplus
+        ./configure
+        make clean all
+        sudo make install
         expect test/test1.expect
         expect test/test2.expect
