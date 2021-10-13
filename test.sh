@@ -44,21 +44,23 @@ _EOT
 
 sudo service tacacs_plus restart
 
+# Correct username and password, expected to succeed
+
 /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 \
     --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 \
     --secret testkey123 --service ppp --protocol ip --login pap
 
+# Correct username but invalid user password, expected to fail
+
 /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 \
     --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 \
-    --secret testkey123 --service ppp --protocol ip --login pap && false
+    --secret testkey123 --service ppp --protocol ip --login pap || true
+
+# Correct username and password, but bad TACACS+ key, expected to fail
 
 /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 \
     --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 \
-    --secret badkey --service ppp --protocol ip --login pap && false
-
-sudo tail -20 /var/log/{messages,syslog,auth.log}
-
-ls -l {/lib/security,/usr/local/lib/security}/pam_tacplus.so
+    --secret badkey --service ppp --protocol ip --login pap || true
 
 sudo expect <<_EOT || true
 set timeout -1
@@ -71,8 +73,6 @@ send -- "testpass123\r"
 expect "pamtester: successfully authenticated\r"
 expect eof
 _EOT
-
-sudo tail -20 /var/log/{messages,syslog,auth.log}
 
 expect <<_EOT
 set timeout -1
