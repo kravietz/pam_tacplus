@@ -17,11 +17,6 @@ tasks:
         autoreconf -i
         ./configure --enable-asan
         make
-- test: |
-        echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f test/testuser1.pass
-        cd pam-tacplus
-        sudo make install
-        bash -x test.sh
 - setup-test: |
         cd pam-tacplus
         sudo make install
