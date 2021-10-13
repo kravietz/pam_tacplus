@@ -6,11 +6,8 @@ packages:
 - libtool
 - automake
 - tacacs
-<<<<<<< HEAD
 - expect
 - pamtester
-=======
->>>>>>> 28b4009 (Run functional test suite on FreeBSD and Linux)
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
