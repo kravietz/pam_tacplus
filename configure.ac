@@ -68,16 +68,29 @@ AC_HEADER_TIME
 
 AC_ARG_ENABLE(am-ldcflags, AS_HELP_STRING([--disable-am-ldcflags], [do not add various 'AM_CFLAGS/AM_LDFLAGS']))
 if test "x$enable_am_ldcflags" != "xno"; then
-   for flag in -fstack-protector-all -Wl,-z,relro -Wl,-z,now -fPIE -pie -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2; do
+	# Compiler flags
+   for flag in -fstack-protector-all -fPIE -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2; do
 	my_save_cflags="$CFLAGS"
 	CFLAGS=$flag
-	AC_MSG_CHECKING([whether CC supports $flag])
+	AC_MSG_CHECKING([whether CC compiler supports $flag])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 	    [AC_MSG_RESULT([yes])]
 	    [CFLAGS="$CFLAGS $flag"],
 	    [AC_MSG_RESULT([no])]
 	)
-	CFLAGS="$CFLAGS $my_save_cflags"
+	CFLAGS="$my_save_cflags $flag"
+    done
+	# Linker flags
+	for flag in -Wl,-z,relro -Wl,-z,now -pie; do
+	my_save_cflags="$LDFLAGS"
+	LDFLAGS=$flag
+	AC_MSG_CHECKING([whether CC linker supports $flag])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+	    [AC_MSG_RESULT([yes])]
+	    [CFLAGS="$LDFLAGS $flag"],
+	    [AC_MSG_RESULT([no])]
+	)
+	LDFLAGS="$my_save_cflags $flag"
     done
 fi
 
@@ -97,7 +110,7 @@ if test "x$enable_asan" == "xyes"; then
 	    [CFLAGS="$CFLAGS $flag"],
 	    [AC_MSG_RESULT([no])]
 	)
-	CFLAGS="$CFLAGS $my_save_cflags"
+	CFLAGS="$my_save_cflags $flag"
     done
 else
 	AC_MSG_RESULT(no)

@@ -6,6 +6,7 @@ packages:
 - autoconf
 - libtool
 - automake
+- tacacs
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
@@ -14,3 +15,7 @@ tasks:
         autoreconf -i
         ./configure --enable-asan
         make
+- test: |
+        cd pam-tacplus
+        sudo make install
+        bash -x test.sh
