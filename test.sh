@@ -9,9 +9,11 @@ set -exo pipefail
 if [ "$(uname)" = "FreeBSD" ]; then
         echo 'tac_plus_enable="YES"' | sudo tee -a /etc/rc.conf.local
         tac_plus_configfile="/usr/local/etc/tac_plus.conf"
+        service_name="tac_plus"
 fi
 if [ "$(uname)" = "Linux" ]; then
         tac_plus_configfile="/etc/tacacs+/tac_plus.conf"
+        service_name="tacacs_plus"
 fi
 
 sudo tee "${tac_plus_configfile}" <<_EOT
