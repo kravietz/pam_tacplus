@@ -12,6 +12,7 @@ packages:
 - libpam-dev
 - libssl-dev
 - tacacs+
+- ca-certificates
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
