@@ -87,7 +87,7 @@ if test "x$enable_am_ldcflags" != "xno"; then
 	AC_MSG_CHECKING([whether CC linker supports $flag])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 	    [AC_MSG_RESULT([yes])]
-	    [CFLAGS="$LDFLAGS $flag"],
+	    [LDFLAGS="$LDFLAGS $flag"],
 	    [AC_MSG_RESULT([no])]
 	)
 	LDFLAGS="$my_save_cflags $flag"
