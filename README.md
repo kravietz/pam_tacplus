@@ -6,8 +6,12 @@
 [![Sonarcloud](https://sonarcloud.io/api/project_badges/measure?project=kravietz_pam_tacplus&metric=alert_status)](https://sonarcloud.io/dashboard?id=kravietz_pam_tacplus)
 [![builds.sr.ht status](https://builds.sr.ht/~kravietz/pam-tacplus.svg)](https://builds.sr.ht/~kravietz/pam-tacplus?)
 
-**Funding:** If you are a commercial user of `pam_tacplus` please consider sponsoring the project through [LiberaPay](https://liberapay.com/webcookies).
-This code base has been live since late 90's and requires a significant effort to keep up with modern environments.
+**Funding:** Please consider sponsoring this project as the code base has been live since late 90's
+and requires a significant effort to keep up with modern environments. Any amount helps!
+* https://liberapay.com/devsecops
+* https://ko-fi.com/devsecops
+* `bitcoin:36YhAxvhqoxpdpFpcGXYSJZ4sQPB8yLzt6`
+* `ethereum:0xC47d33d62F75Caf30D3bA8892C67d5f9Fe6c3c79`
 
 
 # TACACS+ client toolkit
