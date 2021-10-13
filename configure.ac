@@ -111,6 +111,7 @@ if test "x$enable_asan" == "xyes"; then
 	    [AC_MSG_RESULT([no])]
 	)
 	CFLAGS="$my_save_cflags $flag"
+	LDFLAGS="$LDFLAGS $flag"
     done
 else
 	AC_MSG_RESULT(no)
