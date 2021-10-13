@@ -28,7 +28,7 @@ tasks:
         sudo make install
         sudo ldconfig
         sudo useradd -m testuser1
-        echo testuser1:testpass123 | sudo chpasswd -s SHA512
+        echo testuser1:testpass123 | sudo chpasswd -c SHA512
         sudo install -o root test/linux.pam.conf /etc/pam.d/test
         sudo install -o root test/tac_plus.shrubbery.conf /etc/tacacs+/tac_plus.conf
         sudo service tacacs_plus restart
