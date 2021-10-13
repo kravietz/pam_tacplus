@@ -1,7 +1,8 @@
 ---
 # build manifest for SourceHut
 # https://man.sr.ht/builds.sr.ht/
-image: ubuntu/lts
+# use bionic as it's the last distribution to include tacacs+ package
+image: ubuntu/bionic
 packages:
 - libpam-tacplus
 - autoconf
@@ -10,6 +11,7 @@ packages:
 - automake
 - libpam-dev
 - libssl-dev
+- tacacs+
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
