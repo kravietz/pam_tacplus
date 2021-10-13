@@ -6,10 +6,15 @@
 
 set -exo pipefail
 
-# preserve PATH to clang
-sudo -E PATH="${PATH}" make install
+if [ "$(uname)" = "FreeBSD" ]; then
+        echo 'tac_plus_enable="YES"' >> /etc/rc.conf.local
+        tac_plus_configfile="/usr/local/etc/tac_plus.conf"
+fi
+if [ "$(uname)" = "Linux" ]; then
+        tac_plus_configfile="/etc/tacacs+/tac_plus.conf"
+fi
 
-sudo tee /etc/tacacs+/tac_plus.conf <<_EOT
+sudo tee "${tac_plus_configfile}" <<_EOT
 accounting file = /var/log/tac_plus.acct
 
 key = testkey123
@@ -49,10 +54,9 @@ sudo service tacacs_plus restart
     --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 \
     --secret badkey --service ppp --protocol ip --login pap && false
 
-sudo tail -20 /var/log/syslog
-sudo tail -20 /var/log/auth.log
+sudo tail -20 /var/log/{messages,syslog,auth.log}
 
-ls -l /lib/security/pam_tacplus.so
+ls -l {/lib/security,/usr/local/lib/security}/pam_tacplus.so
 
 sudo expect <<_EOT || true
 set timeout -1
@@ -66,8 +70,7 @@ expect "pamtester: successfully authenticated\r"
 expect eof
 _EOT
 
-sudo tail -20 /var/log/syslog
-sudo tail -20 /var/log/auth.log
+sudo tail -20 /var/log/{messages,syslog,auth.log}
 
 expect <<_EOT
 set timeout -1

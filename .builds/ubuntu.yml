@@ -23,4 +23,5 @@ tasks:
         make
 - test: |
         cd pam-tacplus
+        sudo make install
         bash -x test.sh
