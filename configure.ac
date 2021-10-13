@@ -85,10 +85,10 @@ AC_ARG_ENABLE(asan,
 	[AS_HELP_STRING([--enable-asan],[enable gcc asan])],
         asan=$enableval, asan=no)
 
-AC_MSG_CHECKING(gcc sanitizer)
+AC_MSG_CHECKING(whether to use gcc sanitizer)
 if test "x$enable_asan" == "xyes"; then
 	AC_MSG_RESULT(yes)
-	for flag in -fsanitize=address -fsanitize=pointer-compare -fsanitize=pointer-subtract -fsanitize=leak -fsanitize=undefined  -fcf-protection=full; do
+	for flag in -fsanitize=address -fsanitize=leak -fsanitize=undefined; do
 	my_save_cflags="$CFLAGS"
 	CFLAGS=$flag
 	AC_MSG_CHECKING([whether CC supports $flag])
