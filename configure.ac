@@ -69,29 +69,30 @@ AC_HEADER_TIME
 AC_ARG_ENABLE(am-ldcflags, AS_HELP_STRING([--disable-am-ldcflags], [do not add various 'AM_CFLAGS/AM_LDFLAGS']))
 if test "x$enable_am_ldcflags" != "xno"; then
 	# Compiler flags
-   for flag in -fstack-protector-all -fPIE -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2; do
 	my_save_cflags="$CFLAGS"
-	CFLAGS=$flag
-	AC_MSG_CHECKING([whether CC compiler supports $flag])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
-	    [AC_MSG_RESULT([yes])]
-	    [CFLAGS="$CFLAGS $flag"],
-	    [AC_MSG_RESULT([no])]
-	)
-	CFLAGS="$my_save_cflags $flag"
+    for flag in -fstack-protector-all -fPIE -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2; do
+		CFLAGS=$flag
+		AC_MSG_CHECKING([whether CC compiler supports $flag])
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+			[AC_MSG_RESULT([yes])]
+			[CFLAGS="$CFLAGS $flag"],
+			[AC_MSG_RESULT([no])]
+		)
     done
+	CFLAGS="$my_save_cflags $CFLAGS"
+
 	# Linker flags
-	for flag in -Wl,-z,relro -Wl,-z,now -pie; do
 	my_save_cflags="$LDFLAGS"
-	LDFLAGS=$flag
-	AC_MSG_CHECKING([whether CC linker supports $flag])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
-	    [AC_MSG_RESULT([yes])]
-	    [LDFLAGS="$LDFLAGS $flag"],
-	    [AC_MSG_RESULT([no])]
-	)
-	LDFLAGS="$my_save_cflags $flag"
+	for flag in -Wl,-z,relro -Wl,-z,now -pie; do	
+		LDFLAGS=$flag
+		AC_MSG_CHECKING([whether CC linker supports $flag])
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+			[AC_MSG_RESULT([yes])]
+			[LDFLAGS="$LDFLAGS $flag"],
+			[AC_MSG_RESULT([no])]
+		)
     done
+	LDFLAGS="$my_save_cflags $LDFLAGS"
 fi
 
 AC_ARG_ENABLE(asan,
@@ -101,18 +102,18 @@ AC_ARG_ENABLE(asan,
 AC_MSG_CHECKING(whether to use gcc sanitizer)
 if test "x$enable_asan" == "xyes"; then
 	AC_MSG_RESULT(yes)
-	for flag in -fsanitize=address -fsanitize=undefined -fsanitize=leak -fsanitize-address-use-after-scope -fcf-protection=full -ggdb; do
 	my_save_cflags="$CFLAGS"
-	CFLAGS=$flag
-	AC_MSG_CHECKING([whether CC supports $flag])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
-	    [AC_MSG_RESULT([yes])]
-	    [CFLAGS="$CFLAGS $flag"],
-	    [AC_MSG_RESULT([no])]
-	)
-	CFLAGS="$my_save_cflags $flag"
-	LDFLAGS="$LDFLAGS $flag"
+	for flag in -fsanitize=address -fsanitize=undefined -fsanitize=leak -fsanitize-address-use-after-scope -fcf-protection=full -ggdb; do
+		CFLAGS=$flag
+		AC_MSG_CHECKING([whether CC supports $flag])
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
+			[AC_MSG_RESULT([yes])]
+			[CFLAGS="$CFLAGS $flag"],
+			[AC_MSG_RESULT([no])]
+		)
     done
+	LDFLAGS="$LDFLAGS $CFLAGS"
+	CFLAGS="$my_save_cflags $CFLAGS"
 else
 	AC_MSG_RESULT(no)
 fi
