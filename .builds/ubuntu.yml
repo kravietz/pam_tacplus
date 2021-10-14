@@ -1,4 +1,3 @@
----
 # build manifest for SourceHut
 # https://man.sr.ht/builds.sr.ht/
 # use bionic as it's the last distribution to include tacacs+ package
@@ -29,14 +28,15 @@ tasks:
         sudo ldconfig
         sudo useradd -m testuser1
         echo testuser1:testpass123 | sudo chpasswd -c SHA512
-        sudo install -o root test/linux.pam.conf /etc/pam.d/test
-        sudo install -o root test/tac_plus.shrubbery.conf /etc/tacacs+/tac_plus.conf
+        sudo install -o root test/ubuntu/pam.conf /etc/pam.d/test
+        sudo install -o root test/ubuntu/tac_plus.conf /etc/tacacs+/tac_plus.conf
         sudo service tacacs_plus restart && sleep 3
 - test-tacc: |
         /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
+        /usr/local/bin/tacc --authenticate --authorize --account --username testuser2 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
         /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap || true
         /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret badkey --service ppp --protocol ip --login pap || true
-- test-expect: |  
+- test-pam: |  
         cd pam-tacplus
-        expect test/test1.expect
-        expect test/test2.expect
+        expect test/ubuntu/test1.expect
+        expect test/ubuntu/test2.expect
