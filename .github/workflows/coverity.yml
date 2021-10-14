@@ -1,0 +1,34 @@
+name: Coverity
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  build:
+    name: Coverity Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Update APT repo
+        run: sudo apt update
+      - name: Install build dependencies
+        uses: mstksg/get-package@v1
+        with:
+          apt-get: libpam-dev
+      - name: Run configure
+        run: autoreconf -i && ./configure --enable-asan          
+      - name: Coverity Scan
+        uses: vapier/coverity-scan-action@v0
+        with:
+          project: kravietz/pam_tacplus
+          token: ${{ secrets.COVERITY_TOKEN }}
+          email: pawel.krawczyk@hush.com
+          build_language: cxx
+          build_platform: linux64
+          command: make clean all
+          version: ${{ github.sha }}
+          description: coverity-scan-action ${{ github.repository }} / ${{ github.ref }}

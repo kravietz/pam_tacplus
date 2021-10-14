@@ -1,17 +1,13 @@
-name: "CodeQL"
-
+name: CodeQL
 on:
   push:
-    branches: [master]
+    branches:
+      - master
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [master]
-  schedule:
-    - cron: '0 3 * * 1'
-
+    types: [opened, synchronize, reopened]
 jobs:
   analyze:
-    name: Analyze
+    name: CodeQL
     runs-on: ubuntu-latest
 
     strategy:
@@ -47,17 +43,10 @@ jobs:
     #- name: Autobuild
     #  uses: github/codeql-action/autobuild@v1
 
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 https://git.io/JvXDl
-
-    # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
-    #    and modify them (or add more) to build your code if your project
-    #    uses a compiled language
-
     - run: |
        autoreconf -f -v -i
        sudo apt install -y libpam-dev libssl-dev
-       ./configure
+       ./configure --enable-asan
        make
 
     - name: Perform CodeQL Analysis
