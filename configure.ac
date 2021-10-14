@@ -75,11 +75,11 @@ if test "x$enable_am_ldcflags" != "xno"; then
 		AC_MSG_CHECKING([whether CC compiler supports $flag])
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 			[AC_MSG_RESULT([yes])]
-			[CFLAGS="$CFLAGS $flag"],
+			[new_CFLAGS="$new_CFLAGS $flag"],
 			[AC_MSG_RESULT([no])]
 		)
     done
-	CFLAGS="$my_save_cflags $CFLAGS"
+	CFLAGS="$my_save_cflags $new_CFLAGS"
 
 	# Linker flags
 	my_save_cflags="$LDFLAGS"
@@ -88,11 +88,11 @@ if test "x$enable_am_ldcflags" != "xno"; then
 		AC_MSG_CHECKING([whether CC linker supports $flag])
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 			[AC_MSG_RESULT([yes])]
-			[LDFLAGS="$LDFLAGS $flag"],
+			[new_LDFLAGS="$new_LDFLAGS $flag"],
 			[AC_MSG_RESULT([no])]
 		)
     done
-	LDFLAGS="$my_save_cflags $LDFLAGS"
+	LDFLAGS="$my_save_cflags $new_LDFLAGS"
 fi
 
 AC_ARG_ENABLE(asan,
@@ -108,12 +108,12 @@ if test "x$enable_asan" == "xyes"; then
 		AC_MSG_CHECKING([whether CC supports $flag])
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
 			[AC_MSG_RESULT([yes])]
-			[CFLAGS="$CFLAGS $flag"],
+			[new_CFLAGS="$new_CFLAGS $flag"],
 			[AC_MSG_RESULT([no])]
 		)
     done
-	LDFLAGS="$LDFLAGS $CFLAGS"
-	CFLAGS="$my_save_cflags $CFLAGS"
+	LDFLAGS="$LDFLAGS $new_CFLAGS"
+	CFLAGS="$my_save_cflags $new_CFLAGS"
 else
 	AC_MSG_RESULT(no)
 fi
