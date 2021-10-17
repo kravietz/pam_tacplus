@@ -29,15 +29,19 @@
  * Returns pointer to error message
  * or NULL when the header seems to be correct
  */
-char *_tac_check_header(HDR *th, int type) {
-    if(th->type != type) {
-        TACSYSLOG(LOG_ERR,\
-            "%s: unrelated reply, type %d, expected %d",\
-            __FUNCTION__, th->type, type);
+char *_tac_check_header(HDR *th, int type)
+{
+    if (th->type != type)
+    {
+        TACSYSLOG(LOG_ERR,
+                  "%s: unrelated reply, type %d, expected %d",
+                  __FUNCTION__, th->type, type);
         return protocol_err_msg;
-    } else if (1 == (th->seq_no % 2)) {
-        TACSYSLOG(LOG_ERR, "%s: not a reply - seq_no %d not even",\
-            __FUNCTION__, th->seq_no);
+    }
+    else if (1 == (th->seq_no % 2))
+    {
+        TACSYSLOG(LOG_ERR, "%s: not a reply - seq_no %d not even",
+                  __FUNCTION__, th->seq_no);
         return protocol_err_msg;
     } /* else if(ntohl(th->session_id) != session_id) {
         TACSYSLOG(LOG_ERR,\
@@ -45,6 +49,6 @@ char *_tac_check_header(HDR *th, int type) {
             __FUNCTION__, ntohl(th->session_id), session_id);
         return protocol_err_msg;
     } */
-    
-    return NULL; /* header is ok */    
+
+    return NULL; /* header is ok */
 } /* check header */

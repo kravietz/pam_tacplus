@@ -32,29 +32,36 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
     unsigned int attr_cnt = 0;
     size_t total_len;
 
-    if (l1 > TAC_PLUS_ATTRIB_MAX_LEN-1) { /* take sep into account */
-        TACSYSLOG(LOG_WARNING,\
-            "%s: attribute `%s' exceeds max. %d characters, skipping",\
-            __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN-1);
+    if (l1 > TAC_PLUS_ATTRIB_MAX_LEN - 1)
+    { /* take sep into account */
+        TACSYSLOG(LOG_WARNING,
+                  "%s: attribute `%s' exceeds max. %d characters, skipping",
+                  __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN - 1);
         return LIBTAC_STATUS_ATTRIB_TOO_LONG;
     }
 
     total_len = l1 + 1; /* "name" + "sep" */
 
-    if (value == NULL) {
+    if (value == NULL)
+    {
         l2 = 0;
-    } else {
+    }
+    else
+    {
         l2 = strlen(value);
     }
 
-    if (l2 > TAC_PLUS_ATTRIB_MAX_LEN-total_len) {
-        if (truncate) {
-            l2 = TAC_PLUS_ATTRIB_MAX_LEN-total_len;
+    if (l2 > TAC_PLUS_ATTRIB_MAX_LEN - total_len)
+    {
+        if (truncate)
+        {
+            l2 = TAC_PLUS_ATTRIB_MAX_LEN - total_len;
         }
-        else {
-            TACSYSLOG(LOG_WARNING,\
-                "%s: attribute `%s' total length exceeds %d characters, skipping",\
-                __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN);
+        else
+        {
+            TACSYSLOG(LOG_WARNING,
+                      "%s: attribute `%s' total length exceeds %d characters, skipping",
+                      __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN);
             return LIBTAC_STATUS_ATTRIB_TOO_LONG;
         }
     }
@@ -62,74 +69,87 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
     total_len += l2;
 
     /* initialize the list if application passed us a null pointer */
-    if(*attr == NULL) {
-        *attr = (struct tac_attrib *) xcalloc(1, sizeof(struct tac_attrib));
+    if (*attr == NULL)
+    {
+        *attr = (struct tac_attrib *)xcalloc(1, sizeof(struct tac_attrib));
         a = *attr;
-    } else {
+    }
+    else
+    {
         /* find the last allocated block */
         a = *attr;
-        while(a->next != NULL) {
+        while (a->next != NULL)
+        {
             a = a->next; /* a holds last allocated block */
             attr_cnt++;
         }
 
-        if (attr_cnt+1 >= TAC_PLUS_ATTRIB_MAX_CNT) { /* take new attrib into account */
-            TACSYSLOG(LOG_WARNING,\
-                "%s: Maximum number of attributes exceeded, skipping",\
-                __FUNCTION__);
+        if (attr_cnt + 1 >= TAC_PLUS_ATTRIB_MAX_CNT)
+        { /* take new attrib into account */
+            TACSYSLOG(LOG_WARNING,
+                      "%s: Maximum number of attributes exceeded, skipping",
+                      __FUNCTION__);
             return LIBTAC_STATUS_ATTRIB_TOO_MANY;
         }
 
-        a->next = (struct tac_attrib *) xcalloc(1, sizeof(struct tac_attrib));
+        a->next = (struct tac_attrib *)xcalloc(1, sizeof(struct tac_attrib));
         a = a->next; /* set current block pointer to the new one */
     }
 
-    if ( sep != '=' && sep != '*' ) {
+    if (sep != '=' && sep != '*')
+    {
         sep = '=';
     }
 
     /* fill the block */
-    a->attr_len=total_len;
-    a->attr = (char *) xcalloc(1, total_len+1);
-    memcpy(a->attr, name, l1);    /* paste name */
-    *(a->attr+l1)=sep;           /* insert seperator "[=*]" */
-    if (value != NULL) {
-        memcpy((a->attr+l1+1), value, l2); /* paste value */
+    a->attr_len = total_len;
+    a->attr = (char *)xcalloc(1, total_len + 1);
+    memcpy(a->attr, name, l1); /* paste name */
+    *(a->attr + l1) = sep;     /* insert seperator "[=*]" */
+    if (value != NULL)
+    {
+        memcpy((a->attr + l1 + 1), value, l2); /* paste value */
     }
-    *(a->attr+total_len) = '\0';      /* add 0 for safety */
-    a->next = NULL; /* make sure it's null */
+    *(a->attr + total_len) = '\0'; /* add 0 for safety */
+    a->next = NULL;                /* make sure it's null */
 
     return 0;
 }
 
-int tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
+int tac_add_attrib(struct tac_attrib **attr, char *name, char *value)
+{
     return tac_add_attrib_pair(attr, name, '=', value);
 }
 
-int tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
+int tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value)
+{
     return _tac_add_attrib_pair(attr, name, sep, value, 0);
 }
 
-int tac_add_attrib_truncate(struct tac_attrib **attr, char *name, char *value) {
+int tac_add_attrib_truncate(struct tac_attrib **attr, char *name, char *value)
+{
     return tac_add_attrib_pair_truncate(attr, name, '=', value);
 }
 
-int tac_add_attrib_pair_truncate(struct tac_attrib **attr, char *name, char sep, char *value) {
+int tac_add_attrib_pair_truncate(struct tac_attrib **attr, char *name, char sep, char *value)
+{
     return _tac_add_attrib_pair(attr, name, sep, value, 1);
 }
 
-void tac_free_attrib(struct tac_attrib **attr) {
+void tac_free_attrib(struct tac_attrib **attr)
+{
     struct tac_attrib *a;
     struct tac_attrib *b;
 
-    if(*attr == NULL)
-            return;
+    if (*attr == NULL)
+        return;
 
-	// 'a' is initialized in the loop below
-	b = *attr;
+    // 'a' is initialized in the loop below
+    b = *attr;
 
     /* find last allocated block */
-    do {
+    do
+    {
         a = b;
         b = a->next;
         free(a->attr);

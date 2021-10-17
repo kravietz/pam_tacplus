@@ -23,20 +23,21 @@
 #include "xalloc.h"
 
 #ifdef HAVE_CONFIG_H
-  #include "config.h"
+#include "config.h"
 #endif
 
 #if defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO)
-# include <openssl/md5.h>
+#include <openssl/md5.h>
 #else
-# include "md5.h"
+#include "md5.h"
 #endif
 
 /* Produce MD5 pseudo-random pad for TACACS+ encryption.
    Use data from packet header and secret, which
    should be a global variable */
 static void _tac_md5_pad(const HDR *hdr,
-        unsigned char *new_digest, unsigned char *old_digest)  {
+                         unsigned char *new_digest, unsigned char *old_digest)
+{
     unsigned tac_secret_len = strlen(tac_secret);
     MD5_CTX mdcontext;
 
@@ -45,31 +46,35 @@ static void _tac_md5_pad(const HDR *hdr,
 
     /* place session_id, key, version and seq_no in buffer */
     MD5_Init(&mdcontext);
-    MD5_Update(&mdcontext, (const unsigned char *) &hdr->session_id, sizeof(hdr->session_id));
-    MD5_Update(&mdcontext, (const unsigned char *) tac_secret, tac_secret_len);
+    MD5_Update(&mdcontext, (const unsigned char *)&hdr->session_id, sizeof(hdr->session_id));
+    MD5_Update(&mdcontext, (const unsigned char *)tac_secret, tac_secret_len);
     MD5_Update(&mdcontext, &hdr->version, sizeof(hdr->version));
     MD5_Update(&mdcontext, &hdr->seq_no, sizeof(hdr->seq_no));
 
     /* append previous pad if this is not the first run */
-    if (old_digest) {
+    if (old_digest)
+    {
         MD5_Update(&mdcontext, old_digest, MD5_LBLOCK);
     }
 
     MD5_Final(new_digest, &mdcontext);
- 
-}    /* _tac_md5_pad */
+
+} /* _tac_md5_pad */
 
 /* Perform encryption/decryption on buffer. This means simply XORing
    each byte from buffer with according byte from pseudo-random
    pad. */
-void _tac_crypt(unsigned char *buf, const HDR *th) {
+void _tac_crypt(unsigned char *buf, const HDR *th)
+{
     unsigned i, j, length = ntohl(th->datalength);
- 
+
     /* null operation if no encryption requested */
-    if((tac_secret != NULL) && (th->encryption & TAC_PLUS_UNENCRYPTED_FLAG) != TAC_PLUS_UNENCRYPTED_FLAG) {
+    if ((tac_secret != NULL) && (th->encryption & TAC_PLUS_UNENCRYPTED_FLAG) != TAC_PLUS_UNENCRYPTED_FLAG)
+    {
         unsigned char digest[MD5_LBLOCK];
- 
-        for (i=0; i<length; i++) {
+
+        for (i = 0; i < length; i++)
+        {
             j = i % MD5_LBLOCK;
 
             /* At the beginning of every block (16 bytes, i.e. the size
@@ -82,7 +87,9 @@ void _tac_crypt(unsigned char *buf, const HDR *th) {
 
             buf[i] ^= digest[j];
         }
-    } else {
+    }
+    else
+    {
         TACSYSLOG(LOG_WARNING, "%s: using no TACACS+ encryption", __FUNCTION__);
     }
-}    /* _tac_crypt */
+} /* _tac_crypt */

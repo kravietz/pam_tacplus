@@ -19,7 +19,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-  #include "config.h"
+#include "config.h"
 #endif
 
 #include <stdio.h>
@@ -34,30 +34,29 @@
 #include "magic.h"
 
 #ifdef _MSC_VER
-# pragma section(".CRT$XCU",read)
-# define INITIALIZER2_(f,p) \
-	static void f(void); \
-	__declspec(allocate(".CRT$XCU")) void (*f##_)(void) = f; \
-	__pragma(comment(linker,"/include:" p #f "_")) \
-	static void f(void)
-# ifdef _WIN64
-#  define INITIALIZER(f) INITIALIZER2_(f,"")
-# else
-#  define INITIALIZER(f) INITIALIZER2_(f,"_")
-# endif
+#pragma section(".CRT$XCU", read)
+#define INITIALIZER2_(f, p)                                  \
+    static void f(void);                                     \
+    __declspec(allocate(".CRT$XCU")) void (*f##_)(void) = f; \
+    __pragma(comment(linker, "/include:" p #f "_")) static void f(void)
+#ifdef _WIN64
+#define INITIALIZER(f) INITIALIZER2_(f, "")
+#else
+#define INITIALIZER(f) INITIALIZER2_(f, "_")
+#endif
 #else /* __GNUC__ */
-# define INITIALIZER(f) \
-	static void f(void) __attribute__((constructor)); \
-	static void f(void)
+#define INITIALIZER(f)                                \
+    static void f(void) __attribute__((constructor)); \
+    static void f(void)
 #endif
 
 #if defined(HAVE_GETRANDOM)
 
-# if defined(HAVE_SYS_RANDOM_H)
-#  include <sys/random.h>
-# else
-#  error no header containing getrandom(2) declaration
-# endif
+#if defined(HAVE_SYS_RANDOM_H)
+#include <sys/random.h>
+#else
+#error no header containing getrandom(2) declaration
+#endif
 
 u_int32_t magic_secondary(void);
 
@@ -70,19 +69,22 @@ magic_primary()
     ssize_t ret;
 
     ret = getrandom(&num, sizeof(num), GRND_NONBLOCK);
-    if(ret < 0) {
+    if (ret < 0)
+    {
         /* EAGAIN indicates that getrandom() is not yet ready; use alternative functions
          * instead when this happens */
-        if(errno == EAGAIN) {
-            TACSYSLOG(LOG_WARNING,"%s: getrandom not ready yet, using alternatives", __FUNCTION__);
+        if (errno == EAGAIN)
+        {
+            TACSYSLOG(LOG_WARNING, "%s: getrandom not ready yet, using alternatives", __FUNCTION__);
             return magic_secondary();
         }
-    	TACSYSLOG(LOG_CRIT,"%s: getrandom failed to provide random bytes: %s", __FUNCTION__, strerror(errno));
-    	exit(1);
+        TACSYSLOG(LOG_CRIT, "%s: getrandom failed to provide random bytes: %s", __FUNCTION__, strerror(errno));
+        exit(1);
     }
-    if(ret < (ssize_t) sizeof(num)) {
-    	TACSYSLOG(LOG_CRIT,"%s: getrandom less bytes than expected: %zd vs %zu", __FUNCTION__, ret, sizeof(num));
-    	exit(1);
+    if (ret < (ssize_t)sizeof(num))
+    {
+        TACSYSLOG(LOG_CRIT, "%s: getrandom less bytes than expected: %zd vs %zu", __FUNCTION__, ret, sizeof(num));
+        exit(1);
     }
     return num;
 }
@@ -111,20 +113,21 @@ magic_secondary()
 #elif HAVE_RAND_PSEUDO_BYTES
     ret = RAND_pseudo_bytes((unsigned char *)&num, sizeof(num));
 #else
-	#error Neither  RAND_bytes nor RAND_pseudo_bytes seems to be available
+#error Neither  RAND_bytes nor RAND_pseudo_bytes seems to be available
 #endif
 
     /* RAND_bytes success / RAND_pseudo_bytes "cryptographically strong" result */
     if (ret == 1)
         return num;
 
-    TACSYSLOG(LOG_CRIT,"%s: "
+    TACSYSLOG(LOG_CRIT, "%s: "
 #ifdef HAVE_RAND_BYTES
-                       "RAND_bytes "
+                        "RAND_bytes "
 #else
-                       "RAND_pseudo_bytes "
+                        "RAND_pseudo_bytes "
 #endif
-                       "failed; ret: %d err: %ld", __FUNCTION__, ret, ERR_get_error());
+                        "failed; ret: %d err: %ld",
+              __FUNCTION__, ret, ERR_get_error());
 
     exit(1);
 }
@@ -142,10 +145,12 @@ INITIALIZER(magic_init)
     struct timeval t;
 
     // try to initialise seed from urandom
-    if (!lstat("/dev/urandom", &statbuf) && S_ISCHR(statbuf.st_mode)) {
+    if (!lstat("/dev/urandom", &statbuf) && S_ISCHR(statbuf.st_mode))
+    {
         int rfd = open("/dev/urandom", O_RDONLY);
-        if(rfd >= 0) {
-            (void) read(rfd, &seed, sizeof(seed));
+        if (rfd >= 0)
+        {
+            (void)read(rfd, &seed, sizeof(seed));
             close(rfd);
         }
     }
