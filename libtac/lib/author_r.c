@@ -83,6 +83,7 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 		/* no need to process body if header is broken */
 		re->msg = xstrdup(msg);
 		re->status = LIBTAC_STATUS_PROTOCOL_ERR;
+		// msg is static string
 		free(tb);
 		return re->status;
 	}
