@@ -552,6 +552,7 @@ void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
         if (!quiet)
             printf("Authentication FAILED: %s\n", arep.msg);
         syslog(LOG_ERR, "authentication failed for %s: %s", user, arep.msg);
+        free(arep.msg);
         exit(EXIT_FAIL);
     }
 
