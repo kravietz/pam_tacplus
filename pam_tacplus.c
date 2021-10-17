@@ -582,9 +582,10 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 	if (ctrl & PAM_TAC_DEBUG)
 		syslog(LOG_DEBUG, "%s: exit with pam status: %d", __FUNCTION__, status);
 
-	if (NULL != pass)
+	if (pass != NULL)
 	{
-		bzero(pass, strlen(pass));
+		// sanitize password from memory
+		memset(pass, strlen(pass), 0);
 		free(pass);
 		pass = NULL;
 	}
@@ -1141,9 +1142,9 @@ finish:
 	if (ctrl & PAM_TAC_DEBUG)
 		syslog(LOG_DEBUG, "%s: exit with pam status: %d", __FUNCTION__, status);
 
-	if (NULL != pass)
+	if (pass != NULL)
 	{
-		bzero(pass, strlen(pass));
+		memset(pass, strlen(pass), 0);
 		free(pass);
 		pass = NULL;
 	}
