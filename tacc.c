@@ -340,7 +340,7 @@ int main(int argc, char **argv) {
     }
 
     /* we no longer need the password in our address space */
-    bzero(pass, strlen(pass));
+    memset(pass, strlen(pass), 0);
     pass = NULL;
 
     if (do_account) {
