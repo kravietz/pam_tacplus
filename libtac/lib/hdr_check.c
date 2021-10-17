@@ -22,6 +22,8 @@
 #include "messages.h"
 #include "libtac.h"
 
+#include <arpa/inet.h>
+
 /* Checks given reply header for possible inconsistencies:
  *  1. reply type other than expected
  *  2. sequence number other than 2 or 4

@@ -154,7 +154,7 @@ extern int tac_ver_minor;
 extern int tac_ver_patch;
 
 /* header.c */
-extern int session_id;
+extern u_int32_t session_id;
 extern int tac_encryption;
 extern const char *tac_secret;
 extern char tac_login[64];

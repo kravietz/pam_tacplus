@@ -28,11 +28,13 @@
 
 #include "magic.h"
 
+#include <arpa/inet.h>
+
 /* Miscellaneous variables that are global, because we need
  * store their values between different functions and connections.
  */
 /* Session identifier. */
-int session_id;
+u_int32_t session_id;
 
 /* Encryption flag. */
 int tac_encryption = 0;
