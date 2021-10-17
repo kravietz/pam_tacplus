@@ -474,6 +474,7 @@ int main(int argc, char **argv) {
         if (tac_fd < 0) {
             if (!quiet)
                 printf("Error connecting to TACACS+ server: %m\n");
+            tac_free_attrib(&attr);
             exit(EXIT_ERR);
         }
 
