@@ -318,6 +318,7 @@ int main(int argc, char **argv) {
         if (tac_fd < 0) {
             if (!quiet)
                 printf("Error connecting to TACACS+ server: %m\n");
+            tac_free_attrib(&attr);
             exit(EXIT_ERR);
         }
 
@@ -328,6 +329,7 @@ int main(int argc, char **argv) {
             && arep.status != AUTHOR_STATUS_PASS_REPL) {
             if (!quiet)
                 printf("Authorization FAILED: %s\n", arep.msg);
+            tac_free_attrib(&attr);
             exit(EXIT_FAIL);
         } else {
             if (!quiet)
@@ -365,6 +367,7 @@ int main(int argc, char **argv) {
         if (tac_fd < 0) {
             if (!quiet)
                 printf("Error connecting to TACACS+ server: %m\n");
+            tac_free_attrib(&attr);
             exit(EXIT_ERR);
         }
 
