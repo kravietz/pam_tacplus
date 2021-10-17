@@ -584,7 +584,6 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 
 	if (pass != NULL)
 	{
-<<<<<<< HEAD
 // sanitize password from memory
 #ifdef HAVE_MEMSET_S
 		memset(pass, strlen(pass), 0, strlen(pass));
@@ -593,10 +592,6 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 #else
 		memset(pass, 0, strlen(pass));
 #endif
-=======
-		// sanitize password from memory
-		memset(pass, strlen(pass), 0);
->>>>>>> 95f0937 (Replace obsolete bzero() with memset())
 		free(pass);
 		pass = NULL;
 	}
