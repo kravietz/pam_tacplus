@@ -94,7 +94,7 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 {
 
 	char buf[64];
-	struct tac_attrib *attr;
+	struct tac_attrib *attr = NULL;
 	int retval;
 	time_t t;
 	struct tm tm;
