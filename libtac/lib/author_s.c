@@ -93,14 +93,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 		pkt_len += sizeof(a->attr_len);
 		pkt = (unsigned char*) xrealloc(pkt, pkt_len);
 
-		/* bad method: realloc() is allowed to return different pointer
-		 with each call
-		 pktp=pkt + pkt_len; 
-		 pkt_len += sizeof(a->attr_len);
-		 pkt = xrealloc(pkt, pkt_len);   
-		 */
-
-		bcopy(&a->attr_len, pkt + pktl, sizeof(a->attr_len));
+		memcpy(pkt + pktl, &a->attr_len, sizeof(a->attr_len));
 		i++;
 
 		a = a->next;
@@ -108,20 +101,13 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 
 	/* fill the arg count field and add the fixed fields to packet */
 	tb.arg_cnt = i;
-	bcopy(&tb, pkt, TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE);
-	/*
-	 #define PUTATTR(data, len) \
-    pktp = pkt + pkt_len; \
-    pkt_len += len; \
-    pkt = xrealloc(pkt, pkt_len); \
-    bcopy(data, pktp, len);
-	 */
+	memcpy(pkt, &tb, TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE);
 
 #define PUTATTR(data, len) \
     pktl = pkt_len; \
     pkt_len += len; \
     pkt = (unsigned char*) xrealloc(pkt, pkt_len); \
-    bcopy(data, pkt + pktl, len);
+    memcpy(pkt + pktl, data, len);
 
 	/* fill user and port fields */
 	PUTATTR(user, user_len)

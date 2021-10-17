@@ -91,10 +91,10 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
     /* fill the block */
     a->attr_len=total_len;
     a->attr = (char *) xcalloc(1, total_len+1);
-    bcopy(name, a->attr, l1);    /* paste name */
+    memcpy(a->attr, name, l1);    /* paste name */
     *(a->attr+l1)=sep;           /* insert seperator "[=*]" */
     if (value != NULL) {
-        bcopy(value, (a->attr+l1+1), l2); /* paste value */
+        memcpy((a->attr+l1+1), value, l2); /* paste value */
     }
     *(a->attr+total_len) = '\0';      /* add 0 for safety */
     a->next = NULL; /* make sure it's null */

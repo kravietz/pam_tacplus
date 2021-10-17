@@ -77,9 +77,9 @@ int tac_cont_send_seq(int fd, const char *pass, int seq) {
 	/* build the packet */
 	pkt = (unsigned char *) xcalloc(1, bodylength);
 
-	bcopy(&tb, pkt + pkt_len, TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE); /* packet body beginning */
+	memcpy(pkt + pkt_len, &tb, TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE); /* packet body beginning */
 	pkt_len += TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE;
-	bcopy(pass, pkt + pkt_len, pass_len); /* password */
+	memcpy(pkt + pkt_len, pass, pass_len); /* password */
 	pkt_len += pass_len;
 
 	/* pkt_len == bodylength ? */
