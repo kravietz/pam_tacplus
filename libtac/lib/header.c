@@ -23,7 +23,7 @@
 #include "xalloc.h"
 
 #ifdef HAVE_CONFIG_H
-  #include "config.h"
+#include "config.h"
 #endif
 
 #include "magic.h"
@@ -66,21 +66,23 @@ int tac_readtimeout_enable = 0;
  * field depends on the TACACS+ request type and thus it
  * cannot be predefined.
  */
-HDR *_tac_req_header(unsigned char type, int cont_session) {
-    HDR *th;
+HDR *_tac_req_header(unsigned char type, int cont_session)
+{
+  HDR *th;
 
-    th=(HDR *) xcalloc(1, TAC_PLUS_HDR_SIZE);
+  th = (HDR *)xcalloc(1, TAC_PLUS_HDR_SIZE);
 
-    /* preset some packet options in header */
-    th->type=type;
-    th->seq_no=1; /* always 1 for request */
-    th->encryption=TAC_PLUS_ENCRYPTED_FLAG;
- 
-    /* make session_id from pseudo-random number */
-    if (!cont_session) {
-        session_id = magic();
-    }
-    th->session_id = htonl(session_id);
+  /* preset some packet options in header */
+  th->type = type;
+  th->seq_no = 1; /* always 1 for request */
+  th->encryption = TAC_PLUS_ENCRYPTED_FLAG;
 
-    return th;
+  /* make session_id from pseudo-random number */
+  if (!cont_session)
+  {
+    session_id = magic();
+  }
+  th->session_id = htonl(session_id);
+
+  return th;
 }
