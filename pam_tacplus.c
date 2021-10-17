@@ -1144,7 +1144,7 @@ finish:
 
 	if (pass != NULL)
 	{
-		memset(pass, strlen(pass), 0);
+		memset(pass, 0, strlen(pass));
 		free(pass);
 		pass = NULL;
 	}
