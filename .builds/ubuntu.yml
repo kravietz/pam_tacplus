@@ -44,8 +44,8 @@ tasks:
         cd pam-tacplus
         make clean
         ./configure --enable-asan
-        export ASAN_OPTIONS=abort_on_error=1:fast_unwind_on_malloc=0:detect_leaks=0
         make clean all
+        export ASAN_OPTIONS=abort_on_error=1:fast_unwind_on_malloc=0:detect_leaks=1
         ./tacc --authenticate --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
         ./tacc --authorize --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
         ./tacc --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
