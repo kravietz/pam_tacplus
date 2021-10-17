@@ -585,7 +585,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 	if (pass != NULL)
 	{
 		// sanitize password from memory
-		memset(pass, strlen(pass), 0);
+		memset(pass, 0, strlen(pass));
 		free(pass);
 		pass = NULL;
 	}
