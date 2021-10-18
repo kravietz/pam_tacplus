@@ -1,7 +1,7 @@
 # build manifest for SourceHut
 # https://man.sr.ht/builds.sr.ht/
 # use bionic as it's the last distribution to include tacacs+ package
-image: ubuntu/latest
+image: ubuntu/focal
 packages:
 - autoconf
 - build-essential
