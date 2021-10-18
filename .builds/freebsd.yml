@@ -8,6 +8,7 @@ packages:
 - tacacs
 - expect
 - pamtester
+- gcc
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
@@ -54,7 +55,7 @@ tasks:
 - asan-test-tacc-clang: |
         cd pam-tacplus
         make clean
-        env CC=clang ./configure --enable-asan
+        ./configure --enable-asan
         make clean all
         export ASAN_OPTIONS=abort_on_error=1:fast_unwind_on_malloc=0:detect_leaks=1
         ./tacc --authenticate --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
