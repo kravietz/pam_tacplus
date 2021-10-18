@@ -13,11 +13,11 @@ packages:
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
-- configure: |
+- clang-analyzer: |
         cd pam-tacplus
         autoreconf -i
-        ./configure
-        make
+        scan-build ./configure
+        scan-build --keep-cc -v make clean all        
 - setup-test: |
         cd pam-tacplus
         sudo make install
