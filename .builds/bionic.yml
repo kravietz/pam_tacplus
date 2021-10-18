@@ -26,17 +26,10 @@ tasks:
         # not really necessary, users statically defined in pam_tac.conf
         sudo useradd -m testuser1
         echo testuser1:testpass123 | sudo chpasswd -c SHA512
-- gcc: |
-        cd pam-tacplus
-        autoreconf -i
-        # runtime debugging only enables logmsg() in tacc.c, used only to increase compilation coverage
-        scan-build --use-cc=gcc ./configure --enable-asan --enable-runtime-debugging
-        scan-build --use-cc=gcc make clean all
-        sudo make install
-        sudo ldconfig
 - clang: |
         cd pam-tacplus
         autoreconf -i
+        make clean
         # required for pam_tacplus.so testing with ASAN, only works with clang
         export LDFLAGS=-shared-libasan
         scan-build --use-cc=clang ./configure --enable-asan
@@ -62,3 +55,10 @@ tasks:
         # required for pam_tacplus.so testing with ASAN, only works with clang
         export LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so)
         expect test/bionic/tests.expect
+- gcc: |
+        # only compilation test
+        cd pam-tacplus
+        autoreconf -i
+        scan-build --use-cc=gcc ./configure --enable-asan
+        scan-build --use-cc=gcc make clean all
+     
