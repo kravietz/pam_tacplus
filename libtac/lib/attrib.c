@@ -26,7 +26,7 @@
 #include "xalloc.h"
 
 static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
-                                char sep, char *value, int truncate)
+                                char separator, char *value, int truncate)
 {
     struct tac_attrib *a;
     size_t l1 = strlen(name);
@@ -35,14 +35,14 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
     size_t total_len;
 
     if (l1 > TAC_PLUS_ATTRIB_MAX_LEN - 1)
-    { /* take sep into account */
+    { /* take separator into account */
         TACSYSLOG(LOG_WARNING,
                   "%s: attribute `%s' exceeds max. %d characters, skipping",
                   __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN - 1);
         return LIBTAC_STATUS_ATTRIB_TOO_LONG;
     }
 
-    total_len = l1 + 1; /* "name" + "sep" */
+    total_len = l1 + 1; /* "name" + "separator" */
 
     if (value == NULL)
     {
@@ -73,6 +73,7 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
     /* initialize the list if application passed us a null pointer */
     if (*attr == NULL)
     {
+        /* allocate buffer for the tac_attrib chain link */
         *attr = (struct tac_attrib *)xcalloc(1, sizeof(struct tac_attrib));
         a = *attr;
     }
@@ -94,24 +95,25 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
             return LIBTAC_STATUS_ATTRIB_TOO_MANY;
         }
 
+        /* allocate buffer for the next tac_attrib chain link */
         a->next = (struct tac_attrib *)xcalloc(1, sizeof(struct tac_attrib));
         a = a->next; /* set current block pointer to the new one */
     }
 
-    if (sep != '=' && sep != '*')
+    if (separator != '=' && separator != '*')
     {
-        sep = '=';
+        separator = '=';
         TACSYSLOG(LOG_WARNING,
                   "%s: Separator '%c' not allowed, replaced with '='",
-                  __FUNCTION__, sep);
+                  __FUNCTION__, separator);
     }
 
     /* fill the block */
     a->attr_len = total_len;
-
+    /* allocate buffer for the key=value ASCIIZ string */
     a->attr = (char *)xcalloc(1, total_len + 1);
     /* write the attribute=value into the buffer */
-    if (snprintf(a->attr, total_len, "%s%c%s", name, sep, value) < (int) total_len)
+    if (snprintf(a->attr, total_len+1, "%s%c%s", name, separator, value) < (int) total_len)
     {
         TACSYSLOG(LOG_ERR, 
                       "%s: short snprintf write (wanted %lu bytes)",
