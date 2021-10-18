@@ -10,6 +10,8 @@ packages:
 - openssl-devel
 - clang
 - clang-analyzer
+- libasan
+- libubsan
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
