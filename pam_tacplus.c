@@ -66,7 +66,7 @@ static void set_active_server(const tacplus_server_t *tac_svr)
 	memset(&active_sockaddr, 0, sizeof(struct sockaddr));
 	memset(&active_sockaddr6, 0, sizeof(struct sockaddr_in6));
 
-	if (tac_srv == NULL || tac_svr->addr == NULL)
+	if (tac_svr->addr == NULL)
 	{
 		_pam_log(LOG_ERR, "internal error: null values passed to set_active_server()");
 		return;
@@ -586,7 +586,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 	{
 // sanitize password from memory
 #ifdef HAVE_MEMSET_S
-		memset(pass, strlen(pass), 0, strlen(pass));
+		memset_s(pass, strlen(pass), 0, strlen(pass));
 #elif HAVE_EXPLICIT_BZERO
 		explicit_bzero(pass, strlen(pass));
 #else
@@ -1151,7 +1151,7 @@ finish:
 	if (pass != NULL)
 	{
 #ifdef HAVE_MEMSET_S
-		memset(pass, strlen(pass), 0, strlen(pass));
+		memset_s(pass, strlen(pass), 0, strlen(pass));
 #elif HAVE_EXPLICIT_BZERO
 		explicit_bzero(pass, strlen(pass));
 #else
