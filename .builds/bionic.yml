@@ -29,7 +29,6 @@ tasks:
 - clang: |
         cd pam-tacplus
         autoreconf -i
-        make clean
         # required for pam_tacplus.so testing with ASAN, only works with clang
         export LDFLAGS=-shared-libasan
         scan-build --use-cc=clang ./configure --enable-asan
