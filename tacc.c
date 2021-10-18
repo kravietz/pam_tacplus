@@ -354,6 +354,9 @@ int main(int argc, char **argv)
                 printf("Authorization OK: %s\n", arep.msg);
         }
 
+        if (arep.msg != NULL)
+            free(arep.msg);
+
         tac_free_attrib(&attr);
     }
 
@@ -589,6 +592,8 @@ void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
         {
             if (!quiet)
                 printf("Error sending query to TACACS+ server\n");
+            if (arep.msg != NULL)
+                free(arep.msg);
             exit(EXIT_ERR);
         }
 
@@ -600,13 +605,17 @@ void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
         if (!quiet)
             printf("Authentication FAILED: %s\n", arep.msg);
         syslog(LOG_ERR, "authentication failed for %s: %s", user, arep.msg);
-        free(arep.msg);
+        if (arep.msg != NULL)
+            free(arep.msg);
         exit(EXIT_FAIL);
     }
 
     if (!quiet)
         printf("Authentication OK\n");
     syslog(LOG_INFO, "authentication OK for %s", user);
+
+    if (arep.msg != NULL)
+        free(arep.msg);
 
     close(tac_fd);
 }
