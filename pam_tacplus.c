@@ -588,7 +588,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 #ifdef HAVE_MEMSET_S
 		memset(pass, strlen(pass), 0, strlen(pass));
 #elif HAVE_EXPLICIT_BZERO
-		explicit_bzero(pass, 0, strlen(pass));
+		explicit_bzero(pass, strlen(pass));
 #else
 		memset(pass, 0, strlen(pass));
 #endif
@@ -1153,7 +1153,7 @@ finish:
 #ifdef HAVE_MEMSET_S
 		memset(pass, strlen(pass), 0, strlen(pass));
 #elif HAVE_EXPLICIT_BZERO
-		explicit_bzero(pass, 0, strlen(pass));
+		explicit_bzero(pass, strlen(pass));
 #else
 		memset(pass, 0, strlen(pass));
 #endif
