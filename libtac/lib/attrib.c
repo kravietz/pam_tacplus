@@ -99,19 +99,23 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
     if (sep != '=' && sep != '*')
     {
         sep = '=';
+        TACSYSLOG(LOG_WARNING,
+                  "%s: Separator '%c' not allowed, replaced with '='",
+                  __FUNCTION__, sep);
     }
 
     /* fill the block */
     a->attr_len = total_len;
+
     a->attr = (char *)xcalloc(1, total_len + 1);
-    memcpy(a->attr, name, l1); /* paste name */
-    *(a->attr + l1) = sep;     /* insert seperator "[=*]" */
-    if (value != NULL)
+    /* write the attribute=value into the buffer */
+    if (snprintf(a->attr, total_len, "%s%c%s", name, sep, value) < total_len)
     {
-        memcpy((a->attr + l1 + 1), value, l2); /* paste value */
+        TACSYSLOG(LOG_ERR, 
+                      "%s: short snprintf write (wanted %d bytes)",
+                      __FUNCTION__, total_len);
     }
-    *(a->attr + total_len) = '\0'; /* add 0 for safety */
-    a->next = NULL;                /* make sure it's null */
+    a->next = NULL; /* make sure next pointer is null so that it will be allocated on next call */
 
     return 0;
 }
