@@ -128,6 +128,17 @@ static struct option long_options[] =
 /* command line letters */
 char *opt_string = "TRAVhu:p:s:k:c:qr:wnS:P:L:y:";
 
+void dump_attributes(struct tac_attrib *attr)
+{
+    struct tac_attrib *next = NULL;
+    next = attr;
+    do
+    {
+        printf("\t%s\n", next->attr);
+        next = next->next;
+    } while (next != NULL);
+}
+
 int main(int argc, char **argv)
 {
     char *pass = NULL;
@@ -351,13 +362,21 @@ int main(int argc, char **argv)
         else
         {
             if (!quiet)
+            {
                 printf("Authorization OK: %s\n", arep.msg);
+                dump_attributes(attr);
+            }
         }
 
         if (arep.msg != NULL)
             free(arep.msg);
 
+        /* free request attributes */
         tac_free_attrib(&attr);
+        
+        /* free response attributes */
+        if (arep.attr != NULL)
+            tac_free_attrib(&arep.attr);
     }
 
     /* we no longer need the password in our address space */
