@@ -123,7 +123,7 @@ dnl Checks for library functions.
 AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp getrandom strtol strlcpy abort])
+AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp getrandom strtol strlcpy abort memset_s explicit_bzero])
 
 dnl --------------------------------------------------------------------
 dnl Switch for pam module dir
