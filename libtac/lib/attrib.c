@@ -109,10 +109,10 @@ static int _tac_add_attrib_pair(struct tac_attrib **attr, char *name,
 
     a->attr = (char *)xcalloc(1, total_len + 1);
     /* write the attribute=value into the buffer */
-    if (snprintf(a->attr, total_len, "%s%c%s", name, sep, value) < total_len)
+    if (snprintf(a->attr, total_len, "%s%c%s", name, sep, value) < (size_t) total_len)
     {
         TACSYSLOG(LOG_ERR, 
-                      "%s: short snprintf write (wanted %d bytes)",
+                      "%s: short snprintf write (wanted %lu bytes)",
                       __FUNCTION__, total_len);
     }
     a->next = NULL; /* make sure next pointer is null so that it will be allocated on next call */
