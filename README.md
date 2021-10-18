@@ -59,7 +59,7 @@ on variety of operating systems.
 | `protocol` | account, session | *string* TACACS+ protocol for authorization and accounting |
 
 Semantics of these options only makes sense in the context of the
-[TACACS+ specification](https://tools.ietf.org/html/draft-grant-tacacs-02) &mdash; for example,
+[RFC 8907 (the TACACS+ specification)](https://datatracker.ietf.org/doc/html/rfc8907) &mdash; for example,
 a dial-up router might request `ppp` service with protocol `ip` for their users, authenticating
 them with `pap` protocol which reflects the typical usage of TACACS+ back in 90's.
 These values however do not really need to match the actual service offered by your server
@@ -241,7 +241,7 @@ authorization.
 
 ### Short introduction to PAM via TACACS+:
 
-This diagram should show general idea of how the whole process looks:
+This diagram should show general idea of how the whole process looks like:
 
 ![TACACS+ and PAM interaction diagram](doc/diagram.svg)
 
@@ -301,7 +301,6 @@ tac_plus -C /etc/tacacs+/tac_plus.conf -G -g -d 512
 		
 ### Authors:
 
-Pawel Krawczyk <pawel.krawczyk@hush.com>
-https://ipsec.pl/
+Pawel Krawczyk <pawel.krawczyk@hush.com> https://krvtz.net/
 
 Jeroen Nijhof <jeroen@jeroennijhof.nl>
