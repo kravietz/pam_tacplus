@@ -46,7 +46,6 @@ static int _tac_attrib_checks(char *name, char separator, char *value, size_t to
             TACSYSLOG(LOG_WARNING,
                       "%s: attribute `%s' exceeds max. %d characters, truncating",
                       __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN - 1);
-            total_len = TAC_PLUS_ATTRIB_MAX_LEN;
         }
         else
         {
