@@ -10,7 +10,7 @@ dnl You need autoconf 2.59 or better!
 dnl
 dnl ---------------------------------------------------------------------------
 
-AC_PREREQ(2.59)
+AC_PREREQ(2.64)
 AC_COPYRIGHT([
 See the included file: COPYING for copyright information.
 ])
