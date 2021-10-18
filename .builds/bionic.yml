@@ -14,6 +14,7 @@ packages:
 - expect
 - pamtester
 - clang
+- clang-tools
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
