@@ -228,7 +228,7 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 		 the client */
 		pktp = (unsigned char *)tb + TAC_AUTHOR_REPLY_FIXED_FIELDS_SIZE;
 		argp = pktp + (tb->arg_cnt * sizeof(unsigned char)) + tb->msg_len + tb->data_len;
-		TACSYSLOG(LOG_DEBUG, "Args cnt %d", tb->arg_cnt);
+		TACSYSLOG(LOG_DEBUG, "%s: args cnt %d", __FUNCTION__, tb->arg_cnt);
 		/* argp points to current argument string
 		 pktp points to current argument length */
 		for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT; r++)
@@ -248,9 +248,8 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 			if (sep == NULL)
 			{
 				TACSYSLOG(
-					LOG_WARNING, "AUTHOR_STATUS_PASS_ADD/REPL: av pair does not contain a separator: %s", buff);
-				/* now buff points to attribute name, make value ""
-				 treat as "name=" */
+					LOG_WARNING, "%s: AUTHOR_STATUS_PASS_ADD/REPL: attribute does not contain a separator: %s", __FUNCTION__, buff);
+				/* now buff points to attribute name, make value ""	 treat as "name=" */
 				value = "";
 			}
 			else
@@ -258,10 +257,9 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 				sepchar = *sep;
 				*sep = '\0';
 				value = ++sep;
-				/* now buff points to attribute name,
-				 value to the attribute value */
+				/* now buff points to attribute name, value to the attribute value */
 			}
-			TACSYSLOG(LOG_DEBUG, "Adding buf/value pair (%s,%s)", buff, value);
+			TACSYSLOG(LOG_DEBUG, "%s: adding buf/value pair %s %s", __FUNCTION__, buff, value);
 			tac_add_attrib_pair(&re->attr, buff, sepchar, value);
 			argp += *pktp;
 			pktp++;
