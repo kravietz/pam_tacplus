@@ -8,6 +8,8 @@ packages:
 - tacacs
 - expect
 - pamtester
+# for scan-build
+- llvm
 # -fsanitize=address on FreeBSD is only supported on GCC >= 11
 - gcc11-devel
 sources:
