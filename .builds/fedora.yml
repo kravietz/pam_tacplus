@@ -16,10 +16,10 @@ tasks:
 - gcc: |
         cd pam-tacplus
         autoreconf -i
-        ./configure
-        make clean all
-- clang-analyzer: |
+        scan-build --use-cc=gcc ./configure --enable-asan
+        scan-build --use-cc=gcc make clean all
+- clang: |
         cd pam-tacplus
         autoreconf -i
-        scan-build ./configure
-        scan-build --keep-cc -v make clean all
+        scan-build --use-cc=clang ./configure --enable-asan
+        scan-build --use-cc=clang make clean all
