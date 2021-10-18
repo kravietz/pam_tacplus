@@ -17,7 +17,7 @@ tasks:
 - gcc: |
         cd pam-tacplus
         autoreconf -i
-        env CC=gcc LD=gcc ./configure
+        ./configure
         make
 - clang: |
         cd pam-tacplus
