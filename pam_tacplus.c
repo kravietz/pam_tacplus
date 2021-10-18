@@ -584,8 +584,14 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 
 	if (pass != NULL)
 	{
-		// sanitize password from memory
+// sanitize password from memory
+#ifdef HAVE_MEMSET_S
+		memset(pass, strlen(pass), 0, strlen(pass));
+#elif HAVE_EXPLICIT_BZERO
+		explicit_bzero(pass, 0, strlen(pass));
+#else
 		memset(pass, 0, strlen(pass));
+#endif
 		free(pass);
 		pass = NULL;
 	}
@@ -1144,7 +1150,13 @@ finish:
 
 	if (pass != NULL)
 	{
+#ifdef HAVE_MEMSET_S
+		memset(pass, strlen(pass), 0, strlen(pass));
+#elif HAVE_EXPLICIT_BZERO
+		explicit_bzero(pass, 0, strlen(pass));
+#else
 		memset(pass, 0, strlen(pass));
+#endif
 		free(pass);
 		pass = NULL;
 	}
