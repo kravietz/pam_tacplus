@@ -17,14 +17,9 @@ tasks:
         cd pam-tacplus
         autoreconf -i
         ./configure
-        make
-- clang: |
-        cd pam-tacplus
-        autoreconf -i
-        env CC=clang LD=clang ./configure
-        make
+        make clean all
 - clang-analyzer: |
         cd pam-tacplus
         autoreconf -i
         scan-build ./configure
-        scan-build --keep-cc make 
+        scan-build --keep-cc -v make clean all
