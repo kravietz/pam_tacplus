@@ -18,7 +18,7 @@ endif
 if TACC
 bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
-tacc_LDADD = libtac.la lib/libgnu.la $(LTLIBINTL) $(LIB_CRYPTO)  $(LIB_GETRANDOM)
+tacc_LDADD = libtac.la $(LTLIBINTL) $(LIB_CRYPTO)  $(LIB_GETRANDOM)
 tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@ -I $(top_srcdir)/lib/include -I $(top_srcdir)/lib/lib
 endif
 
@@ -28,6 +28,8 @@ libtac_include_HEADERS = \
     libtac/include/libtac.h \
     libtac/include/cdefs.h
 
+# https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info
+libtac_la_LDFLAGS = -version-info 4:0:1 -shared
 lib_LTLIBRARIES = libtac.la
 libtac_la_SOURCES = \
     libtac/lib/acct_r.c \
@@ -50,7 +52,6 @@ libtac_la_SOURCES = \
     libtac/lib/xalloc.h \
     $(libtac_include_HEADERS)
 libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib @rt_debug_defines@
-libtac_la_LDFLAGS = -version-info 4:0:1 -shared
 libtac_la_LIBADD = lib/libgnu.la $(LTLIBINTL) $(LIB_CRYPTO) $(LIB_GETRANDOM)
 
 moduledir = @pamdir@
