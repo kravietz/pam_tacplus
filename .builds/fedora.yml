@@ -16,14 +16,11 @@ packages:
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
-- gcc: |
+- gnulib:
         cd pam-tacplus
-        gnulib-tool --import  fcntl crypto/md5 array-list list xlist getrandom realloc
+        gnulib-tool --import fcntl crypto/md5 array-list list xlist getrandom realloc
         autoreconf -f -i -v
-        scan-build --use-cc=gcc ./configure --enable-asan
-        scan-build --use-cc=gcc make clean all
-- clang: |
+- build-cc: |
         cd pam-tacplus
-        autoreconf -f -i -v
-        scan-build --use-cc=clang ./configure --enable-asan
-        scan-build --use-cc=clang make clean all
+        ./configure
+        make clean all
