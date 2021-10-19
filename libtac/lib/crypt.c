@@ -30,19 +30,18 @@
 /* CHAP digest per https://datatracker.ietf.org/doc/html/rfc1994
 The target `digest` buffer must be at least MD5_DIGEST_SIZE long.
 */
-void
-digest_chap(unsigned char *digest, unsigned char id,
-			const char *pass, unsigned pass_len,
-			const char *chal, unsigned chal_len)
+void digest_chap(unsigned char *digest, unsigned char id,
+                 const char *pass, unsigned pass_len,
+                 const char *chal, unsigned chal_len)
 {
 
-	struct md5_ctx mdcontext;
+    struct md5_ctx mdcontext;
 
-	md5_init_ctx(&mdcontext);
-	md5_process_bytes(&id, sizeof(id), &mdcontext);
-	md5_process_bytes((const unsigned char *)pass, pass_len, &mdcontext);
-	md5_process_bytes((const unsigned char *)chal, chal_len, &mdcontext);
-	md5_finish_ctx(&mdcontext, digest);
+    md5_init_ctx(&mdcontext);
+    md5_process_bytes(&id, sizeof(id), &mdcontext);
+    md5_process_bytes((const unsigned char *)pass, pass_len, &mdcontext);
+    md5_process_bytes((const unsigned char *)chal, chal_len, &mdcontext);
+    md5_finish_ctx(&mdcontext, digest);
 }
 
 /* Produce MD5 pseudo-random pad for TACACS+ encryption.
