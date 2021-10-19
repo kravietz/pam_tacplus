@@ -30,7 +30,7 @@ The following core TACACS+ functions are supported:
 | Authorization  | Account management | Is the user entitled to service X?  |
 | Account        | Session open/close | Record beginning and end of service |
 
-The [TACACS+](https://tools.ietf.org/html/draft-ietf-opsawg-tacacs-15) protocol was designed by Cisco Systems back in 90's
+The [TACACS+](https://datatracker.ietf.org/doc/html/rfc8907) protocol was designed by Cisco Systems back in 90's
 and was intended to provide simple means of validating users connecting to simple network routers (e.g. over PPP) against
 a central authentication server. The router can send queries about authentication (validate user credentials), authorization
 (entitlement for requested service) and accounting (marking the start and end of user's session). The server can respond
@@ -298,7 +298,13 @@ tac_plus -C /etc/tacacs+/tac_plus.conf -G -g -d 512
 
 * only subset of TACACS+ protocol is supported; it's enough for most need, though
 * `tacc` does not support password prompts and other interactive protocol features
-		
+
+### References:
+
+* [RFC 8907: The Terminal Access Controller Access-Control System Plus (TACACS+) Protocol](https://datatracker.ietf.org/doc/html/rfc8907)
+* [RFC 1994: PPP Challenge Handshake Authentication Protocol (CHAP)](https://datatracker.ietf.org/doc/html/rfc1994)
+* [The Linux-PAM Application Developers' Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_ADG.html)
+
 ### Authors:
 
 Pawel Krawczyk <pawel.krawczyk@hush.com> https://krvtz.net/
