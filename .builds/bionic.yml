@@ -27,7 +27,7 @@ tasks:
         # not really necessary, users statically defined in pam_tac.conf
         #sudo useradd -m testuser1
         #echo testuser1:testpass123 | sudo chpasswd -c SHA512
-- gnulib:
+- gnulib: |
         cd pam-tacplus
         gnulib-tool --import fcntl crypto/md5 array-list list xlist getrandom realloc
         autoreconf -f -i -v

@@ -15,7 +15,7 @@ packages:
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
-- gnulib:
+- gnulib: |
         cd pam-tacplus
         gnulib-tool --import fcntl crypto/md5 array-list list xlist getrandom realloc
         autoreconf -f -i -v

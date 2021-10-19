@@ -24,7 +24,7 @@ tasks:
         sudo service tac_plus start && sleep 3
         # not really necessary, users statically defined in pam_tac.conf
         #echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -
-- gnulib:
+- gnulib: |
         cd pam-tacplus
         gnulib-tool --import fcntl crypto/md5 array-list list xlist getrandom realloc
         autoreconf -f -i -v
