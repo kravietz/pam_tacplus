@@ -18,23 +18,21 @@
  *
  * See `CHANGES' file for revision history.
  */
-
-#include "libtac.h"
-#include "xalloc.h"
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include "magic.h"
-
 #include <arpa/inet.h>
+#include <unistd.h>
+
+#include "libtac.h"
+#include "xalloc.h"
 
 /* Miscellaneous variables that are global, because we need
  * store their values between different functions and connections.
  */
 /* Session identifier. */
-u_int32_t session_id;
+unsigned int session_id = 0;
 
 /* Encryption flag. */
 int tac_encryption = 0;
@@ -60,6 +58,11 @@ int tac_authen_service = TAC_PLUS_AUTHEN_SVC_PPP;
 int tac_debug_enable = 0;
 int tac_readtimeout_enable = 0;
 
+unsigned short _get_session_id(void) {
+	srandom(gethostid() ^ getpid());
+	return (unsigned int) random();
+}
+
 /* Returns pre-filled TACACS+ packet header of given type.
  * 1. you MUST fill th->datalength and th->version
  * 2. you MAY fill th->encryption
@@ -82,7 +85,7 @@ HDR *_tac_req_header(unsigned char type, int cont_session)
   /* make session_id from pseudo-random number */
   if (!cont_session)
   {
-    session_id = magic();
+    session_id = _get_session_id();
   }
   th->session_id = htonl(session_id);
 

@@ -26,6 +26,10 @@
 extern "C" {
 #endif
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,7 +46,9 @@ extern "C" {
 #else
 #include "cdefs.h"
 #endif
+
 #include "tacplus.h"
+
 
 #if defined(__clang__)
 #define __CLANG_PREREQ(maj, min) ((__clang_major__ > (maj)) || (__clang_major__ == (maj) && __clang_minor__ >= (min)))
@@ -202,8 +208,11 @@ int tac_add_attrib_pair_truncate(struct tac_attrib **attr, char *name,
 		char sep, char *value);
 int tac_read_wait(int, int, int, int *);
 
-/* magic.c */
-u_int32_t magic(void);
+unsigned short _get_session_id(void);
+
+void digest_chap(unsigned char *digest, unsigned char id,
+			const char *pass, unsigned pass_len,
+			const char *chal, unsigned chal_len);
 
 #ifdef __cplusplus
 }

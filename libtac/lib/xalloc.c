@@ -19,6 +19,9 @@
  *
  * See `CHANGES' file for revision history.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "xalloc.h"
 
@@ -34,7 +37,7 @@ void *xcalloc(size_t nmemb, size_t size)
 		TACSYSLOG(
 			LOG_ERR, "%s: calloc(%u,%u) failed", __FUNCTION__, (unsigned)nmemb, (unsigned)size);
 #ifdef HAVE_ABORT
-		abort()
+		abort();
 #else
 		exit(EXIT_FAILURE);
 #endif
@@ -50,7 +53,7 @@ void *xrealloc(void *ptr, size_t size)
 		TACSYSLOG(
 			LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned)size);
 #ifdef HAVE_ABORT
-		abort()
+		abort();
 #else
 		exit(EXIT_FAILURE);
 #endif
@@ -68,7 +71,7 @@ char *xstrdup(const char *s)
 	{
 		TACSYSLOG(LOG_ERR, "%s: strdup(%s) failed: %m", __FUNCTION__, s);
 #ifdef HAVE_ABORT
-		abort()
+		abort();
 #else
 		exit(EXIT_FAILURE);
 #endif
@@ -85,7 +88,7 @@ char *xstrcpy(char *dst, const char *src, size_t dst_size)
 	{
 		TACSYSLOG(LOG_ERR, "xstrcpy(): dst == NULL");
 #ifdef HAVE_ABORT
-		abort()
+		abort();
 #else
 		exit(EXIT_FAILURE);
 #endif
@@ -94,7 +97,7 @@ char *xstrcpy(char *dst, const char *src, size_t dst_size)
 	{
 		TACSYSLOG(LOG_ERR, "xstrcpy(): src == NULL");
 #ifdef HAVE_ABORT
-		abort()
+		abort();
 #else
 		exit(EXIT_FAILURE);
 #endif
@@ -106,7 +109,7 @@ char *xstrcpy(char *dst, const char *src, size_t dst_size)
 	{
 		TACSYSLOG(LOG_ERR, "xstrcpy(): argument too long, aborting");
 #ifdef HAVE_ABORT
-		abort()
+		abort();
 #else
 		exit(EXIT_FAILURE);
 #endif

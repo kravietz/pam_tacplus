@@ -19,6 +19,10 @@
  * See `CHANGES' file for revision history.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "xalloc.h"
 #include "libtac.h"
 #include "messages.h"
