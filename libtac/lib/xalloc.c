@@ -29,6 +29,7 @@
 #include <bsd/string.h>
 #endif
 
+#if 0
 void *xcalloc(size_t nmemb, size_t size)
 {
 	void *val = calloc(nmemb, size);
@@ -78,7 +79,7 @@ char *xstrdup(const char *s)
 	}
 	return p;
 }
-
+#endif
 /*
  safe string copy that aborts when destination buffer is too small
  */
