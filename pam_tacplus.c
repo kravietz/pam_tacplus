@@ -19,8 +19,9 @@
  * See `CHANGES' file for revision history.
  */
 
-#include "pam_tacplus.h"
-#include "support.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h> /* malloc */
 #include <stdio.h>
@@ -37,15 +38,10 @@
 #include <unistd.h>
 #include <strings.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
-#if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
-#include <openssl/rand.h>
-#else
-#include "magic.h"
-#endif
+#include "pam_tacplus.h"
+#include "support.h"
+
 
 /* address of server discovered by pam_sm_authenticate */
 static tacplus_server_t active_server;
@@ -88,6 +84,11 @@ static void set_active_server(const tacplus_server_t *tac_svr)
 	active_server.key = active_key;
 }
 
+unsigned short _set_task_id(void) {
+	srandom(gethostid() ^ getpid());
+	return (unsigned short) random();
+}
+
 /* Helper functions */
 int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 					  char *r_addr, char *cmd)
@@ -115,9 +116,9 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 	}
 
 	if (task_id == 0)
-		snprintf(buf, sizeof(buf), "%d", getpid());
-	else
-		snprintf(buf, sizeof(buf), "%hu", task_id);
+		task_id = _set_task_id();
+
+	snprintf(buf, sizeof(buf), "%hu", task_id);
 	tac_add_attrib(&attr, "task_id", buf);
 
 	tac_add_attrib(&attr, "service", tac_service);
@@ -796,24 +797,8 @@ int pam_sm_open_session(pam_handle_t *pamh, int UNUSED(flags), int argc,
 						const char **argv)
 {
 
-/* Task ID has no need to be cryptographically strong so we don't
- * check for failures of the RAND functions. If we fail to get an ID we
- * fallback to using our PID (in _pam_send_account).
- */
-#if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
-#if defined(HAVE_RAND_BYTES)
-	RAND_bytes((unsigned char *)&task_id, sizeof(task_id));
-#else
-	RAND_pseudo_bytes((unsigned char *)&task_id, sizeof(task_id));
-#endif
-#else
-	task_id = (short int)magic();
-#endif
-
 	if (task_id == 0)
-		syslog(LOG_INFO, "%s: failed to generate random task ID, "
-						 "falling back to PID",
-			   __FUNCTION__);
+		task_id = _set_task_id();
 
 	return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_START, NULL);
 } /* pam_sm_open_session */
