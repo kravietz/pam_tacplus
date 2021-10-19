@@ -23,34 +23,10 @@
 #include "config.h"
 #endif
 
+#include "md5.h"
+
 #include "libtac.h"
 #include "xalloc.h"
-
-#if defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO)
-#include <openssl/md5.h>
-#else
-#include "md5.h"
-#endif
-
-/* assume digest points to a buffer MD5_LEN size */
-static void
-digest_chap(unsigned char digest[MD5_LBLOCK], uint8_t id,
-			const char *pass, unsigned pass_len,
-			const char *chal, unsigned chal_len)
-{
-
-	MD5_CTX mdcontext;
-
-	MD5_Init(&mdcontext);
-	/* multiple calls to MD5Update() is still much less overhead
-     * than allocating a buffer and marshalling contiguous data
-     * for a single call.
-     */
-	MD5_Update(&mdcontext, &id, sizeof(id));
-	MD5_Update(&mdcontext, (const unsigned char *)pass, pass_len);
-	MD5_Update(&mdcontext, (const unsigned char *)chal, chal_len);
-	MD5_Final(digest, &mdcontext);
-}
 
 /* this function sends a packet do TACACS+ server, asking
  * for validation of given username and password
@@ -104,7 +80,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
 
 	if (!strcmp(tac_login, "chap"))
 	{
-		unsigned char digest[MD5_LBLOCK];
+		unsigned char digest[MD5_DIGEST_SIZE];
 
 		digest_chap(digest, id, pass, pass_len, chal, chal_len);
 
