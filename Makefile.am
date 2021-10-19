@@ -18,7 +18,7 @@ endif
 if TACC
 bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
-tacc_LDADD = libtac.la $(LIB_CRYPTO) lib/libgnu.a
+tacc_LDADD = libtac.la lib/libgnu.a $(LTLIBINTL) $(LIB_CRYPTO)  $(LIB_GETRANDOM)
 tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@ -I $(top_srcdir)/lib/include -I $(top_srcdir)/lib/lib
 endif
 
@@ -51,6 +51,7 @@ libtac_la_SOURCES = \
     $(libtac_include_HEADERS)
 libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib @rt_debug_defines@
 libtac_la_LDFLAGS = -version-info 4:0:1 -shared
+libtac_la_LIBADD = lib/libgnu.a $(LTLIBINTL) $(LIB_CRYPTO) $(LIB_GETRANDOM)
 
 moduledir = @pamdir@
 module_LTLIBRARIES = pam_tacplus.la
@@ -62,8 +63,6 @@ pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_sr
     -I $(top_srcdir)/lib/include -I $(top_srcdir)/lib/lib
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
-pam_tacplus_la_LIBADD += $(LIB_CRYPTO)
-pam_tacplus_la_LIBADD += lib/libgnu.a
 
 EXTRA_DIST = pam_tacplus.spec libtac.pc.in m4/gnulib-cache.m4
 if DOC
