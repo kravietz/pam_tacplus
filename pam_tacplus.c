@@ -37,11 +37,10 @@
 #include <time.h>
 #include <unistd.h>
 #include <strings.h>
-
+#include <sys/types.h>
 
 #include "pam_tacplus.h"
 #include "support.h"
-
 
 /* address of server discovered by pam_sm_authenticate */
 static tacplus_server_t active_server;
@@ -49,9 +48,6 @@ struct addrinfo active_addrinfo;
 struct sockaddr active_sockaddr;
 struct sockaddr_in6 active_sockaddr6;
 char active_key[TAC_SECRET_MAX_LEN + 1];
-
-/* accounting task identifier */
-static short int task_id = 0;
 
 /* copy a server's information into active_server */
 static void set_active_server(const tacplus_server_t *tac_svr)
@@ -84,11 +80,6 @@ static void set_active_server(const tacplus_server_t *tac_svr)
 	active_server.key = active_key;
 }
 
-unsigned short _set_task_id(void) {
-	srandom(gethostid() ^ getpid());
-	return (unsigned short) random();
-}
-
 /* Helper functions */
 int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 					  char *r_addr, char *cmd)
@@ -115,10 +106,7 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 		tac_add_attrib(&attr, "stop_time", buf);
 	}
 
-	if (task_id == 0)
-		task_id = _set_task_id();
-
-	snprintf(buf, sizeof(buf), "%hu", task_id);
+	snprintf(buf, sizeof(buf), "%d", getpid());
 	tac_add_attrib(&attr, "task_id", buf);
 
 	tac_add_attrib(&attr, "service", tac_service);
@@ -136,8 +124,8 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 
 	if (retval < 0)
 	{
-		_pam_log(LOG_WARNING, "%s: send %s accounting failed (task %hu)",
-				 __FUNCTION__, tac_acct_flag2str(type), task_id);
+		_pam_log(LOG_WARNING, "%s: send %s accounting failed (task %d)",
+				 __FUNCTION__, tac_acct_flag2str(type), getpid());
 		close(tac_fd);
 		return -1;
 	}
@@ -145,8 +133,8 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 	struct areply re;
 	if (tac_acct_read(tac_fd, &re) != TAC_PLUS_ACCT_STATUS_SUCCESS)
 	{
-		_pam_log(LOG_WARNING, "%s: accounting %s failed (task %hu)",
-				 __FUNCTION__, tac_acct_flag2str(type), task_id);
+		_pam_log(LOG_WARNING, "%s: accounting %s failed (task %d)",
+				 __FUNCTION__, tac_acct_flag2str(type), getpid());
 
 		if (re.msg != NULL)
 			free(re.msg);
@@ -796,10 +784,6 @@ PAM_EXTERN
 int pam_sm_open_session(pam_handle_t *pamh, int UNUSED(flags), int argc,
 						const char **argv)
 {
-
-	if (task_id == 0)
-		task_id = _set_task_id();
-
 	return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_START, NULL);
 } /* pam_sm_open_session */
 
