@@ -29,7 +29,7 @@ libtac_include_HEADERS = \
     libtac/include/cdefs.h
 
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info
-libtac_la_LDFLAGS = -version-info 4:0:1 -shared
+libtac_la_LDFLAGS = -version-info 5:0:0 -shared
 lib_LTLIBRARIES = libtac.la
 libtac_la_SOURCES = \
     libtac/lib/acct_r.c \
@@ -47,7 +47,6 @@ libtac_la_SOURCES = \
     libtac/lib/messages.c \
     libtac/lib/messages.h \
     libtac/lib/read_wait.c \
-    libtac/lib/version.c \
     libtac/lib/xalloc.c \
     $(libtac_include_HEADERS)
 

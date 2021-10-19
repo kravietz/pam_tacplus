@@ -373,7 +373,7 @@ int main(int argc, char **argv)
 
         /* free request attributes */
         tac_free_attrib(&attr);
-        
+
         /* free response attributes */
         if (arep.attr != NULL)
             tac_free_attrib(&arep.attr);
@@ -646,8 +646,7 @@ void showusage(char *progname)
     a = rindex(progname, '/');
     progname = (a == NULL) ? progname : ++a;
 
-    printf("%s -- simple TACACS+ client and login, libtac version %u.%u.%u\n",
-           progname, tac_ver_major, tac_ver_minor, tac_ver_patch);
+    printf("%s -- simple TACACS+ client and login\n", progname);
     printf("Copyright 1997-2016 by Pawel Krawczyk <pawel.krawczyk@hush.com>\n");
     printf("Usage: %s option [option, ...]\n\n", progname);
     printf(" Action:\n");
@@ -686,8 +685,7 @@ void showversion(char *progname)
     a = rindex(progname, '/');
     progname = (a == NULL) ? progname : ++a;
 
-    printf("%s %u.%u.%u\n", progname, tac_ver_major, tac_ver_minor,
-           tac_ver_patch);
+    printf("%s\n", progname);
     exit(EXIT_OK);
 }
 

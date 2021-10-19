@@ -58,7 +58,7 @@ on variety of operating systems.
 | `service` | account, session | *string* TACACS+ service for authorization and accounting |
 | `protocol` | account, session | *string* TACACS+ protocol for authorization and accounting |
 
-Semantics of these options only makes sense in the context of the
+Semantics of these options only make sense in the context of the
 [RFC 8907 (the TACACS+ specification)](https://datatracker.ietf.org/doc/html/rfc8907) &mdash; for example,
 a dial-up router might request `ppp` service with protocol `ip` for their users, authenticating
 them with `pap` protocol which reflects the typical usage of TACACS+ back in 90's.
@@ -307,6 +307,5 @@ tac_plus -C /etc/tacacs+/tac_plus.conf -G -g -d 512
 
 ### Authors:
 
-Pawel Krawczyk <pawel.krawczyk@hush.com> https://krvtz.net/
-
-Jeroen Nijhof <jeroen@jeroennijhof.nl>
+* Pawel Krawczyk <pawel.krawczyk@hush.com> https://krvtz.net/
+* Jeroen Nijhof <jeroen@jeroennijhof.nl>
