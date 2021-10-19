@@ -95,6 +95,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module multiarch:
   # Code from module open:
   # Code from module pathmax:
+  # Code from module realloc-gnu:
+  # Code from module realloc-posix:
   # Code from module size_max:
   # Code from module snippet/_Noreturn:
   # Code from module snippet/arg-nonnull:
@@ -272,6 +274,16 @@ AC_DEFUN([gl_INIT],
   fi
   gl_FCNTL_MODULE_INDICATOR([open])
   gl_PATHMAX
+  gl_FUNC_REALLOC_GNU
+  if test $REPLACE_REALLOC = 1; then
+    AC_LIBOBJ([realloc])
+  fi
+  gl_MODULE_INDICATOR([realloc-gnu])
+  gl_FUNC_REALLOC_POSIX
+  if test $REPLACE_REALLOC = 1; then
+    AC_LIBOBJ([realloc])
+  fi
+  gl_STDLIB_MODULE_INDICATOR([realloc-posix])
   gl_SIZE_MAX
   gl_TYPE_SOCKLEN_T
   gt_TYPE_SSIZE_T
@@ -519,6 +531,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/msvc-nothrow.h
   lib/open.c
   lib/pathmax.h
+  lib/realloc.c
   lib/size_max.h
   lib/stat-time.c
   lib/stat-time.h
@@ -589,6 +602,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/largefile.m4
   m4/limits-h.m4
   m4/lseek.m4
+  m4/malloc.m4
   m4/malloca.m4
   m4/md5.m4
   m4/minmax.m4
@@ -602,6 +616,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/open.m4
   m4/pathmax.m4
   m4/pid_t.m4
+  m4/realloc.m4
   m4/size_max.m4
   m4/socklen.m4
   m4/sockpfaf.m4
