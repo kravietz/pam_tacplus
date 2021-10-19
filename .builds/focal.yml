@@ -17,7 +17,8 @@ sources:
 tasks:
 - gnulib: |
         cd pam-tacplus
-        gnulib-tool --makefile-name=Makefile.gnulib --libtool --symlink --import fcntl crypto/md5 array-list list xlist getrandom realloc
+        gnulib-tool --makefile-name=Makefile.gnulib --libtool --symlink --import \
+                fcntl crypto/md5 array-list list xlist getrandom realloc explicit_bzero xalloc
         autoreconf -f -i -v
 - build-cc: |
         cd pam-tacplus
