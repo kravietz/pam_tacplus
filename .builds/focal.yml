@@ -11,16 +11,17 @@ packages:
 - libssl-dev
 - clang
 - clang-tools
+- gnulib
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
 - gcc: |
         cd pam-tacplus
-        autoreconf -i
+        autoreconf -f -i -v
         scan-build --use-cc=gcc ./configure --enable-asan
         scan-build --use-cc=gcc make clean all
 - clang: |
         cd pam-tacplus
-        autoreconf -i
+        autoreconf -f -i -v
         scan-build --use-cc=clang ./configure --enable-asan
         scan-build --use-cc=clang make clean all

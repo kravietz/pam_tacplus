@@ -10,6 +10,7 @@ packages:
 - pamtester
 # for scan-build
 - llvm
+- gnulib
 # -fsanitize=address on FreeBSD is only supported on GCC >= 11
 - gcc11-devel
 sources:
@@ -25,7 +26,7 @@ tasks:
         echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -
 - clang: |
         cd pam-tacplus
-        autoreconf -i
+        autoreconf -f -i -v
         # required for pam_tacplus.so testing with ASAN, only works with clang
         export LDFLAGS=-shared-libasan
         scan-build ./configure --enable-asan
@@ -54,7 +55,7 @@ tasks:
 - gcc: |
         # only compilation test
         cd pam-tacplus
-        autoreconf -i
+        autoreconf -f -i -v
         # on FreeBSD we need to use gcc11 for decent libasan support
         scan-build --use-cc=gcc11 ./configure --enable-asan
         scan-build --use-cc=gcc11 make clean all        

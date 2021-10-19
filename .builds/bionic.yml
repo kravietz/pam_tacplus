@@ -15,6 +15,7 @@ packages:
 - pamtester
 - clang
 - clang-tools
+- gnulib
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
@@ -28,7 +29,7 @@ tasks:
         echo testuser1:testpass123 | sudo chpasswd -c SHA512
 - clang: |
         cd pam-tacplus
-        autoreconf -i
+        autoreconf -f -i -v
         # required for pam_tacplus.so testing with ASAN, only works with clang
         export LDFLAGS=-shared-libasan
         scan-build --use-cc=clang ./configure --enable-asan
