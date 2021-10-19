@@ -28,9 +28,10 @@
 #include "md5.h"
 
 /* CHAP digest per https://datatracker.ietf.org/doc/html/rfc1994
+The target `digest` buffer must be at least MD5_DIGEST_SIZE long.
 */
 void
-digest_chap(unsigned char digest[MD5_DIGEST_SIZE], unsigned char id,
+digest_chap(unsigned char *digest, unsigned char id,
 			const char *pass, unsigned pass_len,
 			const char *chal, unsigned chal_len)
 {
