@@ -28,17 +28,20 @@ dnl --------------------------------------------------------------------
 dnl Checks for programs.
 AC_PROG_CC
 gl_EARLY
+AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_C_RESTRICT
 LT_INIT([disable-static])
-AM_PROG_CC_C_O
 
 dnl Gnulib
 gl_INIT
-
 gl_MD5
+gl_FUNC_CALLOC_GNU
+if test $REPLACE_CALLOC = 1; then
+  AC_LIBOBJ([calloc])
+fi
 
 dnl --------------------------------------------------------------------
 dnl Checks for libraries.
