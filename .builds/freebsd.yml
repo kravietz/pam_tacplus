@@ -38,5 +38,5 @@ tasks:
         sh -x test/tacc.sh
 - functional-test-pam: |  
         cd pam-tacplus
-        expect test/bionic/tests.expect      
+        expect test/freebsd/tests.expect      
         
