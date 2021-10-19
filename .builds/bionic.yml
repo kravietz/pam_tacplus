@@ -29,7 +29,7 @@ tasks:
         echo testuser1:testpass123 | sudo chpasswd -c SHA512
 - clang: |
         cd pam-tacplus
-        gnulib-tool --import realloc fcntl crypto/md5
+        gnulib-tool --import  fcntl crypto/md5 array-list list xlist getrandom
         autoreconf -f -i -v
         # required for pam_tacplus.so testing with ASAN, only works with clang
         export LDFLAGS=-shared-libasan
