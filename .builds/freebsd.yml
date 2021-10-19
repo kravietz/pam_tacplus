@@ -26,8 +26,6 @@ tasks:
         #echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -
 - gnulib: |
         cd pam-tacplus
-        gnulib-tool --makefile-name=Makefile.gnulib --libtool --symlink --import \
-                fcntl crypto/md5 array-list list xlist getrandom realloc explicit_bzero xalloc
         autoreconf -f -i -v
 - build-cc: |
         cd pam-tacplus
