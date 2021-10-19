@@ -38,10 +38,6 @@ LT_INIT([disable-static])
 dnl Gnulib
 gl_INIT
 gl_MD5
-gl_FUNC_CALLOC_GNU
-if test $REPLACE_CALLOC = 1; then
-  AC_LIBOBJ([calloc])
-fi
 
 dnl --------------------------------------------------------------------
 dnl Checks for libraries.

@@ -18,7 +18,7 @@ sources:
 tasks:
 - gcc: |
         cd pam-tacplus
-        gnulib-tool --import realloc fcntl crypto/md5 calloc
+        gnulib-tool --import realloc fcntl crypto/md5
         autoreconf -f -i -v
         scan-build --use-cc=gcc ./configure --enable-asan
         scan-build --use-cc=gcc make clean all
