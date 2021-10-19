@@ -51,9 +51,6 @@ libtac_la_SOURCES = \
     libtac/lib/xalloc.c \
     $(libtac_include_HEADERS)
 
-    # libtac/lib/xalloc.c 
-    # libtac/lib/xalloc.h 
-
 libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib @rt_debug_defines@
 libtac_la_LIBADD = lib/libgnu.la $(LTLIBINTL) $(LIB_CRYPTO) $(LIB_GETRANDOM)
 

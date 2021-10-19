@@ -30,5 +30,3 @@ stamp-h1
 .project
 .settings/
 cov-int/
-lib/
-m4/
