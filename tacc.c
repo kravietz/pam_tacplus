@@ -7,6 +7,9 @@
  * for details.
  *
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -22,9 +25,11 @@
 #include <signal.h>
 #include <sys/time.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <fcntl.h>
+#include "gl_array_list.h"
+#include "gl_list.h"
+#include "gl_xlist.h"
+#include "xalloc.h"
 
 #if defined(HAVE_PUTUTXLINE)
 #include <utmpx.h>
@@ -128,15 +133,14 @@ static struct option long_options[] =
 /* command line letters */
 char *opt_string = "TRAVhu:p:s:k:c:qr:wnS:P:L:y:";
 
-void dump_attributes(struct tac_attrib *attr)
+void dump_attributes(gl_list_t attr)
 {
-    struct tac_attrib *next = NULL;
-    next = attr;
-    do
-    {
-        printf("\t%s\n", next->attr);
-        next = next->next;
-    } while (next != NULL);
+    const void *element;
+    gl_list_iterator_t attributes_iterator = gl_list_iterator(attr);
+	while(gl_list_iterator_next(&attributes_iterator, &element, NULL)) {
+		printf("\t%s\n", (char *) element);
+	}
+    gl_list_iterator_free(&attributes_iterator);
 }
 
 int main(int argc, char **argv)
@@ -336,16 +340,17 @@ int main(int argc, char **argv)
     if (do_author)
     {
         /* authorize user */
-        struct tac_attrib *attr = NULL;
-        tac_add_attrib(&attr, "service", service);
-        tac_add_attrib(&attr, "protocol", protocol);
+        gl_list_t attr;
+        attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+        tac_add_attrib(attr, "service", service);
+        tac_add_attrib(attr, "protocol", protocol);
 
         tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
         if (tac_fd < 0)
         {
             if (!quiet)
                 printf("Error connecting to TACACS+ server: %m\n");
-            tac_free_attrib(&attr);
+            gl_list_free(attr);
             exit(EXIT_ERR);
         }
 
@@ -356,7 +361,7 @@ int main(int argc, char **argv)
         {
             if (!quiet)
                 printf("Authorization FAILED: %s\n", arep.msg);
-            tac_free_attrib(&attr);
+            tac_free_attrib(attr);
             exit(EXIT_FAIL);
         }
         else
@@ -372,11 +377,11 @@ int main(int argc, char **argv)
             free(arep.msg);
 
         /* free request attributes */
-        tac_free_attrib(&attr);
+        tac_free_attrib(attr);
 
         /* free response attributes */
         if (arep.attr != NULL)
-            tac_free_attrib(&arep.attr);
+            tac_free_attrib(arep.attr);
     }
 
     /* we no longer need the password in our address space */
@@ -386,30 +391,33 @@ int main(int argc, char **argv)
     if (do_account)
     {
         /* start accounting */
-        struct tac_attrib *attr = NULL;
+        gl_list_t attr;
         time_t t;
         struct tm tm;
 
+        attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+
+        // build timestamp attribute
         t = time(0);
         gmtime_r(&t, &tm);
         strftime(buf, sizeof(buf), "%s", &tm);
-        tac_add_attrib(&attr, "start_time", buf);
+        tac_add_attrib(attr, "start_time", buf);
 
         // this is not crypto but merely an identifier
         long rnd_id = random();
         memcpy(&task_id, &rnd_id, sizeof(task_id));
 
         sprintf(buf, "%hu", task_id);
-        tac_add_attrib(&attr, "task_id", buf);
-        tac_add_attrib(&attr, "service", service);
-        tac_add_attrib(&attr, "protocol", protocol);
+        tac_add_attrib(attr, "task_id", buf);
+        tac_add_attrib(attr, "service", service);
+        tac_add_attrib(attr, "protocol", protocol);
 
         tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
         if (tac_fd < 0)
         {
             if (!quiet)
                 printf("Error connecting to TACACS+ server: %m\n");
-            tac_free_attrib(&attr);
+            tac_free_attrib(attr);
             exit(EXIT_ERR);
         }
 
@@ -431,7 +439,7 @@ int main(int argc, char **argv)
         if (arep.msg != NULL)
             free(arep.msg);
 
-        tac_free_attrib(&attr);
+        tac_free_attrib(attr);
     }
 
     /* log in local utmp */
@@ -512,22 +520,28 @@ int main(int argc, char **argv)
     if (do_account)
     {
         /* stop accounting */
-        struct tac_attrib *attr = NULL;
+        gl_list_t attr;
         time_t t;
         struct tm tm;
+
+        attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+
+        // build timestamp attribute
         t = time(0);
         gmtime_r(&t, &tm);
         strftime(buf, sizeof(buf), "%s", &tm);
-        tac_add_attrib(&attr, "stop_time", buf);
+        tac_add_attrib(attr, "stop_time", buf);
+
+        // build task id attribute
         sprintf(buf, "%hu", task_id);
-        tac_add_attrib(&attr, "task_id", buf);
+        tac_add_attrib(attr, "task_id", buf);
 
         tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
         if (tac_fd < 0)
         {
             if (!quiet)
                 printf("Error connecting to TACACS+ server: %m\n");
-            tac_free_attrib(&attr);
+            tac_free_attrib(attr);
             exit(EXIT_ERR);
         }
 
@@ -548,7 +562,7 @@ int main(int argc, char **argv)
         if (arep.msg != NULL)
             free(arep.msg);
 
-        tac_free_attrib(&attr);
+        tac_free_attrib(attr);
     }
 
     /* logout from utmp */
