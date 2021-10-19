@@ -150,5 +150,5 @@ AM_SUBST_NOTMAKE(rt_debug_defines)
 
 dnl --------------------------------------------------------------------
 dnl Generate made files
-AC_CONFIG_FILES([Makefile libtac.pc pam_tacplus.spec lib/Makefile test/Makefile])
+AC_CONFIG_FILES([Makefile libtac.pc pam_tacplus.spec lib/Makefile])
 AC_OUTPUT
