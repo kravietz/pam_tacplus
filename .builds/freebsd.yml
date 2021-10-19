@@ -16,14 +16,6 @@ packages:
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
-- setup-bsd: |
-        cd pam-tacplus
-        sudo install -o root test/freebsd/pam.conf /etc/pam.d/test
-        sudo install -o root test/freebsd/tac_plus.conf /usr/local/etc/tac_plus.conf
-        echo 'tac_plus_enable="YES"' | sudo tee -a /etc/rc.conf.local
-        sudo service tac_plus start && sleep 3
-        # not really necessary, users statically defined in pam_tac.conf
-        #echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -
 - gnulib: |
         cd pam-tacplus
         autoreconf -f -i -v
@@ -31,6 +23,14 @@ tasks:
         cd pam-tacplus
         ./configure
         make clean all
+- setup-bsd: |
+        cd pam-tacplus
+        sudo install -o root test/freebsd/pam.conf /etc/pam.d/test
+        sudo install -o root test/freebsd/tac_plus.conf /usr/local/etc/tac_plus.conf
+        echo 'tac_plus_enable="YES"' | sudo tee -a /etc/rc.conf.local
+        sudo service tac_plus start && sleep 3
+        # not really necessary, users statically defined in pam_tac.conf
+        #echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -        
 - functional-test-tacc: |
         cd pam-tacplus
         sh -x test/tacc.sh

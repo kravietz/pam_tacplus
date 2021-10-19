@@ -19,6 +19,13 @@ packages:
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
+- gnulib: |
+        cd pam-tacplus
+        autoreconf -f -i -v
+- build-cc: |
+        cd pam-tacplus
+        ./configure
+        make clean all
 - setup-bionic: |
         cd pam-tacplus
         sudo install -o root test/bionic/pam.conf /etc/pam.d/test
@@ -27,13 +34,6 @@ tasks:
         # not really necessary, users statically defined in pam_tac.conf
         #sudo useradd -m testuser1
         #echo testuser1:testpass123 | sudo chpasswd -c SHA512
-- gnulib: |
-        cd pam-tacplus
-        autoreconf -f -i -v
-- build-cc: |
-        cd pam-tacplus
-        ./configure
-        make clean all
 - functional-test-tacc: |
         cd pam-tacplus
         sh -x test/tacc.sh
