@@ -17,6 +17,7 @@ sources:
 tasks:
 - gcc: |
         cd pam-tacplus
+        gnulib-tool --import crypto/md5 fcntl
         autoreconf -f -i -v
         scan-build --use-cc=gcc ./configure --enable-asan
         scan-build --use-cc=gcc make clean all
