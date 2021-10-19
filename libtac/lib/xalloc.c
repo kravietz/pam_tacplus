@@ -115,7 +115,16 @@ char *xstrcpy(char *dst, const char *src, size_t dst_size)
 #endif
 	}
 #ifdef HAVE_STRLCPY
-	return strlcpy(dst, src, dst_size);
+	if(strlcpy(dst, src, dst_size) > dst_size)
+	{
+		TACSYSLOG(LOG_ERR, "xstrcpy(): strlcpy refused to copy string longer than destination, aborting");
+#ifdef HAVE_ABORT
+		abort();
+#else
+		exit(EXIT_FAILURE);
+#endif
+	}
+	return dst;
 #else
 	return strncpy(dst, src, dst_size);
 #endif
