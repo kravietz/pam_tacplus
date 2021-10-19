@@ -208,7 +208,7 @@ int tac_add_attrib_pair_truncate(struct tac_attrib **attr, char *name,
 		char sep, char *value);
 int tac_read_wait(int, int, int, int *);
 
-unsigned short _get_session_id(void);
+uint32_t _get_session_id(void);
 
 void digest_chap(unsigned char *digest, unsigned char id,
 			const char *pass, unsigned pass_len,
