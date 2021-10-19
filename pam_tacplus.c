@@ -36,7 +36,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <unistd.h>
-#include <strings.h>
+#include <string.h>
 #include <sys/types.h>
 
 #include "pam_tacplus.h"
@@ -573,14 +573,8 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 
 	if (pass != NULL)
 	{
-// sanitize password from memory
-#ifdef HAVE_MEMSET_S
-		memset_s(pass, strlen(pass), 0, strlen(pass));
-#elif HAVE_EXPLICIT_BZERO
+		// sanitize password from memory
 		explicit_bzero(pass, strlen(pass));
-#else
-		memset(pass, 0, strlen(pass));
-#endif
 		free(pass);
 		pass = NULL;
 	}
@@ -1119,13 +1113,8 @@ finish:
 
 	if (pass != NULL)
 	{
-#ifdef HAVE_MEMSET_S
-		memset_s(pass, strlen(pass), 0, strlen(pass));
-#elif HAVE_EXPLICIT_BZERO
+		// sanitize password from memory
 		explicit_bzero(pass, strlen(pass));
-#else
-		memset(pass, 0, strlen(pass));
-#endif
 		free(pass);
 		pass = NULL;
 	}

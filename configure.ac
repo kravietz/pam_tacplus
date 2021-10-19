@@ -38,6 +38,12 @@ LT_INIT([disable-static])
 dnl Gnulib
 gl_INIT
 gl_MD5
+gl_FUNC_EXPLICIT_BZERO
+if test $HAVE_EXPLICIT_BZERO = 0; then
+  AC_LIBOBJ([explicit_bzero])
+  gl_PREREQ_EXPLICIT_BZERO
+fi
+gl_STRING_MODULE_INDICATOR([explicit_bzero])
 
 dnl --------------------------------------------------------------------
 dnl Checks for libraries.
