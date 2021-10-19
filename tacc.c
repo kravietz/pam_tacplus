@@ -24,6 +24,7 @@
 #include <ctype.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <sys/types.h>
 
 #include <fcntl.h>
 #include "gl_array_list.h"
@@ -155,13 +156,15 @@ int main(int argc, char **argv)
     char *tac_server_name = NULL;
     char *tac_secret = NULL;
     int tac_fd;
-    short int task_id = 0;
+    pid_t task_id = 0;
     char buf[40];
     int ret;
 #ifndef USE_SYSTEM
     pid_t pid;
 #endif
     struct areply arep;
+
+    task_id = getpid();
 
     /* global from libtac.h */
     tac_encryption = 1;
@@ -403,12 +406,9 @@ int main(int argc, char **argv)
         strftime(buf, sizeof(buf), "%s", &tm);
         tac_add_attrib(attr, "start_time", buf);
 
-        // this is not crypto but merely an identifier
-        long rnd_id = random();
-        memcpy(&task_id, &rnd_id, sizeof(task_id));
-
-        sprintf(buf, "%hu", task_id);
+        sprintf(buf, "%d", task_id);
         tac_add_attrib(attr, "task_id", buf);
+
         tac_add_attrib(attr, "service", service);
         tac_add_attrib(attr, "protocol", protocol);
 
