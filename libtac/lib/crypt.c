@@ -27,7 +27,8 @@
 
 #include "md5.h"
 
-/* assume digest points to a buffer MD5_LEN size */
+/* CHAP digest per https://datatracker.ietf.org/doc/html/rfc1994
+*/
 void
 digest_chap(unsigned char digest[MD5_DIGEST_SIZE], unsigned char id,
 			const char *pass, unsigned pass_len,
