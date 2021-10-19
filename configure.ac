@@ -44,6 +44,8 @@ if test $HAVE_EXPLICIT_BZERO = 0; then
   gl_PREREQ_EXPLICIT_BZERO
 fi
 gl_STRING_MODULE_INDICATOR([explicit_bzero])
+gl_XALLOC
+gl_MODULE_INDICATOR([xalloc])
 
 dnl --------------------------------------------------------------------
 dnl Checks for libraries.
