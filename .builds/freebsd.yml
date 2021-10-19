@@ -23,8 +23,10 @@ tasks:
         cd pam-tacplus
         ./configure
         make clean all
-- setup-bsd: |
+- setup: |
         cd pam-tacplus
+        sudo make install
+        sudo make ldconfig
         sudo install -o root test/freebsd/pam.conf /etc/pam.d/test
         sudo install -o root test/freebsd/tac_plus.conf /usr/local/etc/tac_plus.conf
         echo 'tac_plus_enable="YES"' | sudo tee -a /etc/rc.conf.local

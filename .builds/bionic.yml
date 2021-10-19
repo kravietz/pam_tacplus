@@ -26,8 +26,10 @@ tasks:
         cd pam-tacplus
         ./configure
         make clean all
-- setup-bionic: |
+- setup: |
         cd pam-tacplus
+        sudo make install
+        sudo make ldconfig
         sudo install -o root test/bionic/pam.conf /etc/pam.d/test
         sudo install -o root test/bionic/tac_plus.conf /etc/tacacs+/tac_plus.conf
         sudo service tacacs_plus restart && sleep 3
