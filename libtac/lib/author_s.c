@@ -178,7 +178,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 
     if (w < TAC_PLUS_HDR_SIZE) {
         TACSYSLOG(
-                LOG_ERR, "%s: short write on header, wrote %d of %d: %m", __FUNCTION__, w, TAC_PLUS_HDR_SIZE);
+                LOG_ERR, "%s: short write on header, wrote %ld of %d: %m", __FUNCTION__, w, TAC_PLUS_HDR_SIZE);
         free(pkt);
         free(th);
         return LIBTAC_STATUS_WRITE_ERR;
@@ -191,7 +191,7 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
     w = write(fd, pkt, pkt_len);
     if (w < pkt_len) {
         TACSYSLOG(
-                LOG_ERR, "%s: short write on body, wrote %d of %d: %m", __FUNCTION__, w, pkt_len);
+                LOG_ERR, "%s: short write on body, wrote %ld of %d: %m", __FUNCTION__, w, pkt_len);
         ret = LIBTAC_STATUS_WRITE_ERR;
     }
 
