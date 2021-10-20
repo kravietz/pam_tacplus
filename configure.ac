@@ -10,16 +10,16 @@ dnl You need autoconf 2.59 or better!
 dnl
 dnl ---------------------------------------------------------------------------
 
-AC_PREREQ(2.64)
+AC_PREREQ([2.69])
 AC_COPYRIGHT([
-See the included file: COPYING for copyright information.
+See the included file: LICENSE for copyright information.
 ])
-AC_INIT(pam_tacplus, 1.7.0, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
+AC_INIT([pam_tacplus],[1.7.0],[jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
 
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([pam_tacplus.c])
-AC_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([config])
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -62,9 +62,8 @@ esac
 
 dnl --------------------------------------------------------------------
 dnl Checks for header files.
-AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h limits.h])
-AC_CHECK_HEADERS([syslog.h unistd.h openssl/md5.h openssl/rand.h sys/random.h bsd/string.h])
+AC_CHECK_HEADERS([syslog.h unistd.h sys/random.h bsd/string.h])
 AC_CHECK_HEADER(security/pam_appl.h, [], [AC_MSG_ERROR([PAM libraries missing. Install with "yum install pam-devel" or "apt-get install libpam-dev".])] )
 AM_CONDITIONAL(TACC, [true])
 
@@ -72,7 +71,6 @@ dnl --------------------------------------------------------------------
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
 
 AC_ARG_ENABLE(am-ldcflags, AS_HELP_STRING([--disable-am-ldcflags], [do not add various 'AM_CFLAGS/AM_LDFLAGS']))
 if test "x$enable_am_ldcflags" != "xno"; then
@@ -130,8 +128,7 @@ dnl --------------------------------------------------------------------
 dnl Checks for library functions.
 AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
-AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp getrandom strtol strlcpy abort memset_s explicit_bzero])
+AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp strtol strlcpy abort])
 
 dnl --------------------------------------------------------------------
 dnl Switch for pam module dir
