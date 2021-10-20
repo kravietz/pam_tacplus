@@ -51,10 +51,12 @@ extern "C"
 #include "cdefs.h"
 #endif
 
+#include "tacplus.h"
 #include "gl_list.h"
 #include "gl_xlist.h"
-
-#include "tacplus.h"
+#include "gl_array_list.h"
+#include "md5.h"
+#include "xalloc.h"
 
 #if defined(__clang__)
 #define __CLANG_PREREQ(maj, min) ((__clang_major__ > (maj)) || (__clang_major__ == (maj) && __clang_minor__ >= (min)))
