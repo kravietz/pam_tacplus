@@ -59,7 +59,7 @@ pam_tacplus_la_SOURCES = pam_tacplus.h \
     pam_tacplus.c \
     support.h \
     support.c
-pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/libtac/lib -I $(top_srcdir)/lib
+pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 
