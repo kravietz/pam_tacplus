@@ -245,26 +245,27 @@ This diagram should show general idea of how the whole process looks like:
 
 ![TACACS+ and PAM interaction diagram](doc/diagram.svg)
 
-Consider `login' application:
+Consider a `login` application:
 
 1. Login accepts username and password from the user.
 2. Login calls PAM function `pam_authenticate()` to verify if the
    supplied username/password pair is valid.
 3. PAM loads `pam_tacplus` module (as defined in `/etc/pam.d/login`)
    and calls `pam_sm_authenticate()` function supplied by this module.
-4. This function sends an encrypted packet to the TACACS+ server.
+4. This function sends an authentication request packet to the TACACS+ server.
    The packet contains username and password to verify. TACACS+ server
-   replied with either positive or negative response. If the reponse
-   is negative, the whole thing is over
-5. PAM calls another function from `pam_tacplus` &mdash; `pam_sm_acct_mgmt()`.
+   replies with either positive or negative response. If the reponse
+   is negative, the failure is escalated back to the `login` program,
+   and no further action is taken.
+5. If authentication is successful, PAM calls another function
+   from `pam_tacplus` &mdash; `pam_sm_acct_mgmt()`.
    This function is expected to verify whether the users are allowed
-   to get the service they are requesting (in this case: unix shell).
-   The function again verifies the permission on TACACS+ server. Assume
-   the server granted the user with requested service.
+   to get the service they are requesting (in this case: Unix shell).
+   The function again verifies the permission on TACACS+ server.
 6. Before user gets the shell, PAM calls one another function from
    `pam_tacplus` &mdash; `pam_sm_open_session()`. This results in sending an
    accounting START packet to the server. Among other things it contains
-   the terminal user loggen in on and the time session started.
+   the terminal user logged in on and the time session started.
 7. When user logs out, `pam_sm_close_session()` sends STOP packet to the
    server. The whole session is closed.
 
