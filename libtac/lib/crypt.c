@@ -50,6 +50,11 @@ void digest_chap(unsigned char *digest, unsigned char id,
     ssize_t check;
     struct md5_ctx mdcontext;
 
+    /*
+     * With flags=0 getrandom(2) will use urandom in blocking mode
+     * and fail if entropy is unavailable or any other errors occurs;
+     * in such case we abort the program to prevent using uninitalised PRNG
+     */
     check = getrandom(challenge, challenge_len, 0);
     if (check < (ssize_t) challenge_len) {
         TACSYSLOG(LOG_ERR,
