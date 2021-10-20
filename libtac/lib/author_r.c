@@ -27,7 +27,6 @@
 #include "gl_list.h"
 #include "gl_xlist.h"
 #include "libtac.h"
-#include "messages.h"
 
 #include <string.h>
 

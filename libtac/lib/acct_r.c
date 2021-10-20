@@ -24,7 +24,6 @@
 #endif
 
 #include "libtac.h"
-#include "messages.h"
 
 /*
  * return value:

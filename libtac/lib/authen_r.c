@@ -23,7 +23,6 @@
 #endif
 
 #include "libtac.h"
-#include "messages.h"
 
 #include <arpa/inet.h>
 

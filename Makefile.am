@@ -46,7 +46,6 @@ libtac_la_SOURCES = \
     libtac/lib/hdr_check.c \
     libtac/lib/header.c \
     libtac/lib/messages.c \
-    libtac/lib/messages.h \
     libtac/lib/read_wait.c \
     libtac/lib/xstrncpy.c \
     $(libtac_include_HEADERS)

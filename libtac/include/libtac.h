@@ -255,6 +255,17 @@ extern void digest_chap(unsigned char *digest, unsigned char id,
                         const char *pass, size_t pass_len,
                         unsigned char *challenge, size_t challenge_len);
 
+extern char *protocol_err_msg;
+extern char *authen_syserr_msg;
+extern char *author_ok_msg;
+extern char *author_fail_msg;
+extern char *author_err_msg;
+extern char *author_syserr_msg;
+extern char *acct_ok_msg;
+extern char *acct_fail_msg;
+extern char *acct_err_msg;
+extern char *acct_syserr_msg;
+
 #ifdef __cplusplus
 }
 #endif
