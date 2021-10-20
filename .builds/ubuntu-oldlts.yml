@@ -1,7 +1,6 @@
 # build manifest for SourceHut
 # https://man.sr.ht/builds.sr.ht/
-# use bionic as it's the last distribution to include tacacs+ package
-image: ubuntu/bionic
+image: ubuntu/oldlts
 packages:
 - autoconf
 - build-essential
@@ -9,20 +8,23 @@ packages:
 - automake
 - libpam-dev
 - libssl-dev
+        #  bionic is the last distribution to include tacacs+ package
 - tacacs+
 - ca-certificates
 - expect
 - pamtester
 - clang
 - clang-tools
-- gnulib
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
 - gnulib: |
+          git clone https://git.savannah.gnu.org/git/gnulib.git
           cd pam-tacplus
-          # autoconf may fail on systems with older gnulib, in such case we patch up and re-run
-          autoreconf -f -i -v || gnulib-tool --libtool --update && autoreconf -f -i -v
+          $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
+                  fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+                  explicit_bzero xalloc
+          autoreconf -f -v -i
 - build-cc: |
         cd pam-tacplus
         ./configure
