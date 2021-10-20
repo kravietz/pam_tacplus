@@ -4,7 +4,8 @@
 # To import, and generate new Makefile.gnulib
 #
 # gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
-#                fcntl crypto/md5 array-list list xlist getrandom realloc explicit_bzero xalloc
+#                fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+#                explicit_bzero xalloc
 #
 # To update:
 #
