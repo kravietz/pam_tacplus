@@ -22,6 +22,12 @@
 #include "config.h"
 #endif
 
+#include <fcntl.h>
+#include <stdio.h>
+#include "gl_array_list.h"
+#include "gl_list.h"
+#include "gl_xlist.h"
+
 #include "libtac.h"
 #include "xalloc.h"
 
@@ -34,49 +40,93 @@
  *         LIBTAC_STATUS_WRITE_ERR
  *         LIBTAC_STATUS_WRITE_TIMEOUT (pending impl)
  *         LIBTAC_STATUS_ASSEMBLY_ERR  (pending impl)
+ * 
+6.1.  The Authorization REQUEST Packet Body
+
+     1 2 3 4 5 6 7 8  1 2 3 4 5 6 7 8  1 2 3 4 5 6 7 8  1 2 3 4 5 6 7 8
+   +----------------+----------------+----------------+----------------+
+   |  authen_method |    priv_lvl    |  authen_type   | authen_service |
+   +----------------+----------------+----------------+----------------+
+   |    user_len    |    port_len    |  rem_addr_len  |    arg_cnt     |
+   +----------------+----------------+----------------+----------------+
+   |   arg_1_len    |   arg_2_len    |      ...       |   arg_N_len    |
+   +----------------+----------------+----------------+----------------+
+   |   user ...
+   +----------------+----------------+----------------+----------------+
+   |   port ...
+   +----------------+----------------+----------------+----------------+
+   |   rem_addr ...
+   +----------------+----------------+----------------+----------------+
+   |   arg_1 ...
+   +----------------+----------------+----------------+----------------+
+   |   arg_2 ...
+   +----------------+----------------+----------------+----------------+
+   |   ...
+   +----------------+----------------+----------------+----------------+
+   |   arg_N ...
+   +----------------+----------------+----------------+----------------+
  */
 int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
-		struct tac_attrib *attr) {
+					gl_list_t attr)
+{
 
 	HDR *th;
 	struct author tb;
+	char *attribute_cache[TAC_PLUS_ATTRIB_MAX_CNT];
+	unsigned char attribute_len_cache[TAC_PLUS_ATTRIB_MAX_CNT];
+	int attribute_counter = 0;
+	int total_attributes_size = 0;
 	unsigned char user_len, port_len, r_addr_len;
-	struct tac_attrib *a;
-	int i = 0; /* attributes count */
-	int pkt_len = 0; /* current packet length */
-	int pktl = 0; /* temporary storage for previous pkt_len values */
-	int w; /* write() return value */
+	int i = 0;				   /* attributes count */
+	int pkt_len = 0;		   /* current packet length */
+	int pktl = 0;			   /* temporary storage for previous pkt_len values */
+	int w;					   /* write() return value */
 	unsigned char *pkt = NULL; /* packet building pointer */
-	/* unsigned char *pktp; *//* obsolete */
+	unsigned char *data = NULL;
 	int ret = 0;
+	int data_len = 0;
+	char *current_attribute;
+	int lengths_position = 0;
+	int attributes_position = 0;
+	gl_list_iterator_t attributes_iterator;
 
+	// get pre-filled header template
 	th = _tac_req_header(TAC_PLUS_AUTHOR, 0);
 
-	/* set header options */
+	/* amend header options */
 	th->version = TAC_PLUS_VER_0;
 	th->encryption =
-			tac_encryption ?
-					TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
+		tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
+	/* header now waits for data_length which will be calculated after body is built */
 
 	TACDEBUG(LOG_DEBUG, "%s: user '%s', tty '%s', rem_addr '%s', encrypt: %s",
-					__FUNCTION__, user,
-					tty, r_addr, tac_encryption ? "yes" : "no");
+			 __FUNCTION__, user,
+			 tty, r_addr, tac_encryption ? "yes" : "no");
 
-	user_len = (unsigned char) strlen(user);
-	port_len = (unsigned char) strlen(tty);
-	r_addr_len = (unsigned char) strlen(r_addr);
+	user_len = (unsigned char)strlen(user);
+	port_len = (unsigned char)strlen(tty);
+	r_addr_len = (unsigned char)strlen(r_addr);
 
+	// fill-in body template
 	tb.authen_method = tac_authen_method;
 	tb.priv_lvl = tac_priv_lvl;
-	if (!*tac_login) {
+	if (!*tac_login)
+	{
 		/* default to PAP */
 		tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
-	} else {
-		if (strcmp(tac_login, "chap") == 0) {
+	}
+	else
+	{
+		if (strcmp(tac_login, "chap") == 0)
+		{
 			tb.authen_type = TAC_PLUS_AUTHEN_TYPE_CHAP;
-		} else if (strcmp(tac_login, "login") == 0) {
+		}
+		else if (strcmp(tac_login, "login") == 0)
+		{
 			tb.authen_type = TAC_PLUS_AUTHEN_TYPE_ASCII;
-		} else {
+		}
+		else
+		{
 			tb.authen_type = TAC_PLUS_AUTHEN_TYPE_PAP;
 		}
 	}
@@ -84,45 +134,44 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 	tb.user_len = user_len;
 	tb.port_len = port_len;
 	tb.r_addr_len = r_addr_len;
+	// tb.arg_cnt not yet available
 
-	/* allocate packet */
-	pkt = (unsigned char *) xcalloc(1, TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE);
-	pkt_len = sizeof(tb);
-
-	/* fill attribute length fields */
-	a = attr;
-	while (a) {
-		pktl = pkt_len;
-		pkt_len += sizeof(a->attr_len);
-		pkt = (unsigned char*) xrealloc(pkt, pkt_len);
-
-		memcpy(pkt + pktl, &a->attr_len, sizeof(a->attr_len));
-		i++;
-
-		a = a->next;
+	attribute_counter = 0;
+	total_attributes_size = 0;
+	attributes_iterator = gl_list_iterator(attr);
+	while (gl_list_iterator_next(&attributes_iterator, &current_attribute, NULL))
+	{
+		attribute_cache[attribute_counter] = current_attribute;
+		attribute_len_cache[attribute_counter] = (size_t)strlen(current_attribute);
+		total_attributes_size += attribute_len_cache[attribute_counter];
+		attribute_counter++;
 	}
+	gl_list_iterator_free(&attributes_iterator);
 
-	/* fill the arg count field and add the fixed fields to packet */
-	tb.arg_cnt = i;
-	memcpy(pkt, &tb, TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE);
+	tb.arg_cnt = attribute_counter;
 
-#define PUTATTR(data, len) \
-    pktl = pkt_len; \
-    pkt_len += len; \
-    pkt = (unsigned char*) xrealloc(pkt, pkt_len); \
-    memcpy(pkt + pktl, data, len);
+	// we can now calculate total packet size
+	pkt = (unsigned char *)xcalloc(1, pkt_len + (attribute_counter * sizeof(unsigned char)) + total_attributes_size);
 
-	/* fill user and port fields */
-	PUTATTR(user, user_len)
-	PUTATTR(tty, port_len)
-	PUTATTR(r_addr, r_addr_len)
+	// copy the fixed fields
+	pkt_len = sizeof(tb);
+	memcpy(pkt, &tb, pkt_len);
 
-	/* fill attributes */
-	a = attr;
-	while (a) {
-		PUTATTR(a->attr, a->attr_len)
+	/* fill attribute length fields extending buffer on the way */
+	for (i = 0; i < attribute_counter; i++)
+	{
+		memcpy(pkt + pkt_len, &attribute_len_cache[i], sizeof(unsigned char));
+		pkt_len += sizeof(unsigned char);
+	}
+	memcpy(pkt+pkt_len, &user, user_len); pkt_len += user_len;
+	memcpy(pkt+pkt_len, &tty, port_len); pkt_len += port_len;
+	memcpy(pkt+pkt_len, &r_addr, r_addr_len); pkt_len += r_addr_len;
 
-		a = a->next;
+	/* fill the actual attributes */
+	for (i = 0; i < attribute_counter; i++)
+	{
+		memcpy(pkt + pkt_len, &attribute_cache[i], attribute_len_cache[i]);
+		pkt_len += attribute_len_cache[i];
 	}
 
 	/* finished building packet, fill len_from_header in header */
@@ -131,9 +180,10 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 	/* write header */
 	w = write(fd, th, TAC_PLUS_HDR_SIZE);
 
-	if (w < TAC_PLUS_HDR_SIZE) {
+	if (w < TAC_PLUS_HDR_SIZE)
+	{
 		TACSYSLOG(
-				LOG_ERR, "%s: short write on header, wrote %d of %d: %m", __FUNCTION__, w, TAC_PLUS_HDR_SIZE);
+			LOG_ERR, "%s: short write on header, wrote %d of %d: %m", __FUNCTION__, w, TAC_PLUS_HDR_SIZE);
 		free(pkt);
 		free(th);
 		return LIBTAC_STATUS_WRITE_ERR;
@@ -144,9 +194,10 @@ int tac_author_send(int fd, const char *user, char *tty, char *r_addr,
 
 	/* write body */
 	w = write(fd, pkt, pkt_len);
-	if (w < pkt_len) {
+	if (w < pkt_len)
+	{
 		TACSYSLOG(
-				LOG_ERR, "%s: short write on body, wrote %d of %d: %m", __FUNCTION__, w, pkt_len);
+			LOG_ERR, "%s: short write on body, wrote %d of %d: %m", __FUNCTION__, w, pkt_len);
 		ret = LIBTAC_STATUS_WRITE_ERR;
 	}
 
