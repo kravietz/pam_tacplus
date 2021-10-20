@@ -26,12 +26,10 @@
 
 #include <fcntl.h>
 #include <stdio.h>
-#include "gl_array_list.h"
 #include "gl_list.h"
 #include "gl_xlist.h"
 
 #include "libtac.h"
-#include "xalloc.h"
 
 /* Send authorization request to the server, along with attributes
  specified in attribute list prepared with tac_add_attrib.
