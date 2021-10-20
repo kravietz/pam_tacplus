@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "gl_array_list.h"
 #include "gl_list.h"
 #include "gl_xlist.h"
 
@@ -68,7 +67,6 @@ static int _tac_attrib_checks(char *name, char separator, char *value, size_t to
 
 static int _tac_add_attrib_pair(gl_list_t attr, char *name, char separator, char *value, int truncate)
 {
-    struct tac_attrib *current;
     size_t total_len;
     int check;
     char *buf = NULL;
@@ -79,23 +77,23 @@ static int _tac_add_attrib_pair(gl_list_t attr, char *name, char separator, char
     if (total_len > TAC_PLUS_ATTRIB_MAX_LEN)
         total_len = TAC_PLUS_ATTRIB_MAX_LEN;
 
-    buf = xcalloc(1, total_len+1);
+    buf = xcalloc(1, total_len + 1);
 
-    check = snprintf(buf, total_len+1, "%s%c%s", name, separator, value);
-    if(check < (int)total_len)
-    {
+    check = snprintf(buf, total_len + 1, "%s%c%s", name, separator, value);
+    if (check < (int) total_len) {
         TACSYSLOG(LOG_ERR,
                   "%s: short snprintf write: wanted %lu bytes, wrote %d",
                   __FUNCTION__, total_len, check);
     }
 
-    if (attr.count + 1 >= TAC_PLUS_ATTRIB_MAX_CNT)
-    { /* take new attrib into account */
+    gl_list_iterator_t attributes_iterator = gl_list_iterator(attr);
+    if (attributes_iterator.count + 1 >= TAC_PLUS_ATTRIB_MAX_CNT) { /* take new attrib into account */
         TACSYSLOG(LOG_WARNING,
                   "%s: Maximum number of attributes exceeded, skipping",
                   __FUNCTION__);
         return LIBTAC_STATUS_ATTRIB_TOO_MANY;
     }
+    gl_list_iterator_free(&attributes_iterator);
 
     gl_list_add_last(attr, buf);
 
@@ -124,11 +122,11 @@ int tac_add_attrib_pair_truncate(gl_list_t attr, char *name, char sep, char *val
 
 void tac_free_attrib(gl_list_t attr)
 {
-    const void *element;
+    void *element;
     gl_list_iterator_t attributes_iterator = gl_list_iterator(attr);
-	while(gl_list_iterator_next(&attributes_iterator, &element, NULL)) {
-		free(element);
-	}
+    while (gl_list_iterator_next(&attributes_iterator, (const void **) &element, NULL)) {
+        free(element);
+    }
     gl_list_iterator_free(&attributes_iterator);
     gl_list_free(attr);
 }

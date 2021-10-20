@@ -7,6 +7,8 @@
    easier maintenance and compatibility.
 ** Legacy data structures such as attribute lists were replaced with [gnulib](https://www.gnu.org/software/gnulib/)
    structures.
+** CHAP implementation used a fixed challenge in contradiction with the RFC 1994 requirement. This was replaced
+   with a pseudo-random challenge generated using `getrandom`.
 ** [ABI version](https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info)
    set to `5:0:0`. From now on, this is the only way to version the library. The legacy static variables `tac_ver_`
    were removed as confusing.
