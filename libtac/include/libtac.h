@@ -28,9 +28,7 @@ extern "C"
 #endif
 
 #ifdef HAVE_CONFIG_H
-
 #include "config.h"
-
 #endif
 
 #include <stdarg.h>
@@ -194,68 +192,68 @@ extern int tac_readtimeout_enable;
 /* connect.c */
 extern unsigned long tac_timeout;
 
-void tac_set_dscp(uint8_t val);
+extern void tac_set_dscp(uint8_t val);
 
-void tac_enable_readtimeout(int enable);
+extern void tac_enable_readtimeout(int enable);
 
-int tac_connect(struct addrinfo **, char **, int);
+extern int tac_connect(struct addrinfo **, char **, int);
 
-int tac_connect_single(const struct addrinfo *, const char *, struct addrinfo *,
-                       int);
+extern int tac_connect_single(const struct addrinfo *, const char *, struct addrinfo *,
+                              int);
 
-char *tac_ntop(const struct sockaddr *);
+extern char *tac_ntop(const struct sockaddr *);
 
-int tac_authen_send(int, const char *, const char *, const char *, const char *,
-                    unsigned char);
+extern int tac_authen_send(int, const char *, const char *, const char *, const char *,
+                           unsigned char);
 
-int tac_authen_read(int, struct areply *);
+extern int tac_authen_read(int, struct areply *);
 
-int tac_authen_read_timeout(int, struct areply *, unsigned long);
+extern int tac_authen_read_timeout(int, struct areply *, unsigned long);
 
-int tac_cont_send_seq(int, const char *, int);
+extern int tac_cont_send_seq(int, const char *, int);
 
 #define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)
 
-HDR *_tac_req_header(unsigned char, int);
+extern HDR *_tac_req_header(unsigned char, int);
 
-void _tac_obfuscate(unsigned char *buf, const HDR *th);
+extern void _tac_obfuscate(unsigned char *buf, const HDR *th);
 
-int tac_add_attrib(gl_list_t attr, char *, char *);
+extern int tac_add_attrib(gl_list_t attr, char *, char *);
 
-void tac_free_attrib(gl_list_t attr);
+extern void tac_free_attrib(gl_list_t attr);
 
-char *tac_acct_flag2str(int);
+extern char *tac_acct_flag2str(int);
 
-int tac_acct_send(int, int, const char *, char *, char *, gl_list_t attr);
+extern int tac_acct_send(int, int, const char *, char *, char *, gl_list_t attr);
 
-int tac_acct_read(int, struct areply *);
+extern int tac_acct_read(int, struct areply *);
 
-int tac_acct_read_timeout(int, struct areply *, unsigned long);
+extern int tac_acct_read_timeout(int, struct areply *, unsigned long);
 
-char *xstrncpy(char *dst, const char *src, size_t dst_size);
+extern char *xstrncpy(char *dst, const char *src, size_t dst_size);
 
-char *_tac_check_header(HDR *, int);
+extern char *_tac_check_header(HDR *, int);
 
-int tac_author_send(int, const char *, char *, char *, gl_list_t attr);
+extern int tac_author_send(int, const char *, char *, char *, gl_list_t attr);
 
-int tac_author_read(int, struct areply *);
+extern int tac_author_read(int, struct areply *);
 
-int tac_author_read_timeout(int, struct areply *, unsigned long);
+extern int tac_author_read_timeout(int, struct areply *, unsigned long);
 
-int tac_add_attrib_pair(gl_list_t attr, char *, char, char *);
+extern int tac_add_attrib_pair(gl_list_t attr, char *, char, char *);
 
-int tac_add_attrib_truncate(gl_list_t attr, char *name, char *value);
+extern int tac_add_attrib_truncate(gl_list_t attr, char *name, char *value);
 
-int tac_add_attrib_pair_truncate(gl_list_t attr, char *name,
-                                 char sep, char *value);
+extern int tac_add_attrib_pair_truncate(gl_list_t attr, char *name,
+                                        char sep, char *value);
 
-int tac_read_wait(int, int, int, int *);
+extern int tac_read_wait(int, int, int, int *);
 
-uint32_t _get_session_id(void);
+extern uint32_t _get_session_id(void);
 
-void digest_chap(unsigned char *digest, unsigned char id,
-                 const char *pass, size_t pass_len,
-                 unsigned char *challenge, size_t challenge_len);
+extern void digest_chap(unsigned char *digest, unsigned char id,
+                        const char *pass, size_t pass_len,
+                        unsigned char *challenge, size_t challenge_len);
 
 #ifdef __cplusplus
 }
