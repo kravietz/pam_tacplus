@@ -20,7 +20,7 @@ jobs:
         with:
           apt-get: libpam-dev
       - name: Run configure
-        run: autoreconf -i && ./configure --enable-asan          
+        run: autoreconf -f -i -v && ./configure
       - name: Coverity Scan
         uses: vapier/coverity-scan-action@v0
         with:

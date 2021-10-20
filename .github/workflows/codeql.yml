@@ -39,10 +39,10 @@ jobs:
     #  uses: github/codeql-action/autobuild@v1
 
     - run: |
-       autoreconf -f -v -i
-       sudo apt install -y libpam-dev libssl-dev
-       ./configure --enable-asan
-       make
+        sudo apt install -y libpam-dev libssl-dev
+         autoreconf -f -v -i
+        ./configure
+        make
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
