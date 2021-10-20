@@ -37,3 +37,4 @@ tacc
 .dirstamp
 lib/.gitignore
 m4/.gitignore
+.idea/
