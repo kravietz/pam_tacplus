@@ -39,6 +39,8 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include "gl_xlist.h"
+
 #include "pam_tacplus.h"
 #include "support.h"
 
@@ -86,12 +88,10 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 {
 
 	char buf[64];
-	struct tac_attrib *attr = NULL;
 	int retval;
 	time_t t;
-	struct tm tm;
-
-	attr = (struct tac_attrib *)xcalloc(1, sizeof(struct tac_attrib));
+    struct tm tm;
+    gl_list_t attr;
 
 	t = time(NULL);
 	gmtime_r(&t, &tm);
@@ -99,28 +99,28 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 
 	if (type == TAC_PLUS_ACCT_FLAG_START)
 	{
-		tac_add_attrib(&attr, "start_time", buf);
+        tac_add_attrib(attr, "start_time", buf);
 	}
 	else if (type == TAC_PLUS_ACCT_FLAG_STOP)
 	{
-		tac_add_attrib(&attr, "stop_time", buf);
+        tac_add_attrib(attr, "stop_time", buf);
 	}
 
-	snprintf(buf, sizeof(buf), "%d", getpid());
-	tac_add_attrib(&attr, "task_id", buf);
+    snprintf(buf, sizeof(buf), "%d", getpid());
+    tac_add_attrib(attr, "task_id", buf);
 
-	tac_add_attrib(&attr, "service", tac_service);
+    tac_add_attrib(attr, "service", tac_service);
 	if (tac_protocol[0] != '\0')
-		tac_add_attrib(&attr, "protocol", tac_protocol);
+        tac_add_attrib(attr, "protocol", tac_protocol);
 	if (cmd != NULL)
 	{
-		tac_add_attrib(&attr, "cmd", cmd);
+        tac_add_attrib(attr, "cmd", cmd);
 	}
 
 	retval = tac_acct_send(tac_fd, type, user, tty, r_addr, attr);
 
 	/* this is no longer needed */
-	tac_free_attrib(&attr);
+    tac_free_attrib(attr);
 
 	if (retval < 0)
 	{
@@ -610,8 +610,8 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
 	char *tty;
 	char *r_addr;
 	struct areply arep;
-	struct tac_attrib *attr = NULL;
-	int tac_fd;
+    int tac_fd;
+    gl_list_t attr;
 
 	user = tty = r_addr = NULL;
 	memset(&arep, 0, sizeof(arep));
@@ -668,22 +668,22 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
 		_pam_log(LOG_ERR, "SM: TACACS+ protocol type not configured (IGNORED)");
 	}
 
-	tac_add_attrib(&attr, "service", tac_service);
+    tac_add_attrib(attr, "service", tac_service);
 	if (tac_protocol[0] != '\0')
-		tac_add_attrib(&attr, "protocol", tac_protocol);
+        tac_add_attrib(attr, "protocol", tac_protocol);
 
 	tac_fd = tac_connect_single(active_server.addr, active_server.key, NULL,
 								tac_timeout);
 	if (tac_fd < 0)
 	{
-		_pam_log(LOG_ERR, "TACACS+ server unavailable");
-		tac_free_attrib(&attr);
+        _pam_log(LOG_ERR, "TACACS+ server unavailable");
+        tac_free_attrib(attr);
 		return PAM_AUTH_ERR;
 	}
 
 	retval = tac_author_send(tac_fd, user, tty, r_addr, attr);
 
-	tac_free_attrib(&attr);
+    tac_free_attrib(attr);
 
 	if (retval < 0)
 	{
@@ -705,65 +705,61 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
 		if (arep.msg != NULL)
 			free(arep.msg);
 
-		close(tac_fd);
-		return PAM_PERM_DENIED;
-	}
+        close(tac_fd);
+        return PAM_PERM_DENIED;
+    }
 
-	if (ctrl & PAM_TAC_DEBUG)
-		syslog(LOG_DEBUG, "%s: user [%s] successfully authorized", __FUNCTION__,
-			   user);
+    if (ctrl & PAM_TAC_DEBUG)
+        syslog(LOG_DEBUG, "%s: user [%s] successfully authorized", __FUNCTION__,
+               user);
 
-	status = PAM_SUCCESS;
+    status = PAM_SUCCESS;
 
-	attr = arep.attr;
-	while (attr != NULL)
-	{
-		size_t len = strcspn(attr->attr, "=*");
-		if (len < attr->attr_len)
-		{
-			char avpair[attr->attr_len + 1];
-			memcpy(avpair, attr->attr, attr->attr_len + 1); /* Also copy terminating NUL */
+    const void *element;
+    gl_list_iterator_t attributes_iterator = gl_list_iterator(arep.attr);
+    while (gl_list_iterator_next(&attributes_iterator, &element, NULL)) {
+        size_t attribute_len = strlen((char *) element);
+        size_t attribute_name_len = strcspn((char *) element, "=*");
+        if (attribute_name_len < attribute_len) {
+            char avpair[attribute_len + 1];
+            xstrncpy(avpair, element, attribute_len); /* Also copy terminating NUL */
 
-			if (ctrl & PAM_TAC_DEBUG)
-				syslog(LOG_DEBUG, "%s: returned attribute `%s' from server",
-					   __FUNCTION__, avpair);
+            if (ctrl & PAM_TAC_DEBUG)
+                syslog(LOG_DEBUG, "%s: returned attribute `%s' from server",
+                       __FUNCTION__, avpair);
 
-			avpair[len] = '='; // replace '*' by '='
-			size_t i;
-			for (i = 0; i < len; i++)
-			{
-				avpair[i] = toupper(avpair[i]);
-				if (avpair[i] == '-')
-					avpair[i] = '_';
-			}
+            avpair[attribute_name_len] = '='; // replace '*' by '='
+            size_t i;
+            for (i = 0; i < attribute_name_len; i++) {
+                avpair[i] = toupper((unsigned char) avpair[i]);
+                if (avpair[i] == '-')
+                    avpair[i] = '_';
+            }
 
-			if (ctrl & PAM_TAC_DEBUG)
-				syslog(LOG_DEBUG, "%s: setting PAM environment `%s'",
+            if (ctrl & PAM_TAC_DEBUG)
+                syslog(LOG_DEBUG, "%s: setting PAM environment `%s'",
 					   __FUNCTION__, avpair);
 
 			/* make returned attributes available for other PAM modules via PAM environment */
 			if (pam_putenv(pamh, avpair) != PAM_SUCCESS)
 				syslog(LOG_WARNING, "%s: unable to set PAM environment",
-					   __FUNCTION__);
-		}
-		else
-		{
-			syslog(LOG_WARNING, "%s: invalid attribute `%s', no separator",
-				   __FUNCTION__, attr->attr);
-		}
-		attr = attr->next;
-	}
+                       __FUNCTION__);
+        } else {
+            syslog(LOG_WARNING, "%s: invalid attribute `%s', no separator",
+                   __FUNCTION__, (char *) element);
+        }
+    }
 
-	/* free returned attributes */
-	if (arep.attr != NULL)
-		tac_free_attrib(&arep.attr);
+    /* free returned attributes */
+    gl_list_iterator_free(&attributes_iterator);
+    tac_free_attrib(arep.attr);
 
-	if (arep.msg != NULL)
-		free(arep.msg);
+    if (arep.msg != NULL)
+        free(arep.msg);
 
-	close(tac_fd);
+    close(tac_fd);
 
-	return status;
+    return status;
 } /* pam_sm_acct_mgmt */
 
 /* sends START accounting request to the remote TACACS+ server
