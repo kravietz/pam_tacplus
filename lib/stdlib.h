@@ -1558,7 +1558,7 @@ _GL_WARN_ON_USE (setstate_r, "setstate_r is unportable - "
 #endif
 
 
-#if 0
+#if 1
 # if 0
 #  if !((defined __cplusplus && defined GNULIB_NAMESPACE) \
         || _GL_USE_STDLIB_ALLOC)
