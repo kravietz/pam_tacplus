@@ -19,19 +19,24 @@
  * See `CHANGES' file for revision history.
  */
 #ifdef HAVE_CONFIG_H
+
 #include "config.h"
+
 #endif
 
-#include "libtac.h"
-#include "xalloc.h"
+#include <fcntl.h>
+#include <stdio.h>
+#include "gl_array_list.h"
+#include "gl_list.h"
+#include "gl_xlist.h"
 
-char *tac_acct_flag2str(int flag)
-{
-    switch (flag)
-    {
-    case TAC_PLUS_ACCT_FLAG_MORE:
-        return "more";
-    case TAC_PLUS_ACCT_FLAG_START:
+#include "libtac.h"
+
+char *tac_acct_flag2str(int flag) {
+    switch (flag) {
+        case TAC_PLUS_ACCT_FLAG_MORE:
+            return "more";
+        case TAC_PLUS_ACCT_FLAG_START:
         return "start";
     case TAC_PLUS_ACCT_FLAG_STOP:
         return "stop";
