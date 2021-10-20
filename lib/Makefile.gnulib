@@ -39,8 +39,7 @@
 #  fcntl \
 #  getrandom \
 #  list \
-#  realloc \
-#  realloc-gnu \
+#  realloc-posix \
 #  xalloc \
 #  xlist
 
@@ -499,15 +498,6 @@ EXTRA_libgnu_la_SOURCES += open.c
 EXTRA_DIST += pathmax.h
 
 ## end   gnulib module pathmax
-
-## begin gnulib module realloc-gnu
-
-
-EXTRA_DIST += realloc.c
-
-EXTRA_libgnu_la_SOURCES += realloc.c
-
-## end   gnulib module realloc-gnu
 
 ## begin gnulib module realloc-posix
 

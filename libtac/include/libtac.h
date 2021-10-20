@@ -51,10 +51,15 @@ extern "C"
 #include "cdefs.h"
 #endif
 
-#include "tacplus.h"
+// from gnulib-tool --import
+// see lib/Makefile.am and lib/Makefile.gnulib for details of modules imported
+#include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/random.h>
+#include "gl_array_list.h"
 #include "gl_list.h"
 #include "gl_xlist.h"
-#include "gl_array_list.h"
 #include "md5.h"
 #include "xalloc.h"
 

@@ -44,8 +44,7 @@
 #  fcntl \
 #  getrandom \
 #  list \
-#  realloc \
-#  realloc-gnu \
+#  realloc-posix \
 #  xalloc \
 #  xlist
 
@@ -58,8 +57,7 @@ gl_MODULES([
   fcntl
   getrandom
   list
-  realloc
-  realloc-gnu
+  realloc-posix
   xalloc
   xlist
 ])
