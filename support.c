@@ -314,15 +314,15 @@ int _pam_parse(int argc, const char **argv)
         }
         else if (!strncmp(*argv, "service=", 8))
         { /* author & acct */
-            xstrcpy(tac_service, *argv + 8, sizeof(tac_service));
+            xstrncpy(tac_service, *argv + 8, sizeof(tac_service));
         }
         else if (!strncmp(*argv, "protocol=", 9))
         { /* author & acct */
-            xstrcpy(tac_protocol, *argv + 9, sizeof(tac_protocol));
+            xstrncpy(tac_protocol, *argv + 9, sizeof(tac_protocol));
         }
         else if (!strncmp(*argv, "prompt=", 7))
         { /* authentication */
-            xstrcpy(tac_prompt, *argv + 7, sizeof(tac_prompt));
+            xstrncpy(tac_prompt, *argv + 7, sizeof(tac_prompt));
             /* Replace _ with space */
             unsigned long chr;
             for (chr = 0; chr < strlen(tac_prompt); chr++)
@@ -335,7 +335,7 @@ int _pam_parse(int argc, const char **argv)
         }
         else if (!strncmp(*argv, "login=", 6))
         {
-            xstrcpy(tac_login, *argv + 6, sizeof(tac_login));
+            xstrncpy(tac_login, *argv + 6, sizeof(tac_login));
         }
         else if (!strcmp(*argv, "acct_all"))
         {

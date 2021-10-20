@@ -23,98 +23,43 @@
 #include "config.h"
 #endif
 
-#include "xalloc.h"
+#include "xstrncpy.h"
 
 #ifdef HAVE_BSD_STRING_H
 #include <bsd/string.h>
 #endif
 
-#if 0
-void *xcalloc(size_t nmemb, size_t size)
-{
-	void *val = calloc(nmemb, size);
-	if (val == 0)
-	{
-		TACSYSLOG(
-			LOG_ERR, "%s: calloc(%u,%u) failed", __FUNCTION__, (unsigned)nmemb, (unsigned)size);
-#ifdef HAVE_ABORT
-		abort();
-#else
-		exit(EXIT_FAILURE);
-#endif
-	}
-	return val;
-}
-
-void *xrealloc(void *ptr, size_t size)
-{
-	void *val = realloc(ptr, size);
-	if (val == 0)
-	{
-		TACSYSLOG(
-			LOG_ERR, "%s: realloc(%u) failed", __FUNCTION__, (unsigned)size);
-#ifdef HAVE_ABORT
-		abort();
-#else
-		exit(EXIT_FAILURE);
-#endif
-	}
-	return val;
-}
-
-char *xstrdup(const char *s)
-{
-	char *p;
-	if (s == NULL)
-		return NULL;
-	p = strdup(s);
-	if (p == NULL)
-	{
-		TACSYSLOG(LOG_ERR, "%s: strdup(%s) failed: %m", __FUNCTION__, s);
-#ifdef HAVE_ABORT
-		abort();
-#else
-		exit(EXIT_FAILURE);
-#endif
-	}
-	return p;
-}
-#endif
 /*
  safe string copy that aborts when destination buffer is too small
  */
-char *xstrcpy(char *dst, const char *src, size_t dst_size)
-{
-	if (dst == NULL)
-	{
-		TACSYSLOG(LOG_ERR, "xstrcpy(): dst == NULL");
+char *xstrncpy(char *dst, const char *src, size_t dst_size) {
+    if (dst == NULL) {
+        TACSYSLOG(LOG_ERR, "xstrncpy(): dst == NULL");
 #ifdef HAVE_ABORT
-		abort();
+        abort();
 #else
-		exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 #endif
-	}
-	if (src == NULL)
-	{
-		TACSYSLOG(LOG_ERR, "xstrcpy(): src == NULL");
+    }
+	if (src == NULL) {
+        TACSYSLOG(LOG_ERR, "xstrncpy(): src == NULL");
 #ifdef HAVE_ABORT
-		abort();
+        abort();
 #else
-		exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 #endif
-	}
+    }
 	if (!dst_size)
 		return NULL;
 
-	if (strlen(src) >= dst_size)
-	{
-		TACSYSLOG(LOG_ERR, "xstrcpy(): argument too long, aborting");
+	if (strlen(src) >= dst_size) {
+        TACSYSLOG(LOG_ERR, "xstrncpy(): argument too long, aborting");
 #ifdef HAVE_ABORT
-		abort();
+        abort();
 #else
-		exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 #endif
-	}
+    }
 #ifdef HAVE_STRLCPY
 	if(strlcpy(dst, src, dst_size) > dst_size)
 	{

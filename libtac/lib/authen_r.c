@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#include "xalloc.h"
+#include "xstrncpy.h"
 #include "libtac.h"
 #include "messages.h"
 

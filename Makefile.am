@@ -22,15 +22,16 @@ tacc_LDADD = libtac.la $(LTLIBINTL) $(LIB_CRYPTO)  $(LIB_GETRANDOM)
 tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@ -I $(top_srcdir)/lib
 endif
 
-libtac_includedir = $(includedir)/libtac
-libtac_include_HEADERS = \
+lib_LTLIBRARIES = libtac.la
+
+libtac_la_includedir = $(includedir)/libtac
+libtac_la_include_HEADERS = \
     libtac/include/tacplus.h \
     libtac/include/libtac.h \
     libtac/include/cdefs.h
 
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info
 libtac_la_LDFLAGS = -version-info 5:0:0 -shared
-lib_LTLIBRARIES = libtac.la
 libtac_la_SOURCES = \
     libtac/lib/acct_r.c \
     libtac/lib/acct_s.c \
@@ -47,7 +48,7 @@ libtac_la_SOURCES = \
     libtac/lib/messages.c \
     libtac/lib/messages.h \
     libtac/lib/read_wait.c \
-    libtac/lib/xalloc.c \
+    libtac/lib/xstrncpy.c \
     $(libtac_include_HEADERS)
 
 libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib @rt_debug_defines@
@@ -59,8 +60,7 @@ pam_tacplus_la_SOURCES = pam_tacplus.h \
     pam_tacplus.c \
     support.h \
     support.c
-pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/libtac/lib \
-    -I $(top_srcdir)/lib/include -I $(top_srcdir)/lib/lib
+pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/libtac/lib -I $(top_srcdir)/lib
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 
@@ -75,5 +75,3 @@ MAINTAINERCLEANFILES = Makefile.in config.h.in configure aclocal.m4 \
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libtac.pc
-
-EXTRA_DIST += gnulib-m4/gnulib-cache.m4

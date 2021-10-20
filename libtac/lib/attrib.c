@@ -30,7 +30,7 @@
 #include "gl_xlist.h"
 
 #include "libtac.h"
-#include "xalloc.h"
+#include "xstrncpy.h"
 
 static int _tac_attrib_checks(char *name, char separator, char *value, size_t total_len, int truncate)
 {

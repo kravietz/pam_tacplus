@@ -232,7 +232,7 @@ int tac_acct_read(int, struct areply *);
 
 int tac_acct_read_timeout(int, struct areply *, unsigned long);
 
-char *xstrcpy(char *, const char *, size_t);
+char *xstrncpy(char *dst, const char *src, size_t dst_size);
 
 char *_tac_check_header(HDR *, int);
 
