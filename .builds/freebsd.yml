@@ -17,8 +17,9 @@ sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
 - gnulib: |
-        cd pam-tacplus
-        autoreconf -f -i -v
+          cd pam-tacplus
+          # autoconf may fail on systems with older gnulib, in such case we patch up and re-run
+          autoreconf -f -i -v || gnulib-tool --libtool --update && autoreconf -f -i -v
 - build-cc: |
         cd pam-tacplus
         ./configure
