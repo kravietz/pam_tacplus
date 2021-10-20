@@ -143,7 +143,7 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 	} while (tb_bytes_read < len_from_header);
 
 	/* decrypt the body */
-	_tac_crypt((unsigned char *)tb, &th);
+    _tac_obfuscate((unsigned char *) tb, &th);
 
 	/* Convert network byte order to host byte order */
 	tb->msg_len = ntohs(tb->msg_len);

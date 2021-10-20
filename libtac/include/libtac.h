@@ -197,7 +197,7 @@ struct areply
 	int tac_cont_send_seq(int, const char *, int);
 #define tac_cont_send(fd, pass) tac_cont_send_seq((fd), (pass), 3)
 	HDR *_tac_req_header(unsigned char, int);
-	void _tac_crypt(unsigned char *, const HDR *);
+	void _tac_obfuscate(unsigned char *buf, const HDR *th);
 	int tac_add_attrib(gl_list_t attr, char *, char *);
 	void tac_free_attrib(gl_list_t attr);
 	char *tac_acct_flag2str(int);

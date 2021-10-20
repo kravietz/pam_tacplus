@@ -49,15 +49,47 @@ char *tac_acct_flag2str(int flag)
  *             LIBTAC_STATUS_WRITE_ERR
  *             LIBTAC_STATUS_WRITE_TIMEOUT  (pending impl)
  *             LIBTAC_STATUS_ASSEMBLY_ERR   (pending impl)
+ 7.1.  The Account REQUEST Packet Body
+
+    1 2 3 4 5 6 7 8  1 2 3 4 5 6 7 8  1 2 3 4 5 6 7 8  1 2 3 4 5 6 7 8
+   +----------------+----------------+----------------+----------------+
+   |      flags     |  authen_method |    priv_lvl    |  authen_type   |
+   +----------------+----------------+----------------+----------------+
+   | authen_service |    user_len    |    port_len    |  rem_addr_len  |
+   +----------------+----------------+----------------+----------------+
+   |    arg_cnt     |   arg_1_len    |   arg_2_len    |      ...       |
+   +----------------+----------------+----------------+----------------+
+   |   arg_N_len    |    user ...
+   +----------------+----------------+----------------+----------------+
+   |   port ...
+   +----------------+----------------+----------------+----------------+
+   |   rem_addr ...
+   +----------------+----------------+----------------+----------------+
+   |   arg_1 ...
+   +----------------+----------------+----------------+----------------+
+   |   arg_2 ...
+   +----------------+----------------+----------------+----------------+
+   |   ...
+   +----------------+----------------+----------------+----------------+
+   |   arg_N ...
+   +----------------+----------------+----------------+----------------+
+
  */
 int tac_acct_send(int fd, int type, const char *user, char *tty,
-                  char *r_addr, struct tac_attrib *attr)
+                  char *r_addr, gl_list_t attr)
 {
 
     HDR *th;
     struct acct tb;
+    char *attribute_cache[TAC_PLUS_ATTRIB_MAX_CNT];
+	unsigned char attribute_len_cache[TAC_PLUS_ATTRIB_MAX_CNT];
+	int attribute_counter = 0;
+	int total_attributes_size = 0;
+    char *current_attribute;
+	int lengths_position = 0;
+	int attributes_position = 0;
+	gl_list_iterator_t attributes_iterator;
     unsigned char user_len, port_len, r_addr_len;
-    struct tac_attrib *a;
     int i = 0; /* arg count */
     int pkt_len = 0;
     int pktl = 0;
@@ -66,7 +98,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     /* unsigned char *pktp; */ /* obsolute */
     int ret = 0;
 
-    th = _tac_req_header(TAC_PLUS_ACCT, 0);
+    th = _tac_req_header(TAC_PLUS_ACCT, false);
 
     /* set header options */
     th->version = TAC_PLUS_VER_0;
@@ -172,7 +204,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     }
 
     /* encrypt packet body  */
-    _tac_crypt(pkt, th);
+    _tac_obfuscate(pkt, th);
 
     /* write body */
     w = write(fd, pkt, pkt_len);

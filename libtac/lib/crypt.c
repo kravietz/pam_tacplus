@@ -73,10 +73,15 @@ static void _tac_md5_pad(const HDR *hdr,
 
 } /* _tac_md5_pad */
 
-/* Perform encryption/decryption on buffer. This means simply XORing
-   each byte from buffer with according byte from pseudo-random
-   pad. */
-void _tac_crypt(unsigned char *buf, const HDR *th)
+/*
+ * The body of packets may be obfuscated.  The following sections
+   describe the obfuscation method that is supported in the protocol.
+   In "The Draft", this process was actually referred to as Encryption,
+   but the algorithm would not meet modern standards and so will not be
+   termed as encryption in this document.
+ * https://datatracker.ietf.org/doc/html/rfc8907#section-4.5
+ */
+void _tac_obfuscate(unsigned char *buf, const HDR *th)
 {
     unsigned int i = 0;
     unsigned int j = 0;
@@ -104,4 +109,4 @@ void _tac_crypt(unsigned char *buf, const HDR *th)
         buf[i] ^= digest[j];
     }
 
-} /* _tac_crypt */
+} /* _tac_obfuscate */
