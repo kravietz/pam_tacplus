@@ -53,7 +53,6 @@ extern "C"
 #include "cdefs.h"
 #endif
 
-#include "gl_array_list.h"
 #include "gl_list.h"
 #include "gl_xlist.h"
 
