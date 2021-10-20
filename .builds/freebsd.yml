@@ -10,16 +10,18 @@ packages:
 - pamtester
 # for scan-build
 - llvm
-- gnulib
 # -fsanitize=address on FreeBSD is only supported on GCC >= 11
 - gcc11-devel
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
 - gnulib: |
-          cd pam-tacplus
-          # autoconf may fail on systems with older gnulib, in such case we patch up and re-run
-          autoreconf -f -i -v || gnulib-tool --libtool --update && autoreconf -f -i -v
+    git clone https://git.savannah.gnu.org/git/gnulib.git
+    cd pam-tacplus
+    $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
+        fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+        explicit_bzero xalloc
+    autoreconf -f -v -i
 - build-cc: |
         cd pam-tacplus
         ./configure
