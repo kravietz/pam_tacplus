@@ -15,62 +15,58 @@ packages:
 - pamtester
 - clang
 - clang-tools
+- gnulib
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
-- configure: |
+- gnulib: |
         cd pam-tacplus
-        autoreconf -i
+        autoreconf -f -i -v
+- build-cc: |
+        cd pam-tacplus
         ./configure
-        make
-- setup-test: |
+        make clean all
+- setup: |
         cd pam-tacplus
         sudo make install
         sudo ldconfig
-        sudo useradd -m testuser1
-        echo testuser1:testpass123 | sudo chpasswd -c SHA512
         sudo install -o root test/bionic/pam.conf /etc/pam.d/test
         sudo install -o root test/bionic/tac_plus.conf /etc/tacacs+/tac_plus.conf
         sudo service tacacs_plus restart && sleep 3
+        # not really necessary, users statically defined in pam_tac.conf
+        #sudo useradd -m testuser1
+        #echo testuser1:testpass123 | sudo chpasswd -c SHA512
 - functional-test-tacc: |
-        /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
-        /usr/local/bin/tacc --authenticate --authorize --account --username testuser2 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
-        /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap || true
-        /usr/local/bin/tacc --authenticate --authorize --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret badkey --service ppp --protocol ip --login pap || true
+        cd pam-tacplus
+        sh -x test/tacc.sh
 - functional-test-pam: |  
         cd pam-tacplus
-        expect test/bionic/test1.expect
-        expect test/bionic/test2.expect
-- asan-test-tacc-gcc: |
-        cd pam-tacplus
-        make clean
-        ./configure --enable-asan
-        make clean all
-        export ASAN_OPTIONS=abort_on_error=1:fast_unwind_on_malloc=0:detect_leaks=1
-        ./tacc --authenticate --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
-        ./tacc --authorize --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
-        ./tacc --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
-        ./tacc --authenticate --username testuser1 --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap || true
-        ./tacc --authorize --username testuser1 --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap || true
-        ./tacc --account --username testuser1 --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap || true
-        ./tacc --authenticate --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret badkey --service ppp --protocol ip --login pap || true
-        ./tacc --authenticate --authorize --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap            
-- clang-analyzer: |
-        cd pam-tacplus
-        autoreconf -i
-        scan-build ./configure
-        scan-build --keep-cc -v make clean all
-- asan-test-tacc-clang: |
-        cd pam-tacplus
-        make clean
-        scan-build ./configure --enable-asan
-        scan-build --keep-cc -v make clean all
-        export ASAN_OPTIONS=abort_on_error=1:fast_unwind_on_malloc=0:detect_leaks=1
-        ./tacc --authenticate --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
-        ./tacc --authorize --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
-        ./tacc --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap
-        ./tacc --authenticate --username testuser1 --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap || true
-        ./tacc --authorize --username testuser1 --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap || true
-        ./tacc --account --username testuser1 --password badpass --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap || true
-        ./tacc --authenticate --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret badkey --service ppp --protocol ip --login pap || true
-        ./tacc --authenticate --authorize --account --username testuser1 --password testpass123 --server localhost --remote 5.6.7.8 --tty ttyS0 --secret testkey123 --service ppp --protocol ip --login pap            
+        expect test/bionic/tests.expect
+# - scan-build-clang: |
+#         cd pam-tacplus
+#         gnulib-tool --import  fcntl crypto/md5 array-list list xlist getrandom realloc
+#         autoreconf -f -i -v
+#         # required for pam_tacplus.so testing with ASAN, only works with clang
+#         export LDFLAGS=-shared-libasan
+#         scan-build --use-cc=clang ./configure #--enable-asan
+#         scan-build --use-cc=clang make clean all
+#         sudo make install
+#         sudo ldconfig
+# - scan-build-gcc: |
+#         # only compilation test
+#         cd pam-tacplus
+#         autoreconf -i
+#         scan-build --use-cc=gcc ./configure --enable-asan
+#         scan-build --use-cc=gcc make clean all
+# - functional-test-tacc-asan: |
+#         cd pam-tacplus
+#         # increases ASAN leak detector precision and coverage
+#         #export ASAN_OPTIONS=abort_on_error=1:fast_unwind_on_malloc=0:detect_leaks=1
+#         #export LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so)
+#         sh -x test/tacc.sh
+# - functional-test-pam-asan: |  
+#         cd pam-tacplus
+#         #export ASAN_OPTIONS=abort_on_error=1:fast_unwind_on_malloc=0:detect_leaks=1
+#         # required for pam_tacplus.so testing with ASAN, only works with clang
+#         #export LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so)
+#         expect test/bionic/tests.expect

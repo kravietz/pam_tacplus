@@ -30,7 +30,7 @@ The following core TACACS+ functions are supported:
 | Authorization  | Account management | Is the user entitled to service X?  |
 | Account        | Session open/close | Record beginning and end of service |
 
-The [TACACS+](https://tools.ietf.org/html/draft-ietf-opsawg-tacacs-15) protocol was designed by Cisco Systems back in 90's
+The [TACACS+](https://datatracker.ietf.org/doc/html/rfc8907) protocol was designed by Cisco Systems back in 90's
 and was intended to provide simple means of validating users connecting to simple network routers (e.g. over PPP) against
 a central authentication server. The router can send queries about authentication (validate user credentials), authorization
 (entitlement for requested service) and accounting (marking the start and end of user's session). The server can respond
@@ -58,8 +58,8 @@ on variety of operating systems.
 | `service` | account, session | *string* TACACS+ service for authorization and accounting |
 | `protocol` | account, session | *string* TACACS+ protocol for authorization and accounting |
 
-Semantics of these options only makes sense in the context of the
-[TACACS+ specification](https://tools.ietf.org/html/draft-grant-tacacs-02) &mdash; for example,
+Semantics of these options only make sense in the context of the
+[RFC 8907 (the TACACS+ specification)](https://datatracker.ietf.org/doc/html/rfc8907) &mdash; for example,
 a dial-up router might request `ppp` service with protocol `ip` for their users, authenticating
 them with `pap` protocol which reflects the typical usage of TACACS+ back in 90's.
 These values however do not really need to match the actual service offered by your server
@@ -241,7 +241,7 @@ authorization.
 
 ### Short introduction to PAM via TACACS+:
 
-This diagram should show general idea of how the whole process looks:
+This diagram should show general idea of how the whole process looks like:
 
 ![TACACS+ and PAM interaction diagram](doc/diagram.svg)
 
@@ -298,10 +298,14 @@ tac_plus -C /etc/tacacs+/tac_plus.conf -G -g -d 512
 
 * only subset of TACACS+ protocol is supported; it's enough for most need, though
 * `tacc` does not support password prompts and other interactive protocol features
-		
+
+### References:
+
+* [RFC 8907: The Terminal Access Controller Access-Control System Plus (TACACS+) Protocol](https://datatracker.ietf.org/doc/html/rfc8907)
+* [RFC 1994: PPP Challenge Handshake Authentication Protocol (CHAP)](https://datatracker.ietf.org/doc/html/rfc1994)
+* [The Linux-PAM Application Developers' Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_ADG.html)
+
 ### Authors:
 
-Pawel Krawczyk <pawel.krawczyk@hush.com>
-https://ipsec.pl/
-
-Jeroen Nijhof <jeroen@jeroennijhof.nl>
+* Pawel Krawczyk <pawel.krawczyk@hush.com> https://krvtz.net/
+* Jeroen Nijhof <jeroen@jeroennijhof.nl>

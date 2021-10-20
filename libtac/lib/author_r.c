@@ -18,10 +18,12 @@
  *
  * See `CHANGES' file for revision history.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-#include "xalloc.h"
+
 #include "libtac.h"
-#include "messages.h"
 
 #include <string.h>
 
@@ -140,7 +142,7 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 	} while (tb_bytes_read < len_from_header);
 
 	/* decrypt the body */
-	_tac_crypt((unsigned char *)tb, &th);
+    _tac_obfuscate((unsigned char *) tb, &th);
 
 	/* Convert network byte order to host byte order */
 	tb->msg_len = ntohs(tb->msg_len);
@@ -213,7 +215,7 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 	/* success conditions */
 	/* XXX support optional vs mandatory arguments */
 	case TAC_PLUS_AUTHOR_STATUS_PASS_REPL:
-		tac_free_attrib(&re->attr);
+        tac_free_attrib(re->attr);
 		/*FALLTHRU*/
 
 	case TAC_PLUS_AUTHOR_STATUS_PASS_ADD:
@@ -231,6 +233,7 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 		TACSYSLOG(LOG_DEBUG, "%s: args cnt %d", __FUNCTION__, tb->arg_cnt);
 		/* argp points to current argument string
 		 pktp points to current argument length */
+
 		for (r = 0; r < tb->arg_cnt && r < TAC_PLUS_MAX_ARGCOUNT; r++)
 		{
 			char buff[256];
@@ -238,7 +241,8 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 			char *value;
 			char sepchar = '=';
 
-			memcpy(buff, argp, *pktp);
+
+            memcpy(buff, argp, *pktp);
 			buff[*pktp] = '\0';
 			sep = strchr(buff, '=');
 			if (sep == NULL)
@@ -260,8 +264,8 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 				/* now buff points to attribute name, value to the attribute value */
 			}
 			TACSYSLOG(LOG_DEBUG, "%s: adding buf/value pair %s %s", __FUNCTION__, buff, value);
-			tac_add_attrib_pair(&re->attr, buff, sepchar, value);
-			argp += *pktp;
+            tac_add_attrib_pair(re->attr, buff, sepchar, value);
+            argp += *pktp;
 			pktp++;
 		}
 	}

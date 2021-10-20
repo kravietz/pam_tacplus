@@ -18,8 +18,10 @@
  *
  * See `CHANGES' file for revision history.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-#include "messages.h"
 #include "libtac.h"
 
 #include <arpa/inet.h>

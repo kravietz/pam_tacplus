@@ -19,8 +19,9 @@
  * See `CHANGES' file for revision history.
  */
 
-#include "pam_tacplus.h"
-#include "support.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h> /* malloc */
 #include <stdio.h>
@@ -35,17 +36,13 @@
 #include <ctype.h>
 #include <time.h>
 #include <unistd.h>
-#include <strings.h>
+#include <string.h>
+#include <sys/types.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "libtac.h"
 
-#if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
-#include <openssl/rand.h>
-#else
-#include "magic.h"
-#endif
+#include "pam_tacplus.h"
+#include "support.h"
 
 /* address of server discovered by pam_sm_authenticate */
 static tacplus_server_t active_server;
@@ -53,9 +50,6 @@ struct addrinfo active_addrinfo;
 struct sockaddr active_sockaddr;
 struct sockaddr_in6 active_sockaddr6;
 char active_key[TAC_SECRET_MAX_LEN + 1];
-
-/* accounting task identifier */
-static short int task_id = 0;
 
 /* copy a server's information into active_server */
 static void set_active_server(const tacplus_server_t *tac_svr)
@@ -90,53 +84,47 @@ static void set_active_server(const tacplus_server_t *tac_svr)
 
 /* Helper functions */
 int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
-					  char *r_addr, char *cmd)
-{
+					  char *r_addr, char *cmd) {
 
-	char buf[64];
-	struct tac_attrib *attr = NULL;
-	int retval;
-	time_t t;
-	struct tm tm;
+    char buf[64];
+    int retval;
+    time_t t;
+    struct tm tm;
+    gl_list_t attr;
 
-	attr = (struct tac_attrib *)xcalloc(1, sizeof(struct tac_attrib));
+    attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
 
-	t = time(NULL);
-	gmtime_r(&t, &tm);
-	strftime(buf, sizeof(buf), "%s", &tm);
+    t = time(NULL);
+    gmtime_r(&t, &tm);
+    strftime(buf, sizeof(buf), "%s", &tm);
 
-	if (type == TAC_PLUS_ACCT_FLAG_START)
+    if (type == TAC_PLUS_ACCT_FLAG_START) {
+        tac_add_attrib(attr, "start_time", buf);
+    } else if (type == TAC_PLUS_ACCT_FLAG_STOP)
 	{
-		tac_add_attrib(&attr, "start_time", buf);
-	}
-	else if (type == TAC_PLUS_ACCT_FLAG_STOP)
-	{
-		tac_add_attrib(&attr, "stop_time", buf);
+        tac_add_attrib(attr, "stop_time", buf);
 	}
 
-	if (task_id == 0)
-		snprintf(buf, sizeof(buf), "%d", getpid());
-	else
-		snprintf(buf, sizeof(buf), "%hu", task_id);
-	tac_add_attrib(&attr, "task_id", buf);
+    snprintf(buf, sizeof(buf), "%d", getpid());
+    tac_add_attrib(attr, "task_id", buf);
 
-	tac_add_attrib(&attr, "service", tac_service);
+    tac_add_attrib(attr, "service", tac_service);
 	if (tac_protocol[0] != '\0')
-		tac_add_attrib(&attr, "protocol", tac_protocol);
+        tac_add_attrib(attr, "protocol", tac_protocol);
 	if (cmd != NULL)
 	{
-		tac_add_attrib(&attr, "cmd", cmd);
+        tac_add_attrib(attr, "cmd", cmd);
 	}
 
 	retval = tac_acct_send(tac_fd, type, user, tty, r_addr, attr);
 
 	/* this is no longer needed */
-	tac_free_attrib(&attr);
+    tac_free_attrib(attr);
 
 	if (retval < 0)
 	{
-		_pam_log(LOG_WARNING, "%s: send %s accounting failed (task %hu)",
-				 __FUNCTION__, tac_acct_flag2str(type), task_id);
+		_pam_log(LOG_WARNING, "%s: send %s accounting failed (task %d)",
+				 __FUNCTION__, tac_acct_flag2str(type), getpid());
 		close(tac_fd);
 		return -1;
 	}
@@ -144,8 +132,8 @@ int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
 	struct areply re;
 	if (tac_acct_read(tac_fd, &re) != TAC_PLUS_ACCT_STATUS_SUCCESS)
 	{
-		_pam_log(LOG_WARNING, "%s: accounting %s failed (task %hu)",
-				 __FUNCTION__, tac_acct_flag2str(type), task_id);
+		_pam_log(LOG_WARNING, "%s: accounting %s failed (task %d)",
+				 __FUNCTION__, tac_acct_flag2str(type), getpid());
 
 		if (re.msg != NULL)
 			free(re.msg);
@@ -584,14 +572,8 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
 
 	if (pass != NULL)
 	{
-// sanitize password from memory
-#ifdef HAVE_MEMSET_S
-		memset_s(pass, strlen(pass), 0, strlen(pass));
-#elif HAVE_EXPLICIT_BZERO
+		// sanitize password from memory
 		explicit_bzero(pass, strlen(pass));
-#else
-		memset(pass, 0, strlen(pass));
-#endif
 		free(pass);
 		pass = NULL;
 	}
@@ -619,26 +601,27 @@ int pam_sm_setcred(pam_handle_t *UNUSED(pamh), int UNUSED(flags), int argc, cons
  */
 PAM_EXTERN
 int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
-					 const char **argv)
-{
+					 const char **argv) {
 
-	int retval, ctrl, status = PAM_AUTH_ERR;
-	char *user;
-	char *tty;
-	char *r_addr;
-	struct areply arep;
-	struct tac_attrib *attr = NULL;
-	int tac_fd;
+    int retval, ctrl, status = PAM_AUTH_ERR;
+    char *user;
+    char *tty;
+    char *r_addr;
+    struct areply arep;
+    int tac_fd;
+    gl_list_t attr;
 
-	user = tty = r_addr = NULL;
-	memset(&arep, 0, sizeof(arep));
+    attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
 
-	/* this also obtains service name for authorization
-	 this should be normally performed by pam_get_item(PAM_SERVICE)
-	 but since PAM service names are incompatible TACACS+
-	 we have to pass it via command line argument until a better
-	 solution is found ;) */
-	ctrl = _pam_parse(argc, argv);
+    user = tty = r_addr = NULL;
+    memset(&arep, 0, sizeof(arep));
+
+    /* this also obtains service name for authorization
+     this should be normally performed by pam_get_item(PAM_SERVICE)
+     but since PAM service names are incompatible TACACS+
+     we have to pass it via command line argument until a better
+     solution is found ;) */
+    ctrl = _pam_parse(argc, argv);
 
 	if (ctrl & PAM_TAC_DEBUG)
 		syslog(LOG_DEBUG, "%s: called (pam_tacplus v%u.%u.%u)", __FUNCTION__,
@@ -685,22 +668,22 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
 		_pam_log(LOG_ERR, "SM: TACACS+ protocol type not configured (IGNORED)");
 	}
 
-	tac_add_attrib(&attr, "service", tac_service);
+    tac_add_attrib(attr, "service", tac_service);
 	if (tac_protocol[0] != '\0')
-		tac_add_attrib(&attr, "protocol", tac_protocol);
+        tac_add_attrib(attr, "protocol", tac_protocol);
 
 	tac_fd = tac_connect_single(active_server.addr, active_server.key, NULL,
 								tac_timeout);
 	if (tac_fd < 0)
 	{
-		_pam_log(LOG_ERR, "TACACS+ server unavailable");
-		tac_free_attrib(&attr);
+        _pam_log(LOG_ERR, "TACACS+ server unavailable");
+        tac_free_attrib(attr);
 		return PAM_AUTH_ERR;
 	}
 
 	retval = tac_author_send(tac_fd, user, tty, r_addr, attr);
 
-	tac_free_attrib(&attr);
+    tac_free_attrib(attr);
 
 	if (retval < 0)
 	{
@@ -722,65 +705,61 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
 		if (arep.msg != NULL)
 			free(arep.msg);
 
-		close(tac_fd);
-		return PAM_PERM_DENIED;
-	}
+        close(tac_fd);
+        return PAM_PERM_DENIED;
+    }
 
-	if (ctrl & PAM_TAC_DEBUG)
-		syslog(LOG_DEBUG, "%s: user [%s] successfully authorized", __FUNCTION__,
-			   user);
+    if (ctrl & PAM_TAC_DEBUG)
+        syslog(LOG_DEBUG, "%s: user [%s] successfully authorized", __FUNCTION__,
+               user);
 
-	status = PAM_SUCCESS;
+    status = PAM_SUCCESS;
 
-	attr = arep.attr;
-	while (attr != NULL)
-	{
-		size_t len = strcspn(attr->attr, "=*");
-		if (len < attr->attr_len)
-		{
-			char avpair[attr->attr_len + 1];
-			memcpy(avpair, attr->attr, attr->attr_len + 1); /* Also copy terminating NUL */
+    const void *element;
+    gl_list_iterator_t attributes_iterator = gl_list_iterator(arep.attr);
+    while (gl_list_iterator_next(&attributes_iterator, &element, NULL)) {
+        size_t attribute_len = strlen((char *) element);
+        size_t attribute_name_len = strcspn((char *) element, "=*");
+        if (attribute_name_len < attribute_len) {
+            char avpair[attribute_len + 1];
+            xstrncpy(avpair, element, attribute_len); /* Also copy terminating NUL */
 
-			if (ctrl & PAM_TAC_DEBUG)
-				syslog(LOG_DEBUG, "%s: returned attribute `%s' from server",
-					   __FUNCTION__, avpair);
+            if (ctrl & PAM_TAC_DEBUG)
+                syslog(LOG_DEBUG, "%s: returned attribute `%s' from server",
+                       __FUNCTION__, avpair);
 
-			avpair[len] = '='; // replace '*' by '='
-			size_t i;
-			for (i = 0; i < len; i++)
-			{
-				avpair[i] = toupper(avpair[i]);
-				if (avpair[i] == '-')
-					avpair[i] = '_';
-			}
+            avpair[attribute_name_len] = '='; // replace '*' by '='
+            size_t i;
+            for (i = 0; i < attribute_name_len; i++) {
+                avpair[i] = toupper((unsigned char) avpair[i]);
+                if (avpair[i] == '-')
+                    avpair[i] = '_';
+            }
 
-			if (ctrl & PAM_TAC_DEBUG)
-				syslog(LOG_DEBUG, "%s: setting PAM environment `%s'",
+            if (ctrl & PAM_TAC_DEBUG)
+                syslog(LOG_DEBUG, "%s: setting PAM environment `%s'",
 					   __FUNCTION__, avpair);
 
 			/* make returned attributes available for other PAM modules via PAM environment */
 			if (pam_putenv(pamh, avpair) != PAM_SUCCESS)
 				syslog(LOG_WARNING, "%s: unable to set PAM environment",
-					   __FUNCTION__);
-		}
-		else
-		{
-			syslog(LOG_WARNING, "%s: invalid attribute `%s', no separator",
-				   __FUNCTION__, attr->attr);
-		}
-		attr = attr->next;
-	}
+                       __FUNCTION__);
+        } else {
+            syslog(LOG_WARNING, "%s: invalid attribute `%s', no separator",
+                   __FUNCTION__, (char *) element);
+        }
+    }
 
-	/* free returned attributes */
-	if (arep.attr != NULL)
-		tac_free_attrib(&arep.attr);
+    /* free returned attributes */
+    gl_list_iterator_free(&attributes_iterator);
+    tac_free_attrib(arep.attr);
 
-	if (arep.msg != NULL)
-		free(arep.msg);
+    if (arep.msg != NULL)
+        free(arep.msg);
 
-	close(tac_fd);
+    close(tac_fd);
 
-	return status;
+    return status;
 } /* pam_sm_acct_mgmt */
 
 /* sends START accounting request to the remote TACACS+ server
@@ -795,26 +774,6 @@ PAM_EXTERN
 int pam_sm_open_session(pam_handle_t *pamh, int UNUSED(flags), int argc,
 						const char **argv)
 {
-
-/* Task ID has no need to be cryptographically strong so we don't
- * check for failures of the RAND functions. If we fail to get an ID we
- * fallback to using our PID (in _pam_send_account).
- */
-#if defined(HAVE_OPENSSL_RAND_H) && defined(HAVE_LIBCRYPTO)
-#if defined(HAVE_RAND_BYTES)
-	RAND_bytes((unsigned char *)&task_id, sizeof(task_id));
-#else
-	RAND_pseudo_bytes((unsigned char *)&task_id, sizeof(task_id));
-#endif
-#else
-	task_id = (short int)magic();
-#endif
-
-	if (task_id == 0)
-		syslog(LOG_INFO, "%s: failed to generate random task ID, "
-						 "falling back to PID",
-			   __FUNCTION__);
-
 	return _pam_account(pamh, argc, argv, TAC_PLUS_ACCT_FLAG_START, NULL);
 } /* pam_sm_open_session */
 
@@ -1150,13 +1109,8 @@ finish:
 
 	if (pass != NULL)
 	{
-#ifdef HAVE_MEMSET_S
-		memset_s(pass, strlen(pass), 0, strlen(pass));
-#elif HAVE_EXPLICIT_BZERO
+		// sanitize password from memory
 		explicit_bzero(pass, strlen(pass));
-#else
-		memset(pass, 0, strlen(pass));
-#endif
 		free(pass);
 		pass = NULL;
 	}

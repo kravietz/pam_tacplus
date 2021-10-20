@@ -10,16 +10,17 @@ packages:
 - openssl-devel
 - clang
 - clang-analyzer
+- libasan
+- libubsan
+- gnulib
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
-- gcc: |
+- gnulib: |
         cd pam-tacplus
-        autoreconf -i
+        gnulib-tool --libtool  --update
+        autoreconf -f -i -v
+- build-cc: |
+        cd pam-tacplus
         ./configure
         make clean all
-- clang-analyzer: |
-        cd pam-tacplus
-        autoreconf -i
-        scan-build ./configure
-        scan-build --keep-cc -v make clean all

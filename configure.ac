@@ -10,38 +10,47 @@ dnl You need autoconf 2.59 or better!
 dnl
 dnl ---------------------------------------------------------------------------
 
-AC_PREREQ(2.59)
+AC_PREREQ(2.64)
 AC_COPYRIGHT([
 See the included file: COPYING for copyright information.
 ])
-AC_INIT(pam_tacplus, 1.6.1, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
+AC_INIT(pam_tacplus, 1.7.0, [jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
 
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([pam_tacplus.c])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([config])
-dnl Checks and sets _GNU_SOURCE
 AC_USE_SYSTEM_EXTENSIONS
 
 dnl --------------------------------------------------------------------
 dnl Checks for programs.
 AC_PROG_CC
+gl_EARLY
+AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
+AC_C_RESTRICT
 LT_INIT([disable-static])
-AM_PROG_CC_C_O
+
+dnl Gnulib
+gl_INIT
+gl_MD5
+gl_FUNC_EXPLICIT_BZERO
+if test $HAVE_EXPLICIT_BZERO = 0; then
+  AC_LIBOBJ([explicit_bzero])
+  gl_PREREQ_EXPLICIT_BZERO
+fi
+gl_STRING_MODULE_INDICATOR([explicit_bzero])
+gl_XALLOC
+gl_MODULE_INDICATOR([xalloc])
 
 dnl --------------------------------------------------------------------
 dnl Checks for libraries.
+
 AC_CHECK_LIB(pam, pam_start)
 AC_CHECK_LIB(tac, tac_connect)
-AC_CHECK_LIB(crypto, MD5_Init)
-AC_CHECK_LIB(crypto, RAND_pseudo_bytes,
-            [AC_DEFINE([HAVE_RAND_PSEUDO_BYTES], [1], [Define to 1 if you have the `RAND_pseudo_bytes' function.])])
-AC_CHECK_LIB(crypto, RAND_bytes,
-             [AC_DEFINE([HAVE_RAND_BYTES], [1], [Define to 1 if you have the `RAND_bytes' function.])])
 AC_CHECK_LIB(c, pututxline,
 	     [AC_DEFINE([HAVE_PUTUTXLINE], [1], [Define to 1 if you have the `pututxline' function.])],
 	     [AC_CHECK_LIB(util, logwtmp)])
@@ -57,7 +66,6 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h limits.h])
 AC_CHECK_HEADERS([syslog.h unistd.h openssl/md5.h openssl/rand.h sys/random.h bsd/string.h])
 AC_CHECK_HEADER(security/pam_appl.h, [], [AC_MSG_ERROR([PAM libraries missing. Install with "yum install pam-devel" or "apt-get install libpam-dev".])] )
-AM_CONDITIONAL(MY_MD5, [test "$ac_cv_header_openssl_md5_h" = "no" ])
 AM_CONDITIONAL(TACC, [true])
 
 dnl --------------------------------------------------------------------
@@ -148,7 +156,5 @@ AM_SUBST_NOTMAKE(rt_debug_defines)
 
 dnl --------------------------------------------------------------------
 dnl Generate made files
-AC_CONFIG_FILES([Makefile
-		 libtac.pc
-                 pam_tacplus.spec])
+AC_CONFIG_FILES([Makefile lib/Makefile libtac.pc pam_tacplus.spec])
 AC_OUTPUT

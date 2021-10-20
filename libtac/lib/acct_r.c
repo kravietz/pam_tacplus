@@ -19,9 +19,11 @@
  * See `CHANGES' file for revision history.
  */
 
-#include "xalloc.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "libtac.h"
-#include "messages.h"
 
 /*
  * return value:
@@ -117,7 +119,7 @@ int tac_acct_read_timeout(int fd, struct areply *re, unsigned long timeout)
     }
 
     /* decrypt the body */
-    _tac_crypt((unsigned char *)tb, &th);
+    _tac_obfuscate((unsigned char *) tb, &th);
 
     /* Convert network byte order to host byte order */
     tb->msg_len = ntohs(tb->msg_len);
