@@ -26,11 +26,9 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
-#include <fcntl.h>
 #include "gl_array_list.h"
 #include "gl_list.h"
 #include "gl_xlist.h"
-#include "xalloc.h"
 
 #if defined(HAVE_PUTUTXLINE)
 #include <utmpx.h>
