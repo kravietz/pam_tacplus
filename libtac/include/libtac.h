@@ -63,6 +63,9 @@ extern "C"
 #include "md5.h"
 #include "xalloc.h"
 
+// TACACS+ types and constants
+#include "tacplus.h"
+
 #if defined(__clang__)
 #define __CLANG_PREREQ(maj, min) ((__clang_major__ > (maj)) || (__clang_major__ == (maj) && __clang_minor__ >= (min)))
 #else
