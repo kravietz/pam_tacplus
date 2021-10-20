@@ -39,7 +39,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "gl_xlist.h"
+#include "libtac.h"
 
 #include "pam_tacplus.h"
 #include "support.h"
@@ -84,24 +84,23 @@ static void set_active_server(const tacplus_server_t *tac_svr)
 
 /* Helper functions */
 int _pam_send_account(int tac_fd, int type, const char *user, char *tty,
-					  char *r_addr, char *cmd)
-{
+					  char *r_addr, char *cmd) {
 
-	char buf[64];
-	int retval;
-	time_t t;
+    char buf[64];
+    int retval;
+    time_t t;
     struct tm tm;
     gl_list_t attr;
 
-	t = time(NULL);
-	gmtime_r(&t, &tm);
-	strftime(buf, sizeof(buf), "%s", &tm);
+    attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
 
-	if (type == TAC_PLUS_ACCT_FLAG_START)
-	{
+    t = time(NULL);
+    gmtime_r(&t, &tm);
+    strftime(buf, sizeof(buf), "%s", &tm);
+
+    if (type == TAC_PLUS_ACCT_FLAG_START) {
         tac_add_attrib(attr, "start_time", buf);
-	}
-	else if (type == TAC_PLUS_ACCT_FLAG_STOP)
+    } else if (type == TAC_PLUS_ACCT_FLAG_STOP)
 	{
         tac_add_attrib(attr, "stop_time", buf);
 	}
@@ -602,26 +601,27 @@ int pam_sm_setcred(pam_handle_t *UNUSED(pamh), int UNUSED(flags), int argc, cons
  */
 PAM_EXTERN
 int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
-					 const char **argv)
-{
+					 const char **argv) {
 
-	int retval, ctrl, status = PAM_AUTH_ERR;
-	char *user;
-	char *tty;
-	char *r_addr;
-	struct areply arep;
+    int retval, ctrl, status = PAM_AUTH_ERR;
+    char *user;
+    char *tty;
+    char *r_addr;
+    struct areply arep;
     int tac_fd;
     gl_list_t attr;
 
-	user = tty = r_addr = NULL;
-	memset(&arep, 0, sizeof(arep));
+    attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
 
-	/* this also obtains service name for authorization
-	 this should be normally performed by pam_get_item(PAM_SERVICE)
-	 but since PAM service names are incompatible TACACS+
-	 we have to pass it via command line argument until a better
-	 solution is found ;) */
-	ctrl = _pam_parse(argc, argv);
+    user = tty = r_addr = NULL;
+    memset(&arep, 0, sizeof(arep));
+
+    /* this also obtains service name for authorization
+     this should be normally performed by pam_get_item(PAM_SERVICE)
+     but since PAM service names are incompatible TACACS+
+     we have to pass it via command line argument until a better
+     solution is found ;) */
+    ctrl = _pam_parse(argc, argv);
 
 	if (ctrl & PAM_TAC_DEBUG)
 		syslog(LOG_DEBUG, "%s: called (pam_tacplus v%u.%u.%u)", __FUNCTION__,

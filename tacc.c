@@ -26,10 +26,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
-#include "gl_array_list.h"
-#include "gl_list.h"
-#include "gl_xlist.h"
-
 #if defined(HAVE_PUTUTXLINE)
 #include <utmpx.h>
 #elif defined(HAVE_LOGWTMP)

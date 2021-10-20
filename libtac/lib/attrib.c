@@ -26,9 +26,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "gl_list.h"
-#include "gl_xlist.h"
-
 #include "libtac.h"
 
 static int _tac_attrib_checks(char *name, char separator, char *value, size_t total_len, int truncate)

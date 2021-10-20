@@ -25,9 +25,6 @@
 #endif
 
 #include <fcntl.h>
-#include <stdio.h>
-#include "gl_list.h"
-#include "gl_xlist.h"
 
 #include "libtac.h"
 

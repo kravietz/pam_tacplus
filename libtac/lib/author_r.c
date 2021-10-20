@@ -19,13 +19,10 @@
  * See `CHANGES' file for revision history.
  */
 #ifdef HAVE_CONFIG_H
-
 #include "config.h"
-
 #endif
 
-#include "gl_list.h"
-#include "gl_xlist.h"
+
 #include "libtac.h"
 
 #include <string.h>
