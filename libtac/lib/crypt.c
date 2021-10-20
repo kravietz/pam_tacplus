@@ -78,30 +78,30 @@ static void _tac_md5_pad(const HDR *hdr,
    pad. */
 void _tac_crypt(unsigned char *buf, const HDR *th)
 {
-    unsigned i, j, length = ntohl(th->datalength);
+    unsigned int i = 0;
+    unsigned int j = 0;
+    unsigned int length = ntohl(th->datalength);
+    unsigned char digest[MD5_DIGEST_SIZE];
 
-    /* null operation if no encryption requested */
-    if ((tac_secret != NULL) && (th->encryption & TAC_PLUS_UNENCRYPTED_FLAG) != TAC_PLUS_UNENCRYPTED_FLAG)
+    if ((tac_secret == NULL) || (th->encryption & TAC_PLUS_UNENCRYPTED_FLAG) == TAC_PLUS_UNENCRYPTED_FLAG)
     {
-        unsigned char digest[MD5_DIGEST_SIZE];
+        TACSYSLOG(LOG_WARNING, "%s: no-op, using no TACACS+ obfuscation", __FUNCTION__);
+        return;
+    }
 
-        for (i = 0; i < length; i++)
-        {
-            j = i % MD5_DIGEST_SIZE;
+    for (i = 0; i < length; i++)
+    {
+        j = i % MD5_DIGEST_SIZE;
 
-            /* At the beginning of every block (16 bytes, i.e. the size
+        /* At the beginning of every block (16 bytes, i.e. the size
              * of an MD5 digest), generate a new pad to XOR against.
              * For the 2nd and all successive blocks, we prime it with
              * the previous digest.
              */
-            if (j == 0)
-                _tac_md5_pad(th, digest, ((i > 0) ? digest : NULL));
+        if (j == 0)
+            _tac_md5_pad(th, digest, ((i > 0) ? digest : NULL));
 
-            buf[i] ^= digest[j];
-        }
+        buf[i] ^= digest[j];
     }
-    else
-    {
-        TACSYSLOG(LOG_WARNING, "%s: using no TACACS+ encryption", __FUNCTION__);
-    }
+
 } /* _tac_crypt */
