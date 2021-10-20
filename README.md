@@ -69,34 +69,68 @@ in its configuration.
 ### Basic installation:
 The module is available on most Linux distibutions:
 ```
-# apt install libpam-tacplus
+$ sudo apt install libpam-tacplus
 ```
-To compile from source, the code uses standard GNU `autotools`:
+To compile from source, the code uses standard GNU `autotools` and `gnulib`:
 ```
-$ sudo apt install libpam-tacplus autoconf build-essential libtool automake libpam-dev libssl-dev
-$ autoreconf -i
-$ ./configure && make && sudo make install
+$ sudo apt install libpam-tacplus autoconf build-essential libtool automake libpam-dev libssl-dev gnulib
+$ gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
+                  fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+                  explicit_bzero xalloc
+$ autoreconf -f -v -i
+$ ./configure
+$ make
+$ sudo make install
 ```
 You can use `./configure --libdir=/lib` option to ensure `pam_tacplus.so`
  is installed into `/lib/security` along with rather than in `/usr/local`.
  In such case you need to adjust the below lines in `/etc/pam.d` file accordingly.
 
+If you get errors like the one below during `./configure`, you most likely have an outdated `gnulib`:
+```
+error: GL_GENERATE_ALLOCA_H does not appear in AM_CONDITIONAL
+```
+This is fixed by installing the latest `gnulib`:
+```
+$ git clone https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
+$ $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
+                  fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+                  explicit_bzero xalloc
+$ ./configure
+...                  
+```
+
 ### Quick start
 ### TACACS+ server
+
 To do anything with TACACS+ protocol we need a TACACS+ server. Here's where fun begins
 as of 2021. There are two TACACS+ servers currently available - they have the same name and temptingly similar
 but different configuration syntax:
 
-* pro-bono-publico [tac_plus](https://www.pro-bono-publico.de/projects/tac_plus.html), available in FreeBSD [net/tacacs](https://www.freshports.org/net/tacacs/)
-* shrubbery [tac_plus](http://www.shrubbery.net/tac_plus/), available as [tacacs+](https://launchpad.net/ubuntu/+source/tacacs+)
+* pro-bono-publico [tac_plus](https://www.pro-bono-publico.de/projects/tac_plus.html), 
+  available in FreeBSD [net/tacacs](https://www.freshports.org/net/tacacs/)
+* shrubbery [tac_plus](http://www.shrubbery.net/tac_plus/),
+  available on Debian as [tacacs+](https://launchpad.net/ubuntu/+source/tacacs+)
 
 Unfortunately, as of Ubuntu 20.04 the [tacacs+](https://launchpad.net/ubuntu/+source/tacacs+)
 package is no longer available. Unless on Ubuntu 18.04 or FreeBSD, you'll need to install from source. 
 
-We are going to need:
-
-* the open-source `tac_plus` TACACS+ server
-* PAM testing utility [pamtester](http://pamtester.sourceforge.net/)
+#### FreeBSD
+```
+$ sudo pkg install net/tacacs
+```
+#### Ubuntu 18.04 or older
+```shell
+$ sudo apt install tacacs+
+```
+#### From source
+```shell
+$ git clone https://github.com/facebook/tac_plus.git
+$ cd tac_plus
+$ ./configure
+$ make
+$ sudo make install
+```
 
 ### pamtester
 I recommend PAM testing utility [pamtester](http://pamtester.sourceforge.net/):
