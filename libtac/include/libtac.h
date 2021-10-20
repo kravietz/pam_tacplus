@@ -165,6 +165,19 @@ struct areply {
 #define LIBTAC_STATUS_ATTRIB_TOO_LONG (-10)
 #define LIBTAC_STATUS_ATTRIB_TOO_MANY (-11)
 
+/*
+ * Algorithm
+
+      The Algorithm field is one octet and indicates the authentication
+      method to be used.  Up-to-date values are specified in the most
+      recent "Assigned Numbers" [2].  One value is required to be
+      implemented:
+
+         5       CHAP with MD5 [3]
+    https://datatracker.ietf.org/doc/html/rfc1994#section-3
+ */
+#define TACPLUS_ALGORITHM_CHAP_MD5 5
+
 /* Runtime flags */
 
 /* header.c */
@@ -242,8 +255,8 @@ int tac_read_wait(int, int, int, int *);
 uint32_t _get_session_id(void);
 
 void digest_chap(unsigned char *digest, unsigned char id,
-                 const char *pass, unsigned pass_len,
-                 const char *chal, unsigned chal_len);
+                 const char *pass, size_t pass_len,
+                 unsigned char *challenge, size_t challenge_len);
 
 #ifdef __cplusplus
 }
