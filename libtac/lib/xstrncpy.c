@@ -20,14 +20,20 @@
  * See `CHANGES' file for revision history.
  */
 #ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
-#include "xstrncpy.h"
+#include "config.h"
+
+#endif
 
 #ifdef HAVE_BSD_STRING_H
+
 #include <bsd/string.h>
+
 #endif
+
+#include <stdlib.h>
+
+#include "libtac.h"
 
 /*
  safe string copy that aborts when destination buffer is too small

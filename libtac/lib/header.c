@@ -28,7 +28,6 @@
 #include <unistd.h>
 
 #include "libtac.h"
-#include "xstrncpy.h"
 
 /* Miscellaneous variables that are global, because we need
  * store their values between different functions and connections.

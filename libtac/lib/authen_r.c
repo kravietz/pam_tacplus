@@ -22,7 +22,6 @@
 #include "config.h"
 #endif
 
-#include "xstrncpy.h"
 #include "libtac.h"
 #include "messages.h"
 
