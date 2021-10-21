@@ -217,7 +217,7 @@ int main(int argc, char **argv)
                 break;
             case 'L':
                 // tac_login is a global variable initialized in libtac
-                xstrncpy(tac_login, optarg, sizeof(tac_login));
+                xstrncpy(tac_login, optarg, sizeof(tac_login) - 1);
                 break;
             case 'p':
                 pass = optarg;
@@ -445,12 +445,12 @@ int main(int argc, char **argv)
         memset(&utmpx, 0, sizeof(utmpx));
         utmpx.ut_type = USER_PROCESS;
         utmpx.ut_pid = getpid();
-        strlcpy(utmpx.ut_line, tty, sizeof(utmpx.ut_line));
-        strlcpy(utmpx.ut_id, tty + strlen("tty"), sizeof(utmpx.ut_id));
-        strlcpy(utmpx.ut_host, "dialup", sizeof(utmpx.ut_host));
+        xstrncpy(utmpx.ut_line, tty, sizeof(utmpx.ut_line) - 1);
+        xstrncpy(utmpx.ut_id, tty + strlen("tty"), sizeof(utmpx.ut_id) - 1);
+        xstrncpy(utmpx.ut_host, "dialup", sizeof(utmpx.ut_host) - 1);
         utmpx.ut_tv.tv_sec = tv.tv_sec;
         utmpx.ut_tv.tv_usec = tv.tv_usec;
-        strlcpy(utmpx.ut_user, g_user, sizeof(utmpx.ut_user));
+        xstrncpy(utmpx.ut_user, g_user, sizeof(utmpx.ut_user) - 1);
         /* ut_addr unused ... */
         setutxent();
         pututxline(&utmpx);
