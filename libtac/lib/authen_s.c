@@ -66,15 +66,16 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
     uint8_t port_len;
     uint8_t r_addr_len;
     uint8_t pass_len;
-    int bodylength;
+    uint32_t bodylength;
     ssize_t w;
-    int pkt_len = 0;
+    size_t pkt_len = 0;
     int ret = 0;
+    uint8_t *pkt = NULL;
 
     // authentication token, which will be plaintext password for PAP or challenge for CHAP
     char *token = NULL;
     uint8_t token_len;
-    unsigned char *pkt = NULL;
+
 
     // get pre-filled header template
     th = _tac_req_header(TAC_PLUS_AUTHEN, false);
@@ -115,6 +116,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
         memcpy(token + sizeof(id) + sizeof(challenge), digest, sizeof(digest));
 
     } else {
+        // for PAP, just copy passed credentials
         token = xstrdup(pass);
         token_len = strlen(pass);
     }
@@ -147,14 +149,13 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
     tb.r_addr_len = r_addr_len; /* may be e.g Caller-ID in future */
     tb.data_len = token_len;
 
-    /* fill body length in header */
+    /* body length can be now extrapolated and copied into the header */
     bodylength = sizeof(tb) + user_len + port_len + r_addr_len + token_len;
-
     th->datalength = htonl(bodylength);
 
     /* we can now write the header */
     w = write(fd, th, TAC_PLUS_HDR_SIZE);
-    if (w < 0 || w < TAC_PLUS_HDR_SIZE) {
+    if (w < TAC_PLUS_HDR_SIZE) {
         TACSYSLOG(
                 LOG_ERR, "%s: short write on header, wrote %ld of %d: %m", __FUNCTION__, w, TAC_PLUS_HDR_SIZE);
         free(token);
@@ -164,7 +165,7 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
     }
 
     /* build the packet */
-    pkt = (unsigned char *) xcalloc(1, bodylength + 10);
+    pkt = (unsigned char *) xcalloc(1, bodylength);
 
     memcpy(pkt + pkt_len, &tb, sizeof(tb)); /* packet body beginning */
     pkt_len += sizeof(tb);
@@ -176,31 +177,21 @@ int tac_authen_send(int fd, const char *user, const char *pass, const char *tty,
     pkt_len += r_addr_len;
 
     memcpy(pkt + pkt_len, token, token_len); /* password */
+    free(token);
     pkt_len += token_len;
-
-    /* pkt_len == bodylength ? */
-    if (pkt_len != bodylength) {
-        TACSYSLOG(
-                LOG_ERR, "%s: bodylength %d != pkt_len %d", __FUNCTION__, bodylength, pkt_len);
-        free(token);
-        free(pkt);
-        free(th);
-        return LIBTAC_STATUS_ASSEMBLY_ERR;
-    }
 
     /* encrypt the body */
     _tac_obfuscate(pkt, th);
+    free(th);
 
     w = write(fd, pkt, pkt_len);
-    if (w < 0 || w < pkt_len) {
+    free(pkt);
+    if (w < (ssize_t) pkt_len) {
         TACSYSLOG(
-                LOG_ERR, "%s: short write on body, wrote %ld of %d: %m", __FUNCTION__, w, pkt_len);
+                LOG_ERR, "%s: short write on body, wrote %ld of %zu: %m", __FUNCTION__, w, pkt_len);
         ret = LIBTAC_STATUS_WRITE_ERR;
     }
 
-    free(token);
-    free(pkt);
-    free(th);
     TACDEBUG(LOG_DEBUG, "%s: exit status=%d", __FUNCTION__, ret);
     return ret;
 } /* tac_authen_send */

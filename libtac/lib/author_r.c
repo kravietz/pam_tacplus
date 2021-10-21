@@ -52,11 +52,10 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 	ssize_t packet_read;
 	unsigned char *pktp = NULL;
 	char *msg = NULL;
-	int timeleft = 0;
+    time_t timeleft = 0;
 	re->msg = NULL;
 	unsigned int r = 0;
 
-	memset(re, 0, sizeof(struct areply));
 	if (tac_readtimeout_enable && tac_read_wait(fd, timeout * 1000, TAC_PLUS_HDR_SIZE,
 												&timeleft) < 0)
 	{

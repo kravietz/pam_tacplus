@@ -308,58 +308,44 @@ int _pam_parse(int argc, const char **argv)
         {
             ctrl |= PAM_TAC_USE_FIRST_PASS;
         }
-        else if (!strcmp(*argv, "try_first_pass"))
-        {
+        else if (!strcmp(*argv, "try_first_pass")) {
             ctrl |= PAM_TAC_TRY_FIRST_PASS;
-        }
-        else if (!strncmp(*argv, "service=", 8))
-        { /* author & acct */
-            xstrncpy(tac_service, *argv + 8, sizeof(tac_service));
-        }
-        else if (!strncmp(*argv, "protocol=", 9))
-        { /* author & acct */
-            xstrncpy(tac_protocol, *argv + 9, sizeof(tac_protocol));
-        }
-        else if (!strncmp(*argv, "prompt=", 7))
-        { /* authentication */
-            xstrncpy(tac_prompt, *argv + 7, sizeof(tac_prompt));
+        } else if (!strncmp(*argv, "service=", strlen("service="))) { /* author & acct */
+            xstrncpy(tac_service, *argv + strlen("service="), sizeof(tac_service) - 1);
+        } else if (!strncmp(*argv, "protocol=", strlen("protocol="))) { /* author & acct */
+            xstrncpy(tac_protocol, *argv + strlen("protocol="), sizeof(tac_protocol) - 1);
+        } else if (!strncmp(*argv, "prompt=", strlen("prompt="))) { /* authentication */
+            xstrncpy(tac_prompt, *argv + strlen("prompt="), sizeof(tac_prompt) - 1);
             /* Replace _ with space */
             unsigned long chr;
-            for (chr = 0; chr < strlen(tac_prompt); chr++)
-            {
-                if (tac_prompt[chr] == '_')
-                {
+            for (chr = 0; chr < strlen(tac_prompt); chr++) {
+                if (tac_prompt[chr] == '_') {
                     tac_prompt[chr] = ' ';
                 }
             }
-        }
-        else if (!strncmp(*argv, "login=", 6))
-        {
-            xstrncpy(tac_login, *argv + 6, sizeof(tac_login));
-        }
-        else if (!strcmp(*argv, "acct_all"))
-        {
+        } else if (!strncmp(*argv, "login=", strlen("login="))) {
+            xstrncpy(tac_login, *argv + strlen("login="), sizeof(tac_login) - 1);
+        } else if (!strcmp(*argv, "acct_all")) {
             ctrl |= PAM_TAC_ACCT;
-        }
-        else if (!strncmp(*argv, "server=", 7))
-        { /* authen & acct */
-            if (tac_srv_no < TAC_PLUS_MAXSERVERS)
-            {
+        } else if (!strncmp(*argv, "server=", strlen("server="))) { /* authen & acct */
+            if (tac_srv_no < TAC_PLUS_MAXSERVERS) {
                 struct addrinfo hints, *servers, *server;
                 int rv;
-                char *close_bracket, *server_name, *port, server_buf[256];
+                char *close_bracket;
+                char *server_name;
+                char *port;
+                char server_buf[256];
 
                 memset(&hints, 0, sizeof hints);
                 memset(&server_buf, 0, sizeof(server_buf));
                 hints.ai_family = AF_UNSPEC; /* use IPv4 or IPv6, whichever */
                 hints.ai_socktype = SOCK_STREAM;
 
-                if (strlen(*argv + 7) >= sizeof(server_buf))
-                {
+                if (strlen(*argv + strlen("server=")) >= sizeof(server_buf)) {
                     _pam_log(LOG_ERR, "server address too long, sorry");
                     continue;
                 }
-                strcpy(server_buf, *argv + 7);
+                xstrncpy(server_buf, *argv + strlen("server="), sizeof(server_buf) - 1);
 
                 if (*server_buf == '[' &&
                     (close_bracket = strchr(server_buf, ']')) != NULL)

@@ -66,6 +66,11 @@ extern "C"
 // TACACS+ types and constants
 #include "tacplus.h"
 
+#ifndef HAVE_ABORT
+#define abort exit(EXIT_FAILURE)
+#endif
+
+
 #if defined(__clang__)
 #define __CLANG_PREREQ(maj, min) ((__clang_major__ > (maj)) || (__clang_major__ == (maj) && __clang_minor__ >= (min)))
 #else
@@ -130,9 +135,14 @@ typedef unsigned int u_int32_t;
 #define TAC_PLUS_ATTRIB_MAX_CNT 255
 
 struct areply {
+    /* g_list pointer - needs to be allocated using:
+     *      areply.attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+     * and later freed using:
+     *      tac_free_attrib(arep.attr);
+     */
     gl_list_t attr;
     char *msg;
-    unsigned int status: 8;
+    int status: 8;
     unsigned int flags: 8;
     unsigned int seq_no: 8;
 };
@@ -257,7 +267,7 @@ extern int tac_add_attrib_truncate(gl_list_t attr, char *name, char *value);
 extern int tac_add_attrib_pair_truncate(gl_list_t attr, char *name,
                                         char sep, char *value);
 
-extern int tac_read_wait(int, int, int, int *);
+extern int tac_read_wait(int, int, int, time_t *);
 
 extern uint32_t _get_session_id(void);
 
