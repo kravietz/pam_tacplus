@@ -35,11 +35,6 @@
 
 #include "libtac.h"
 
-#ifndef HAVE_ABORT
-#define abort exit(EXIT_FAILURE)
-#endif
-
-
 char *xstrncpy(char *dst, const char *src, size_t dst_size) {
     if (dst == NULL) {
         TACSYSLOG(LOG_ERR, "%s: dst == NULL, aborting", __FUNCTION__);
