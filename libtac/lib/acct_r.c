@@ -38,20 +38,18 @@ int tac_acct_read_timeout(int fd, struct areply *re, unsigned long timeout)
 {
     HDR th;
     struct acct_reply *tb = NULL;
-    size_t ulen_from_header, len_from_body;
+    size_t ulen_from_header;
+    size_t len_from_body;
     ssize_t spacket_read;
     char *msg = NULL;
-    int timeleft = 0;
+    time_t timeleft = 0;
     re->msg = NULL;
 
-    if (tac_readtimeout_enable &&
-        tac_read_wait(fd, timeout * 1000, TAC_PLUS_HDR_SIZE, &timeleft) < 0)
-    {
+    if (tac_readtimeout_enable && tac_read_wait(fd, (int) timeout * 1000, TAC_PLUS_HDR_SIZE, &timeleft) < 0) {
         TACSYSLOG(LOG_ERR,
                   "%s: reply timeout after %lu secs", __FUNCTION__, timeout);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_READ_TIMEOUT;
-        free(tb);
         return re->status;
     }
 
@@ -63,7 +61,6 @@ int tac_acct_read_timeout(int fd, struct areply *re, unsigned long timeout)
                   spacket_read, TAC_PLUS_HDR_SIZE);
         re->msg = xstrdup(acct_syserr_msg);
         re->status = LIBTAC_STATUS_SHORT_HDR;
-        free(tb);
         return re->status;
     }
 
@@ -73,7 +70,6 @@ int tac_acct_read_timeout(int fd, struct areply *re, unsigned long timeout)
     {
         re->msg = xstrdup(msg);
         re->status = LIBTAC_STATUS_PROTOCOL_ERR;
-        free(tb);
         TACDEBUG(LOG_DEBUG, "%s: exit status=%d, status message \"%s\"",
                  __FUNCTION__, re->status, re->msg != NULL ? re->msg : "");
         return re->status;
@@ -87,15 +83,13 @@ int tac_acct_read_timeout(int fd, struct areply *re, unsigned long timeout)
                   __FUNCTION__,
                   ulen_from_header, TAC_PLUS_MAX_PACKET_SIZE);
         re->status = LIBTAC_STATUS_SHORT_HDR;
-        free(tb);
         return re->status;
     }
     tb = (struct acct_reply *)xcalloc(1, ulen_from_header);
 
     /* read reply packet body */
     if (tac_readtimeout_enable &&
-        tac_read_wait(fd, timeleft, ulen_from_header, NULL) < 0)
-    {
+        tac_read_wait(fd, timeleft, (int) ulen_from_header, NULL) < 0) {
         TACSYSLOG(LOG_ERR,
                   "%s: reply timeout after %lu secs", __FUNCTION__, timeout);
         re->msg = xstrdup(acct_syserr_msg);
