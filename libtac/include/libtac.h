@@ -130,6 +130,11 @@ typedef unsigned int u_int32_t;
 #define TAC_PLUS_ATTRIB_MAX_CNT 255
 
 struct areply {
+    /* g_list pointer - needs to be allocated using:
+     *      areply.attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+     * and later freed using:
+     *      tac_free_attrib(arep.attr);
+     */
     gl_list_t attr;
     char *msg;
     unsigned int status: 8;
