@@ -105,7 +105,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     memset(&attribute_cache, 0, sizeof(attribute_cache));
 
     // get pre-filled header template
-    th = _tac_req_header(TAC_PLUS_AUTHOR, false);
+    th = _tac_req_header(TAC_PLUS_ACCT, false);
 
     /* amend header options */
     th->version = TAC_PLUS_VER_0;
@@ -121,7 +121,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     port_len = (unsigned char) strlen(tty);
     r_addr_len = (unsigned char) strlen(r_addr);
 
-    // unique to accounting packet
+    // unique to accounting packet (START/STOP)
     tb.flags = (unsigned char) type;
 
     // fill-in body template
@@ -145,17 +145,15 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     tb.r_addr_len = r_addr_len;
     // tb.arg_cnt not yet available, filled in later down
 
-    /* allocate packet */
-    pkt = (unsigned char *) xcalloc(1, TAC_ACCT_REQ_FIXED_FIELDS_SIZE);
-    pkt_len = sizeof(tb);
-
-    // iterate through the received list of attributes and build a local cache
+    // iterate through the received list of attributes and copy them into a local cache
     // of attribute pointers and their lengths
     attribute_counter = 0;
     total_attributes_size = 0;
     attributes_iterator = gl_list_iterator(attr);
     while (gl_list_iterator_next(&attributes_iterator, (const void **) &current_attribute, NULL)) {
+        // attribute strings - array of char *
         attribute_cache[attribute_counter] = xstrdup(current_attribute);
+        // attribute lengths - array of size_t
         attribute_len_cache[attribute_counter] = (size_t) strlen(current_attribute);
         total_attributes_size += attribute_len_cache[attribute_counter];
         attribute_counter++;
