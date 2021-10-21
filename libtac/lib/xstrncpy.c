@@ -35,49 +35,28 @@
 
 #include "libtac.h"
 
-/*
- safe string copy that aborts when destination buffer is too small
- */
+#ifndef HAVE_ABORT
+#define abort exit(EXIT_FAILURE)
+#endif
+
+
 char *xstrncpy(char *dst, const char *src, size_t dst_size) {
     if (dst == NULL) {
-        TACSYSLOG(LOG_ERR, "xstrncpy(): dst == NULL");
-#ifdef HAVE_ABORT
+        TACSYSLOG(LOG_ERR, "%s: dst == NULL, aborting", __FUNCTION__);
         abort();
-#else
-        exit(EXIT_FAILURE);
-#endif
     }
-	if (src == NULL) {
-        TACSYSLOG(LOG_ERR, "xstrncpy(): src == NULL");
-#ifdef HAVE_ABORT
+    if (src == NULL) {
+        TACSYSLOG(LOG_ERR, "%s: src == NULL, aborting", __FUNCTION__);
         abort();
-#else
-        exit(EXIT_FAILURE);
-#endif
     }
-	if (!dst_size)
-		return NULL;
+    if (dst_size == 0)
+        return NULL;
 
-	if (strlen(src) >= dst_size) {
-        TACSYSLOG(LOG_ERR, "xstrncpy(): argument too long, aborting");
-#ifdef HAVE_ABORT
+    // ensures one byte for NULL is left in the target buffer
+    if (strlen(src) >= dst_size) {
+        TACSYSLOG(LOG_ERR, "%s: destination buffer too short, aborting", __FUNCTION__);
         abort();
-#else
-        exit(EXIT_FAILURE);
-#endif
     }
-#ifdef HAVE_STRLCPY
-	if(strlcpy(dst, src, dst_size) > dst_size)
-	{
-		TACSYSLOG(LOG_ERR, "xstrcpy(): strlcpy refused to copy string longer than destination, aborting");
-#ifdef HAVE_ABORT
-		abort();
-#else
-		exit(EXIT_FAILURE);
-#endif
-	}
-	return dst;
-#else
-	return strncpy(dst, src, dst_size);
-#endif
+
+    return strncpy(dst, src, dst_size);
 }
