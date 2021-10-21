@@ -591,9 +591,10 @@ void authenticate(const struct addrinfo *tac_server, const char *tac_secret,
     int ret;
     struct areply arep;
 
+    memset(&arep, 0, sizeof(arep));
+
     tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
-    if (tac_fd < 0)
-    {
+    if (tac_fd < 0) {
         if (!quiet)
             printf("Error connecting to TACACS+ server: %m\n");
         exit(EXIT_ERR);
