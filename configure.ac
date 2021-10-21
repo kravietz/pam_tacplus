@@ -14,7 +14,7 @@ AC_PREREQ([2.69])
 AC_COPYRIGHT([
 See the included file: LICENSE for copyright information.
 ])
-AC_INIT([pam_tacplus],[1.7.0],[jeroen@jeroennijhof.nl,pawel.krawczyk@hush.com])
+AC_INIT([pam_tacplus],[1.7.0],[https://github.com/kravietz/pam_tacplus/issues/],[pam_tacplus],[https://github.com/kravietz/pam_tacplus/])
 
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE([foreign])
@@ -110,7 +110,7 @@ if test "x$enable_asan" == "xyes"; then
 	AC_MSG_RESULT(yes)
 	my_save_cflags="$CFLAGS"
 	for flag in -fsanitize=address -fsanitize=undefined -fsanitize=leak \
-	    -fsanitize-address-use-after-scope -fcf-protection=full -ggdb -O0; do
+	    -fsanitize-address-use-after-scope -fcf-protection=full; do
 		CFLAGS=$flag
 		AC_MSG_CHECKING([whether CC supports $flag])
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
@@ -120,16 +120,17 @@ if test "x$enable_asan" == "xyes"; then
 		)
     done
 	LDFLAGS="$LDFLAGS $new_CFLAGS"
-	CFLAGS="$my_save_cflags $new_CFLAGS"
+	dnl Disable optimizations when running ASAN
+	CFLAGS="$my_save_cflags -O0 -ggdb $new_CFLAGS"
 else
 	AC_MSG_RESULT(no)
 fi
 
 dnl --------------------------------------------------------------------
 dnl Checks for library functions.
-AC_FUNC_REALLOC
+dnl AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
-AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp strtol strlcpy abort])
+AC_CHECK_FUNCS([bzero gethostbyname gettimeofday inet_ntoa select socket logwtmp strtol abort])
 
 dnl --------------------------------------------------------------------
 dnl Switch for pam module dir
