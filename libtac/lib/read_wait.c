@@ -25,9 +25,11 @@
 #include <sys/time.h>
 
 #endif
+
 #include <poll.h>
 #include <sys/ioctl.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "libtac.h"
 
@@ -36,16 +38,14 @@
 #include <sys/filio.h>
 #endif
 
-static int delta_msecs(struct timeval *newer, struct timeval *older)
-{
-	long deltasecs, deltausecs;
-	struct timeval now;
+static time_t delta_msecs(struct timeval *newer, struct timeval *older) {
+    long deltasecs, deltausecs;
+    struct timeval now;
 
-	if (newer == NULL)
-	{
-		gettimeofday(&now, NULL);
-		newer = &now;
-	}
+    if (newer == NULL) {
+        gettimeofday(&now, NULL);
+        newer = &now;
+    }
 
 	deltasecs = newer->tv_sec - older->tv_sec;
 
@@ -78,20 +78,19 @@ static int delta_msecs(struct timeval *newer, struct timeval *older)
  *    n - errno
  */
 
-int tac_read_wait(int fd, int timeout, int size, int *time_left)
-{
-	int retval = 0;
-	int remaining;
-	struct pollfd fds[1];
+int tac_read_wait(int fd, int timeout, int size, time_t *time_left) {
+    int retval = 0;
+    time_t remaining;
+    struct pollfd fds[1];
 
-	struct timeval start;
+    struct timeval start;
 
-	gettimeofday(&start, NULL);
+    gettimeofday(&start, NULL);
 
-	/* setup for read timeout.
-	 *   will use poll() as it provides greatest compatibility
-	 *   vs setsockopt(SO_RCVTIMEO) which isn't supported on Solaris
-	 */
+    /* setup for read timeout.
+     *   will use poll() as it provides greatest compatibility
+     *   vs setsockopt(SO_RCVTIMEO) which isn't supported on Solaris
+     */
 
 	remaining = timeout; /* in msecs */
 
@@ -102,8 +101,8 @@ int tac_read_wait(int fd, int timeout, int size, int *time_left)
 	{
 		int rc;
 		int avail = 0;
-		rc = poll(fds, 1, remaining);
-		remaining -= delta_msecs(NULL, &start);
+        rc = poll(fds, 1, (int) remaining);
+        remaining -= delta_msecs(NULL, &start);
 		if (time_left != NULL)
 		{
 			*time_left = remaining > 0 ? remaining : 0;

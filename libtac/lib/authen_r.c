@@ -46,9 +46,7 @@ int tac_authen_read_timeout(int fd, struct areply *re, unsigned long timeout)
 	size_t len_from_body;
 	ssize_t spacket_read;
 	char *msg = NULL;
-	int timeleft = 0;
-
-	memset(re, 0, sizeof(struct areply));
+    time_t timeleft = 0;
 
 	/* read the reply header */
 	if (tac_readtimeout_enable && tac_read_wait(fd, timeout * 1000, TAC_PLUS_HDR_SIZE,

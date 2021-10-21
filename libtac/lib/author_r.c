@@ -52,7 +52,7 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 	ssize_t packet_read;
 	unsigned char *pktp = NULL;
 	char *msg = NULL;
-	int timeleft = 0;
+    time_t timeleft = 0;
 	re->msg = NULL;
 	unsigned int r = 0;
 
