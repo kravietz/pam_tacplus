@@ -109,7 +109,8 @@ AC_MSG_CHECKING(whether to use gcc sanitizer)
 if test "x$enable_asan" == "xyes"; then
 	AC_MSG_RESULT(yes)
 	my_save_cflags="$CFLAGS"
-	for flag in -fsanitize=address -fsanitize=undefined -fsanitize=leak -fsanitize-address-use-after-scope -fcf-protection=full -ggdb; do
+	for flag in -fsanitize=address -fsanitize=undefined -fsanitize=leak \
+	    -fsanitize-address-use-after-scope -fcf-protection=full -ggdb -O0; do
 		CFLAGS=$flag
 		AC_MSG_CHECKING([whether CC supports $flag])
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],
