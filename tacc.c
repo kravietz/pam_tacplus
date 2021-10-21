@@ -420,7 +420,7 @@ int main(int argc, char **argv)
 
         ret = tac_acct_read(tac_fd, &arep);
         close(tac_fd);
-        if (ret == 0) {
+        if (ret <= 0) {
             if (!quiet)
                 printf("Accounting: START failed: %s\n", arep.msg);
             syslog(LOG_INFO, "TACACS+ accounting start failed: %s", arep.msg);
@@ -545,17 +545,15 @@ int main(int argc, char **argv)
 
         ret = tac_acct_read(tac_fd, &arep);
         close(tac_fd);
-        if (ret == 0) {
+        if (ret <= 0) {
             if (!quiet)
                 printf("Accounting: STOP failed: %s", arep.msg);
             syslog(LOG_INFO, "TACACS+ accounting stop failed: %s\n", arep.msg);
         } else if (!login_mode && !quiet)
             printf("Accounting: STOP OK\n");
 
-
         if (arep.msg != NULL)
             free(arep.msg);
-
 
         tac_free_attrib(arep.attr);
     }
@@ -655,8 +653,7 @@ void showusage(char *progname)
     a = rindex(progname, '/');
     progname = (a == NULL) ? progname : ++a;
 
-    printf("%s -- simple TACACS+ client and login\n", progname);
-    printf("Copyright 1997-2016 by Pawel Krawczyk <pawel.krawczyk@hush.com>\n");
+    printf("%s -- simple TACACS+ client and login (%s)\n", progname, PACKAGE_STRING);
     printf("Usage: %s option [option, ...]\n\n", progname);
     printf(" Action:\n");
     printf("  -T, --authenticate  perform authentication with username and password\n");
@@ -694,7 +691,7 @@ void showversion(char *progname)
     a = rindex(progname, '/');
     progname = (a == NULL) ? progname : ++a;
 
-    printf("%s\n", progname);
+    printf("%s (%s)\n", progname, PACKAGE_STRING);
     exit(EXIT_OK);
 }
 
