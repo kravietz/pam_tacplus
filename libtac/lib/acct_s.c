@@ -88,17 +88,21 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     unsigned char port_len;
     unsigned char r_addr_len;
     int i;
-    int pkt_len;
+    size_t pkt_len = 0;
     ssize_t w;
-    unsigned char *pkt = NULL;
+    uint8_t *pkt = NULL;
     int ret = 0;
+    size_t total_packet_length;
     char *current_attribute;
     gl_list_iterator_t attributes_iterator;
     // all received attributes are cached locally which simplifies operations
     // and is feasible as there's only max 255 of them
     char *attribute_cache[TAC_PLUS_ATTRIB_MAX_CNT];
     // attribute lengths are max 255 bytes and they occupy one byte
-    unsigned char attribute_len_cache[TAC_PLUS_ATTRIB_MAX_CNT];
+    uint8_t attribute_len_cache[TAC_PLUS_ATTRIB_MAX_CNT];
+
+    memset(&attribute_len_cache, 0, sizeof(attribute_len_cache));
+    memset(&attribute_cache, 0, sizeof(attribute_cache));
 
     // get pre-filled header template
     th = _tac_req_header(TAC_PLUS_AUTHOR, false);
@@ -151,7 +155,7 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
     total_attributes_size = 0;
     attributes_iterator = gl_list_iterator(attr);
     while (gl_list_iterator_next(&attributes_iterator, (const void **) &current_attribute, NULL)) {
-        attribute_cache[attribute_counter] = current_attribute;
+        attribute_cache[attribute_counter] = xstrdup(current_attribute);
         attribute_len_cache[attribute_counter] = (size_t) strlen(current_attribute);
         total_attributes_size += attribute_len_cache[attribute_counter];
         attribute_counter++;
@@ -160,12 +164,14 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
 
     tb.arg_cnt = attribute_counter;
 
-    // we can now calculate total packet size
-    pkt = (unsigned char *) xcalloc(1, pkt_len + (attribute_counter * sizeof(unsigned char)) + total_attributes_size);
+    // we can now calculate total packet size, extrapolating length of attributes
+    total_packet_length = (size_t) (sizeof(tb) + user_len + port_len + r_addr_len +
+                                    (attribute_counter * sizeof(uint8_t)) + total_attributes_size);
+    pkt = (unsigned char *) xcalloc(1, total_packet_length);
 
     // copy the fixed fields
+    memcpy(pkt, &tb, sizeof(tb));
     pkt_len = sizeof(tb);
-    memcpy(pkt, &tb, pkt_len);
 
     // copy attribute length fields to the packet buffer
     for (i = 0; i < attribute_counter; i++) {
@@ -173,16 +179,17 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
         pkt_len += sizeof(unsigned char);
     }
     // copy fixed fields to the packet buffer
-    memcpy(pkt + pkt_len, &user, user_len);
+    memcpy(pkt + pkt_len, user, user_len);
     pkt_len += user_len;
-    memcpy(pkt + pkt_len, &tty, port_len);
+    memcpy(pkt + pkt_len, tty, port_len);
     pkt_len += port_len;
-    memcpy(pkt + pkt_len, &r_addr, r_addr_len);
+    memcpy(pkt + pkt_len, r_addr, r_addr_len);
     pkt_len += r_addr_len;
 
     // copy attributes into the packet buffer
     for (i = 0; i < attribute_counter; i++) {
-        memcpy(pkt + pkt_len, &attribute_cache[i], attribute_len_cache[i]);
+        memcpy(pkt + pkt_len, attribute_cache[i], attribute_len_cache[i]);
+        free(attribute_cache[i]);
         pkt_len += attribute_len_cache[i];
     }
 
@@ -205,9 +212,9 @@ int tac_acct_send(int fd, int type, const char *user, char *tty,
 
     // send body to the server
     w = write(fd, pkt, pkt_len);
-    if (w < pkt_len) {
+    if (w < (ssize_t) pkt_len) {
         TACSYSLOG(
-                LOG_ERR, "%s: short write on body, wrote %ld of %d: %m", __FUNCTION__, w, pkt_len);
+                LOG_ERR, "%s: short write on body, wrote %ld of %lu: %m", __FUNCTION__, w, pkt_len);
         ret = LIBTAC_STATUS_WRITE_ERR;
     }
 

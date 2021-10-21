@@ -23,7 +23,6 @@
 #include <getopt.h>
 #include <ctype.h>
 #include <signal.h>
-#include <sys/time.h>
 #include <sys/types.h>
 
 #if defined(HAVE_PUTUTXLINE)
@@ -77,10 +76,6 @@ void timeout_handler(int signum);
 typedef unsigned char flag;
 flag quiet = 0;
 char *g_user = NULL; /* global, because of signal handler */
-
-#if defined(HAVE_PUTUTXLINE)
-struct utmpx utmpx;
-#endif
 
 /* take the length of a string constant without the NUL */
 #define C_STRLEN(str) (sizeof("" str) - 1)
@@ -148,17 +143,19 @@ int main(int argc, char **argv)
     char *protocol = NULL;
     struct addrinfo *tac_server;
     char *tac_server_name = NULL;
-    char *tac_secret = NULL;
     int tac_fd;
     pid_t task_id = 0;
     char buf[40];
     int ret;
+#if defined(HAVE_PUTUTXLINE)
+    struct utmpx utmpx;
+#endif
 #ifndef USE_SYSTEM
     pid_t pid;
 #endif
-    struct areply arep;
 
     task_id = getpid();
+    tac_secret = NULL;
 
     /* global from libtac.h */
     tac_encryption = 1;
@@ -334,31 +331,36 @@ int main(int argc, char **argv)
     if (do_authen)
         authenticate(tac_server, tac_secret, g_user, pass, tty, remote_addr);
 
-    if (do_author)
-    {
+    if (do_author) {
+        struct areply arep;
+        memset(&arep, 0, sizeof(arep));
+        arep.attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+
         /* authorize user */
-        gl_list_t attr;
-        attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
-        tac_add_attrib(attr, "service", service);
-        tac_add_attrib(attr, "protocol", protocol);
+        gl_list_t send_attr;
+
+        send_attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+        tac_add_attrib(send_attr, "service", service);
+        tac_add_attrib(send_attr, "protocol", protocol);
 
         tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
-        if (tac_fd < 0)
-        {
+        if (tac_fd < 0) {
             if (!quiet)
                 printf("Error connecting to TACACS+ server: %m\n");
-            gl_list_free(attr);
+            gl_list_free(send_attr);
             exit(EXIT_ERR);
         }
 
-        tac_author_send(tac_fd, g_user, tty, remote_addr, attr);
+        tac_author_send(tac_fd, g_user, tty, remote_addr, send_attr);
+        tac_free_attrib(send_attr);
 
         tac_author_read(tac_fd, &arep);
-        if (arep.status != AUTHOR_STATUS_PASS_ADD && arep.status != AUTHOR_STATUS_PASS_REPL)
-        {
+        if (arep.status != AUTHOR_STATUS_PASS_ADD && arep.status != AUTHOR_STATUS_PASS_REPL) {
             if (!quiet)
                 printf("Authorization FAILED: %s\n", arep.msg);
-            tac_free_attrib(attr);
+            tac_free_attrib(arep.attr);
+            if (arep.msg != NULL)
+                free(arep.msg);
             exit(EXIT_FAIL);
         }
         else
@@ -366,93 +368,89 @@ int main(int argc, char **argv)
             if (!quiet)
             {
                 printf("Authorization OK: %s\n", arep.msg);
-                dump_attributes(attr);
+                dump_attributes(arep.attr);
             }
         }
 
         if (arep.msg != NULL)
             free(arep.msg);
 
-        /* free request attributes */
-        tac_free_attrib(attr);
-
         /* free response attributes */
-        if (arep.attr != NULL)
-            tac_free_attrib(arep.attr);
+        tac_free_attrib(arep.attr);
     }
 
     /* we no longer need the password in our address space */
-    memset(pass, 0, strlen(pass));
+    explicit_bzero(pass, strlen(pass));
     pass = NULL;
 
-    if (do_account)
-    {
+    if (do_account) {
         /* start accounting */
-        gl_list_t attr;
+        gl_list_t send_attr;
         time_t t;
         struct tm tm;
+        struct areply arep;
 
-        attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+        memset(&arep, 0, sizeof(arep));
+        arep.attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+
+        send_attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
 
         // build timestamp attribute
         t = time(0);
         gmtime_r(&t, &tm);
         strftime(buf, sizeof(buf), "%s", &tm);
-        tac_add_attrib(attr, "start_time", buf);
+        tac_add_attrib(send_attr, "start_time", buf);
 
         sprintf(buf, "%d", task_id);
-        tac_add_attrib(attr, "task_id", buf);
+        tac_add_attrib(send_attr, "task_id", buf);
 
-        tac_add_attrib(attr, "service", service);
-        tac_add_attrib(attr, "protocol", protocol);
+        tac_add_attrib(send_attr, "service", service);
+        tac_add_attrib(send_attr, "protocol", protocol);
 
         tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
-        if (tac_fd < 0)
-        {
+        if (tac_fd < 0) {
             if (!quiet)
                 printf("Error connecting to TACACS+ server: %m\n");
-            tac_free_attrib(attr);
+            tac_free_attrib(send_attr);
             exit(EXIT_ERR);
         }
 
-        tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, g_user, tty, remote_addr,
-                      attr);
+        tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_START, g_user, tty, remote_addr, send_attr);
+        tac_free_attrib(send_attr);
 
         ret = tac_acct_read(tac_fd, &arep);
-        if (ret == 0)
-        {
+        close(tac_fd);
+        if (ret == 0) {
             if (!quiet)
                 printf("Accounting: START failed: %s\n", arep.msg);
             syslog(LOG_INFO, "TACACS+ accounting start failed: %s", arep.msg);
-        }
-        else if (!login_mode && !quiet)
+        } else if (!login_mode && !quiet)
             printf("Accounting: START OK\n");
-
-        close(tac_fd);
 
         if (arep.msg != NULL)
             free(arep.msg);
 
-        tac_free_attrib(attr);
+        tac_free_attrib(arep.attr);
+
     }
 
     /* log in local utmp */
-    if (log_wtmp)
-    {
+    if (log_wtmp) {
 #if defined(HAVE_PUTUTXLINE)
         struct timeval tv;
+
 
         gettimeofday(&tv, NULL);
 
         memset(&utmpx, 0, sizeof(utmpx));
         utmpx.ut_type = USER_PROCESS;
         utmpx.ut_pid = getpid();
-        xstrncpy(utmpx.ut_line, tty, sizeof(utmpx.ut_line));
-        strncpy(utmpx.ut_id, tty + C_STRLEN("tty"), sizeof(utmpx.ut_id) - 1);
-        xstrncpy(utmpx.ut_host, "dialup", sizeof(utmpx.ut_host));
+        strlcpy(utmpx.ut_line, tty, sizeof(utmpx.ut_line));
+        strlcpy(utmpx.ut_id, tty + strlen("tty"), sizeof(utmpx.ut_id));
+        strlcpy(utmpx.ut_host, "dialup", sizeof(utmpx.ut_host));
         utmpx.ut_tv.tv_sec = tv.tv_sec;
         utmpx.ut_tv.tv_usec = tv.tv_usec;
-        xstrncpy(utmpx.ut_user, g_user, sizeof(utmpx.ut_user));
+        strlcpy(utmpx.ut_user, g_user, sizeof(utmpx.ut_user));
         /* ut_addr unused ... */
         setutxent();
         pututxline(&utmpx);
@@ -511,52 +509,55 @@ int main(int argc, char **argv)
 #endif
     }
 
-    if (do_account)
-    {
+    if (do_account) {
         /* stop accounting */
-        gl_list_t attr;
+        gl_list_t send_attr;
         time_t t;
         struct tm tm;
 
-        attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+        struct areply arep;
+
+        memset(&arep, 0, sizeof(arep));
+        arep.attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
+
+        send_attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
 
         // build timestamp attribute
         t = time(0);
         gmtime_r(&t, &tm);
         strftime(buf, sizeof(buf), "%s", &tm);
-        tac_add_attrib(attr, "stop_time", buf);
+        tac_add_attrib(send_attr, "stop_time", buf);
 
         // build task id attribute
         sprintf(buf, "%d", task_id);
-        tac_add_attrib(attr, "task_id", buf);
+        tac_add_attrib(send_attr, "task_id", buf);
 
         tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
-        if (tac_fd < 0)
-        {
+        if (tac_fd < 0) {
             if (!quiet)
                 printf("Error connecting to TACACS+ server: %m\n");
-            tac_free_attrib(attr);
+            tac_free_attrib(send_attr);
             exit(EXIT_ERR);
         }
 
-        tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, g_user, tty, remote_addr,
-                      attr);
+        tac_acct_send(tac_fd, TAC_PLUS_ACCT_FLAG_STOP, g_user, tty, remote_addr, send_attr);
+        tac_free_attrib(send_attr);
+
         ret = tac_acct_read(tac_fd, &arep);
-        if (ret == 0)
-        {
+        close(tac_fd);
+        if (ret == 0) {
             if (!quiet)
                 printf("Accounting: STOP failed: %s", arep.msg);
             syslog(LOG_INFO, "TACACS+ accounting stop failed: %s\n", arep.msg);
-        }
-        else if (!login_mode && !quiet)
+        } else if (!login_mode && !quiet)
             printf("Accounting: STOP OK\n");
 
-        close(tac_fd);
 
         if (arep.msg != NULL)
             free(arep.msg);
 
-        tac_free_attrib(attr);
+
+        tac_free_attrib(arep.attr);
     }
 
     /* logout from utmp */

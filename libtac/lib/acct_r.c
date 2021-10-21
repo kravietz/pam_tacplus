@@ -42,7 +42,6 @@ int tac_acct_read_timeout(int fd, struct areply *re, unsigned long timeout)
     ssize_t spacket_read;
     char *msg = NULL;
     int timeleft = 0;
-    re->attr = NULL; /* unused */
     re->msg = NULL;
 
     if (tac_readtimeout_enable &&
