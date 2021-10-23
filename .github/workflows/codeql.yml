@@ -51,12 +51,8 @@ jobs:
           apt-get: libpam-dev
       - name: Run configure
         run: |
-          if [ ! -d /opt/gnulib ]; then \
-            git clone https://git.savannah.gnu.org/git/gnulib.git /opt/gnulib \
-          fi
-          /opt/gnulib/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
-              fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
-              explicit_bzero xalloc
+          if [ ! -d /opt/gnulib ]; then git clone https://git.savannah.gnu.org/git/gnulib.git /opt/gnulib; fi
+          /opt/gnulib/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
           autoreconf -f -v -i
           ./configure
           make
