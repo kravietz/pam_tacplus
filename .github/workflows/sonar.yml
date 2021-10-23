@@ -26,10 +26,13 @@ jobs:
       - name: Cache
         uses: actions/cache@v2.1.6
         with:
-          # A list of files, directories, and wildcard patterns to cache and restore
           path: /opt/sonar
-          # An explicit key for restoring and saving the cache
           key: sonar
+      - name: Cache
+        uses: actions/cache@v2.1.6
+        with:
+          path: /opt/gnulib
+          key: gnulib
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
@@ -49,11 +52,18 @@ jobs:
           curl -sSLo $HOME/.sonar/build-wrapper-linux-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
           unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
+      - name: Update APT repo
+        run: sudo apt update
+      - name: Install build dependencies
+        uses: mstksg/get-package@v1
+        with:
+          apt-get: libpam-dev
       - name: Run configure
         run: |
-          git clone https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
-          cd pam-tacplus
-          $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
+          if [ ! -d /opt/gnulib ]; then \
+            git clone https://git.savannah.gnu.org/git/gnulib.git /opt/gnulib \
+          fi
+          /opt/gnulib/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
                   fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
                   explicit_bzero xalloc
           autoreconf -f -v -i && ./configure

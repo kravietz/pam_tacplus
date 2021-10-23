@@ -19,11 +19,17 @@ jobs:
         uses: mstksg/get-package@v1
         with:
           apt-get: libpam-dev
+      - name: Cache
+        uses: actions/cache@v2.1.6
+        with:
+          path: /opt/gnulib
+          key: gnulib
       - name: Run configure
         run: |
-          git clone https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
-          cd pam-tacplus
-          $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
+          if [ ! -d /opt/gnulib ]; then \
+            git clone https://git.savannah.gnu.org/git/gnulib.git /opt/gnulib \
+          fi
+          /opt/gnulib/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
                   fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
                   explicit_bzero xalloc
           autoreconf -f -i -v && ./configure

@@ -20,7 +20,7 @@ jobs:
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
 
     steps:
-    - name: Checkout repository
+      - name: Checkout repository
       uses: actions/checkout@v2
       with:
         # We must fetch at least the immediate parents so that if this is
@@ -28,26 +28,38 @@ jobs:
         fetch-depth: 2
 
     # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
-      with:
-        languages: ${{ matrix.language }}
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: ${{ matrix.language }}
 
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    #- name: Autobuild
-    #  uses: github/codeql-action/autobuild@v1
+      # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+      # If this step fails, then you should remove it and run the build manually (see below)
+      #- name: Autobuild
+      #  uses: github/codeql-action/autobuild@v1
 
-    - run: |
-        sudo apt install -y libpam-dev libssl-dev
-        git clone https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
-        cd pam-tacplus
-        $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
-                fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
-                explicit_bzero xalloc
-         autoreconf -f -v -i
-        ./configure
-        make
+      - name: Cache
+        uses: actions/cache@v2.1.6
+        with:
+          path: /opt/gnulib
+          key: gnulib
+      - name: Update APT repo
+        run: sudo apt update
+      - name: Install build dependencies
+        uses: mstksg/get-package@v1
+        with:
+          apt-get: libpam-dev
+      - name: Run configure
+        run: |
+          if [ ! -d /opt/gnulib ]; then \
+            git clone https://git.savannah.gnu.org/git/gnulib.git /opt/gnulib \
+          fi
+          /opt/gnulib/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
+              fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+              explicit_bzero xalloc
+          autoreconf -f -v -i
+          ./configure
+          make
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
