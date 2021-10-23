@@ -14,9 +14,9 @@ sources:
   - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
   - gnulib: |
-      git clone https://git.savannah.gnu.org/git/gnulib.git
+      git clone -q --depth 1 https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
       cd pam-tacplus
-      /opt/gnulib/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
+      $HOME/gnulib/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
       autoreconf -f -v -i
   - build-cc: |
       cd pam-tacplus
