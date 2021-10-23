@@ -3,45 +3,45 @@
 # @formatter:off
 image: freebsd/latest
 packages:
-  - autoconf
-  - libtool
-  - automake
-  - tacacs
-  - expect
-  - pamtester
-  # for scan-build
-  - llvm
-  # -fsanitize=address on FreeBSD is only supported on GCC >= 11
-  - gcc11-devel
+- autoconf
+- libtool
+- automake
+- tacacs
+- expect
+- pamtester
+# for scan-build
+- llvm
+# -fsanitize=address on FreeBSD is only supported on GCC >= 11
+- gcc11-devel
 sources:
-  - https://git.sr.ht/~kravietz/pam-tacplus
+- https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
-  - gnulib: |
-    git clone -q --depth 1 https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
+- gnulib: |
+  git clone -q --depth 1 https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
+  cd pam-tacplus
+  $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
+  autoreconf -f -v -i
+- build-cc: |
     cd pam-tacplus
-    $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
-    autoreconf -f -v -i
-  - build-cc: |
-      cd pam-tacplus
-      ./configure
-      make clean all
-  - setup: |
-      cd pam-tacplus
-      sudo make install
-      sudo ldconfig
-      sudo install -o root test/freebsd/pam.conf /etc/pam.d/test
-      sudo install -o root test/freebsd/tac_plus.conf /usr/local/etc/tac_plus.conf
-      echo 'tac_plus_enable="YES"' | sudo tee -a /etc/rc.conf.local
-      sudo service tac_plus start && sleep 3
-      # not really necessary, users statically defined in pam_tac.conf
-      #echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -
-  - check: |
-      cd pam-tacplus
-      make check
-      #- functional-test-tacc: |
-      #        cd pam-tacplus
-      #        sh -x test/tacc.sh
-      #- functional-test-pam: |
-      #        cd pam-tacplus
-      #        expect test/freebsd/tests.expect
+    ./configure
+    make clean all
+- setup: |
+    cd pam-tacplus
+    sudo make install
+    sudo ldconfig
+    sudo install -o root test/freebsd/pam.conf /etc/pam.d/test
+    sudo install -o root test/freebsd/tac_plus.conf /usr/local/etc/tac_plus.conf
+    echo 'tac_plus_enable="YES"' | sudo tee -a /etc/rc.conf.local
+    sudo service tac_plus start && sleep 3
+    # not really necessary, users statically defined in pam_tac.conf
+    #echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -
+- check: |
+    cd pam-tacplus
+    make check
+    #- functional-test-tacc: |
+    #        cd pam-tacplus
+    #        sh -x test/tacc.sh
+    #- functional-test-pam: |
+    #        cd pam-tacplus
+    #        expect test/freebsd/tests.expect
 
