@@ -15,9 +15,8 @@ AC_COPYRIGHT([
 See the included file: LICENSE for copyright information.
 ])
 AC_INIT([pam_tacplus],[1.7.0],[https://github.com/kravietz/pam_tacplus/issues/],[pam_tacplus],[https://github.com/kravietz/pam_tacplus/])
-
 AC_CONFIG_AUX_DIR(config)
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_CONFIG_SRCDIR([pam_tacplus.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([config])
@@ -31,6 +30,7 @@ AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
+AM_PROG_AR
 AC_C_RESTRICT
 LT_INIT([disable-static])
 

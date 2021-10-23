@@ -18,7 +18,7 @@ packages:
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
-- gnulib: |
+  - gnulib: |
           git clone https://git.savannah.gnu.org/git/gnulib.git
           cd pam-tacplus
           $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
@@ -30,21 +30,24 @@ tasks:
         ./configure
         make clean all
 - setup: |
-        cd pam-tacplus
-        sudo make install
-        sudo ldconfig
-        sudo install -o root test/bionic/pam.conf /etc/pam.d/test
-        sudo install -o root test/bionic/tac_plus.conf /etc/tacacs+/tac_plus.conf
-        sudo service tacacs_plus restart && sleep 3
-        # not really necessary, users statically defined in pam_tac.conf
-        #sudo useradd -m testuser1
-        #echo testuser1:testpass123 | sudo chpasswd -c SHA512
-- functional-test-tacc: |
-        cd pam-tacplus
-        sh -x test/tacc.sh
-- functional-test-pam: |  
-        cd pam-tacplus
-        expect test/bionic/tests.expect
+    cd pam-tacplus
+    sudo make install
+    sudo ldconfig
+    sudo install -o root test/bionic/pam.conf /etc/pam.d/test
+    sudo install -o root test/bionic/tac_plus.conf /etc/tacacs+/tac_plus.conf
+    sudo service tacacs_plus restart && sleep 3
+    # not really necessary, users statically defined in pam_tac.conf
+    #sudo useradd -m testuser1
+    #echo testuser1:testpass123 | sudo chpasswd -c SHA512
+  - check: |
+      cd pam-tacplus
+      make check
+#- functional-test-tacc: |
+#        cd pam-tacplus
+#        sh -x test/tacc.sh
+#- functional-test-pam: |
+#        cd pam-tacplus
+#        expect test/bionic/tests.expect
 # - scan-build-clang: |
 #         cd pam-tacplus
 #         gnulib-tool --import  fcntl crypto/md5 array-list list xlist getrandom realloc

@@ -20,7 +20,13 @@ jobs:
         with:
           apt-get: libpam-dev
       - name: Run configure
-        run: autoreconf -f -i -v && ./configure
+        run: |
+          git clone https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
+          cd pam-tacplus
+          $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
+                  fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+                  explicit_bzero xalloc
+          autoreconf -f -i -v && ./configure
       - name: Coverity Scan
         uses: vapier/coverity-scan-action@v0
         with:

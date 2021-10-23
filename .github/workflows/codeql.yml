@@ -40,6 +40,11 @@ jobs:
 
     - run: |
         sudo apt install -y libpam-dev libssl-dev
+        git clone https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
+        cd pam-tacplus
+        $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
+                fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+                explicit_bzero xalloc
          autoreconf -f -v -i
         ./configure
         make

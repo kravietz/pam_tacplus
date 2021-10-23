@@ -15,7 +15,7 @@ packages:
 sources:
 - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
-- gnulib: |
+  - gnulib: |
     git clone https://git.savannah.gnu.org/git/gnulib.git
     cd pam-tacplus
     $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
@@ -36,10 +36,13 @@ tasks:
         sudo service tac_plus start && sleep 3
         # not really necessary, users statically defined in pam_tac.conf
         #echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -        
-- functional-test-tacc: |
-        cd pam-tacplus
-        sh -x test/tacc.sh
-- functional-test-pam: |  
-        cd pam-tacplus
-        expect test/freebsd/tests.expect      
+- check: |
+    cd pam-tacplus
+    make check
+    #- functional-test-tacc: |
+    #        cd pam-tacplus
+    #        sh -x test/tacc.sh
+    #- functional-test-pam: |
+    #        cd pam-tacplus
+    #        expect test/freebsd/tests.expect
         

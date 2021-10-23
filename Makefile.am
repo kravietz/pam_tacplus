@@ -9,21 +9,16 @@
 ACLOCAL_AMFLAGS = -I config -I m4
 SUBDIRS = lib
 AUTOMAKE_OPTIONS = subdir-objects
-AM_CFLAGS = -Wall -Wextra
+AM_CFLAGS = -Wall -Wextra -Werror
 
-if ENABLE_WERROR
-AM_CFLAGS += -Werror
-endif
-
-if TACC
+#if TACC
 bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
 tacc_LDADD = libtac.la $(LTLIBINTL) $(LIB_CRYPTO)  $(LIB_GETRANDOM)
 tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@ -I $(top_srcdir)/lib
-endif
+#endif
 
 lib_LTLIBRARIES = libtac.la
-
 libtac_la_includedir = $(includedir)/libtac
 libtac_la_include_HEADERS = \
     libtac/include/tacplus.h \
@@ -63,7 +58,7 @@ pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_sr
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 
-EXTRA_DIST = pam_tacplus.spec libtac.pc.in m4/gnulib-cache.m4
+EXTRA_DIST = pam_tacplus.spec libtac.pc.in m4/gnulib-cache.m4 $(TESTS)
 if DOC
 dist_doc_DATA = sample.pam README.md AUTHORS ChangeLog
 endif
@@ -74,3 +69,17 @@ MAINTAINERCLEANFILES = Makefile.in config.h.in configure aclocal.m4 \
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libtac.pc
+
+TEST_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/build-aux/tap-driver.sh
+TESTS = matrix
+check_PROGRAMS = tests/libtac/c-basic
+bin_PROGRAMS += tests/runtests
+
+tests_libtac_c_basic_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la $(top_srcdir)/lib/libgnu.la $(LTLIBINTL) $(LIB_CRYPTO) $(LIB_GETRANDOM)
+tests_libtac_c_basic_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+
+noinst_LIBRARIES = tests/tap/libtap.a
+tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h tests/tap/macros.h
+
+check-local: $(bin_PROGRAMS) $(check_PROGRAMS)
+	cd tests && ./runtests  -s '$(abs_top_srcdir)/tests' -b '$(abs_top_builddir)/tests' -l '$(abs_top_srcdir)/tests/TESTS'
