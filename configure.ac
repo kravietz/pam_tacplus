@@ -63,7 +63,7 @@ esac
 dnl --------------------------------------------------------------------
 dnl Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h limits.h])
-AC_CHECK_HEADERS([syslog.h unistd.h sys/random.h bsd/string.h])
+AC_CHECK_HEADERS([syslog.h unistd.h sys/random.h])
 AC_CHECK_HEADER(security/pam_appl.h, [], [AC_MSG_ERROR([PAM libraries missing. Install with "yum install pam-devel" or "apt-get install libpam-dev".])] )
 AM_CONDITIONAL(TACC, [true])
 
