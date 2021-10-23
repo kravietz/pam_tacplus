@@ -25,30 +25,24 @@ jobs:
           apt-get: libpam-dev
       - name: Cache
         uses: actions/cache@v2.1.6
+        id: cache-sonar
         with:
-          path: /opt/sonar
-          key: sonar
-      - name: Cache
-        uses: actions/cache@v2.1.6
-        with:
-          path: /opt/gnulib
-          key: gnulib
+          path: $HOME/.sonar
+          key: ${{ runner.os }}-sonar
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
           java-version: 11
       - name: Download and set up sonar-scanner
+        if: steps.cache-sonar.outputs.cache-hit != 'true'
         env:
           SONAR_SCANNER_DOWNLOAD_URL: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${{ env.SONAR_SCANNER_VERSION }}-linux.zip
+          BUILD_WRAPPER_DOWNLOAD_URL: ${{ env.SONAR_SERVER_URL }}/static/cpp/build-wrapper-linux-x86.zip
         run: |
           mkdir -p $HOME/.sonar
           curl -sSLo $HOME/.sonar/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }} 
           unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
-      - name: Download and set up build-wrapper
-        env:
-          BUILD_WRAPPER_DOWNLOAD_URL: ${{ env.SONAR_SERVER_URL }}/static/cpp/build-wrapper-linux-x86.zip
-        run: |
           curl -sSLo $HOME/.sonar/build-wrapper-linux-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
           unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
@@ -58,10 +52,18 @@ jobs:
         uses: mstksg/get-package@v1
         with:
           apt-get: libpam-dev
+      - name: Cache Gnulib
+        id: cache-gnulib
+        uses: actions/cache@v2.1.6
+        with:
+          path: gnulib
+          key: ${{ runner.os }}-gnulib
+      - name: Gnulib
+        if: steps.cache-gnulib.outputs.cache-hit != 'true'
+        run: git clone https://git.savannah.gnu.org/git/gnulib.git
       - name: Run configure
         run: |
-          if [ ! -d /opt/gnulib ]; then git clone https://git.savannah.gnu.org/git/gnulib.git /opt/gnulib; fi
-          /opt/gnulib/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
+          ./gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
           autoreconf -f -v -i && ./configure
       - name: Run build-wrapper
         run: |

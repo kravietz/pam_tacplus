@@ -19,15 +19,18 @@ jobs:
         uses: mstksg/get-package@v1
         with:
           apt-get: libpam-dev
-      - name: Cache
+      - name: Cache Gnulib
+        id: cache-gnulib
         uses: actions/cache@v2.1.6
         with:
-          path: /opt/gnulib
-          key: gnulib
+          path: gnulib
+          key: ${{ runner.os }}-gnulib
+      - name: Gnulib
+        if: steps.cache-gnulib.outputs.cache-hit != 'true'
+        run: git clone https://git.savannah.gnu.org/git/gnulib.git
       - name: Run configure
         run: |
-          if [ ! -d /opt/gnulib ]; then git clone https://git.savannah.gnu.org/git/gnulib.git /opt/gnulib; fi
-          /opt/gnulib/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
+          ./gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
           autoreconf -f -i -v && ./configure
       - name: Coverity Scan
         uses: vapier/coverity-scan-action@v0
