@@ -1,5 +1,6 @@
 # build manifest for SourceHut
 # https://man.sr.ht/builds.sr.ht/
+# @formatter:off
 image: freebsd/latest
 packages:
   - autoconf
@@ -43,4 +44,4 @@ tasks:
       #- functional-test-pam: |
       #        cd pam-tacplus
       #        expect test/freebsd/tests.expect
-        
+

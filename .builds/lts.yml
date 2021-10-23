@@ -1,5 +1,6 @@
 # build manifest for SourceHut
 # https://man.sr.ht/builds.sr.ht/
+# @formatter:off
 image: ubuntu/lts
 packages:
   - autoconf
