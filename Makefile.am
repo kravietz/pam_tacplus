@@ -71,7 +71,6 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libtac.pc
 
 TEST_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/build-aux/tap-driver.sh
-TESTS = matrix
 check_PROGRAMS = tests/libtac/c-basic
 bin_PROGRAMS += tests/runtests
 
