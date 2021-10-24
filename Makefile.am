@@ -71,11 +71,15 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libtac.pc
 
 TEST_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) $(top_srcdir)/build-aux/tap-driver.sh
-check_PROGRAMS = tests/libtac/c-basic
+check_PROGRAMS = tests/libtac/c-pap tests/libtac/c-chap tests/libtac/c-login
 bin_PROGRAMS += tests/runtests
 
-tests_libtac_c_basic_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la $(top_srcdir)/lib/libgnu.la $(LTLIBINTL) $(LIB_CRYPTO) $(LIB_GETRANDOM)
-tests_libtac_c_basic_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+tests_libtac_c_pap_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la $(top_srcdir)/lib/libgnu.la $(LTLIBINTL) $(LIB_CRYPTO) $(LIB_GETRANDOM)
+tests_libtac_c_pap_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+tests_libtac_c_chap_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la $(top_srcdir)/lib/libgnu.la $(LTLIBINTL) $(LIB_CRYPTO) $(LIB_GETRANDOM)
+tests_libtac_c_chap_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+tests_libtac_c_login_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la $(top_srcdir)/lib/libgnu.la $(LTLIBINTL) $(LIB_CRYPTO) $(LIB_GETRANDOM)
+tests_libtac_c_login_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
 
 noinst_LIBRARIES = tests/tap/libtap.a
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h tests/tap/macros.h

@@ -14,7 +14,7 @@ int main() {
     int tac_fd = 0;
     int ret;
     struct areply arep;
-    char server_name[] = "localhost";
+    char server_name[] = "nezha.krvtz.net";
     char tac_secret[] = "testkey123";
     char user[] = "testuser1";
     char pass[] = "testpass123";
@@ -40,9 +40,10 @@ int main() {
         sysbail("tac_connect_single\n");
     }
     ret = tac_authen_send(tac_fd, user, pass, tty, remote_addr, TAC_PLUS_AUTHEN_LOGIN);
-    is_bool(ret >= 0, true, "tac_authen_send");
+    is_bool(ret >= 0, true, "tac_authen_send PAP");
 
     memset(&arep, 0, sizeof(arep));
     ret = tac_authen_read(tac_fd, &arep);
-    is_int(ret, TAC_PLUS_AUTHEN_STATUS_PASS, "tac_authen_read");
+    is_int(ret, TAC_PLUS_AUTHEN_STATUS_PASS, "tac_authen_read PAP");
+
 }
