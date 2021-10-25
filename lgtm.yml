@@ -10,4 +10,4 @@ extraction:
      configure:
         command:
         - autoreconf -f -v -i
-        - ./configure --enable-asan
+        - ./configure
