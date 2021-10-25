@@ -70,14 +70,16 @@ jobs:
 
       - name: Run configure
         run: |
-          echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
-          echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
           ./gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
           autoreconf -f -v -i && ./configure
 
+      - name: Set path
+        run: |
+          echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
+          echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
+
       - name: Run build-wrapper
         run: |
-          export PATH="$PATH:$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin:$HOME/.sonar/build-wrapper-linux-x86"
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make clean all
 
       - name: Run sonar-scanner
@@ -86,5 +88,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           PATH: "$PATH:$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin:$HOME/.sonar/build-wrapper-linux-x86"
         run: |
-          export PATH="$PATH:$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin:$HOME/.sonar/build-wrapper-linux-x86"
           sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
