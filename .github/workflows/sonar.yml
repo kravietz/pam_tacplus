@@ -77,6 +77,8 @@ jobs:
         run: |
           echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
           echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
+          ls
+          ls $HOME
 
       - name: Run build-wrapper
         run: |
