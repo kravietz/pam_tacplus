@@ -24,17 +24,17 @@ jobs:
         with:
           apt-get: libpam-dev
 
-      - name: Restore Sonar cache
-        uses: actions/cache@v2.1.6
-        id: cache-sonar
-        with:
-          path: $HOME/.sonar
-          key: ${{ runner.os }}-sonar
-
       - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
           java-version: 11
+
+      - name: Restore Sonar cache
+        uses: actions/cache@v2.1.6
+        id: cache-sonar2
+        with:
+          path: $HOME/.sonar
+          key: ${{ runner.os }}-sonar-${{ SONAR_SCANNER_VERSION }}
 
       - name: Download sonar-scanner if not cached
         if: steps.cache-sonar.outputs.cache-hit != 'true'
@@ -72,13 +72,6 @@ jobs:
         run: |
           ./gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
           autoreconf -f -v -i && ./configure
-
-      - name: Set path
-        run: |
-          echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
-          echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
-          pwd
-          ls -l $HOME/.sonar
 
       - name: Run build-wrapper
         run: |
