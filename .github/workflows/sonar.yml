@@ -34,7 +34,7 @@ jobs:
         id: cache-sonar2
         with:
           path: $HOME/.sonar
-          key: ${{ runner.os }}-sonar-${{ SONAR_SCANNER_VERSION }}
+          key: ${{ runner.os }}-sonar-${{ env.SONAR_SCANNER_VERSION }}
 
       - name: Download sonar-scanner if not cached
         if: steps.cache-sonar.outputs.cache-hit != 'true'
