@@ -77,9 +77,6 @@ typedef unsigned char flag;
 flag quiet = 0;
 char *g_user = NULL; /* global, because of signal handler */
 
-/* take the length of a string constant without the NUL */
-#define C_STRLEN(str) (sizeof("" str) - 1)
-
 /* command line options */
 static struct option long_options[] =
     {
