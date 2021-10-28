@@ -54,6 +54,7 @@ extern "C"
 // from gnulib-tool --import
 // see lib/Makefile.am and lib/Makefile.gnulib for details of modules imported
 #include <fcntl.h>
+#include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/random.h>
