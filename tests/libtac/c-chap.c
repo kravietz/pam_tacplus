@@ -14,12 +14,13 @@ int main() {
     int tac_fd = 0;
     int ret;
     struct areply arep;
-    char server_name[] = "nezha.krvtz.net";
-    char tac_secret[] = "testkey123";
+    char server_name[] = "localhost";
     char user[] = "testuser1";
     char pass[] = "testpass123";
     char tty[] = "ttyS0";
     char remote_addr[] = "1.1.1.1";
+
+    tac_secret = strdup("testkey123");
 
     struct addrinfo hints;
     struct addrinfo *tac_server;
