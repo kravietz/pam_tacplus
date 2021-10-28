@@ -208,7 +208,7 @@ struct author {
 /* An authorization reply packet */
 struct author_reply {
     unsigned char status;
-    unsigned char arg_cnt;
+    uint8_t arg_cnt;
     unsigned short msg_len;
     unsigned short data_len;
 
