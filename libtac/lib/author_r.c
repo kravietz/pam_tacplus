@@ -270,6 +270,10 @@ int tac_author_read_timeout(int fd, struct areply *re, unsigned long timeout)
 	}
 		free(tb);
 		return re->status;
+
+        default:
+            TACSYSLOG(LOG_ERR, "%s: unexpected reply status: %d", __FUNCTION__, re->status);
+            abort();
 	}
 
 	switch (tb->status)

@@ -128,7 +128,7 @@ void dump_attributes(gl_list_t attr)
     const void *element;
     gl_list_iterator_t attributes_iterator = gl_list_iterator(attr);
 	while(gl_list_iterator_next(&attributes_iterator, &element, NULL)) {
-		printf("\t%s\n", (char *) element);
+		printf("\t%s\n", (const char *) element);
 	}
     gl_list_iterator_free(&attributes_iterator);
 }
@@ -248,6 +248,9 @@ int main(int argc, char **argv)
                 break;
             case 'y':
                 tty = optarg;
+                break;
+            default:
+                printf("Invalid option: %s", optarg);
                 break;
             }
         }

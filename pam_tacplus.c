@@ -714,8 +714,8 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
     const void *element;
     gl_list_iterator_t attributes_iterator = gl_list_iterator(arep.attr);
     while (gl_list_iterator_next(&attributes_iterator, &element, NULL)) {
-        size_t attribute_len = strlen((char *) element);
-        size_t attribute_name_len = strcspn((char *) element, "=*");
+        size_t attribute_len = strlen((const char *) element);
+        size_t attribute_name_len = strcspn((const char *) element, "=*");
         if (attribute_name_len < attribute_len) {
             char avpair[attribute_len + 1];
             xstrncpy(avpair, element, sizeof(avpair)); /* Also copy terminating NUL */
@@ -742,7 +742,7 @@ int pam_sm_acct_mgmt(pam_handle_t *pamh, int UNUSED(flags), int argc,
                        __FUNCTION__);
         } else {
             syslog(LOG_WARNING, "%s: invalid attribute `%s', no separator",
-                   __FUNCTION__, (char *) element);
+                   __FUNCTION__, (const char *) element);
         }
     }
 
