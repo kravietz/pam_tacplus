@@ -143,7 +143,7 @@ struct areply {
      */
     gl_list_t attr;
     char *msg;
-    int status: 8;
+    signed int status: 8;
     unsigned int flags: 8;
     unsigned int seq_no: 8;
 };
