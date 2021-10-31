@@ -14,18 +14,22 @@ int main() {
     int tac_fd = 0;
     int ret;
     struct areply arep;
-    char server_name[] = "localhost";
+    char *server_name;
     char user[] = "testuser1";
     char pass[] = "testpass123";
     char tty[] = "ttyS0";
     char remote_addr[] = "1.1.1.1";
 
-    tac_secret = strdup("testkey123");
+    tac_secret = "testkey123";
+
+    server_name = getenv("TACPLUS_SERVER");
+    if (server_name == NULL)
+        server_name = "localhost";
 
     struct addrinfo hints;
     struct addrinfo *tac_server;
 
-    plan(4);
+    plan_lazy();
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;

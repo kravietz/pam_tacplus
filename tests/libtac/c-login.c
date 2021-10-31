@@ -14,7 +14,7 @@ int main() {
     int tac_fd = 0;
     int ret;
     struct areply arep;
-    char server_name[] = "localhost";
+    char *server_name;
     char user[] = "testuser1";
     char pass[] = "testpass123";
     char tty[] = "ttyS0";
@@ -23,9 +23,13 @@ int main() {
     struct addrinfo hints;
     struct addrinfo *tac_server;
 
-    tac_secret = strdup("testkey123");
+    tac_secret = "testkey123";
 
-    plan(6);
+    server_name = getenv("TACPLUS_SERVER");
+    if (server_name == NULL)
+        server_name = "localhost";
+
+    plan_lazy();
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -33,7 +37,7 @@ int main() {
     ret = getaddrinfo(server_name, "tacacs", &hints, &tac_server);
     is_bool(ret == 0, true, "getaddrinfo");
     if (ret != 0) {
-        sysbail("getaddrinfo");
+        sysbail("getaddrinfo");tac_secret = strdup("testkey123");
     }
 
     tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
