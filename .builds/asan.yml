@@ -38,7 +38,7 @@ tasks:
       #echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -
   - check: |
       cd pam-tacplus
-      export ASAN_OPTIONS=fast_unwind_on_malloc=0:detect_leaks=1
+      export ASAN_OPTIONS=fast_unwind_on_malloc=0
       export LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so)
       make check
 
