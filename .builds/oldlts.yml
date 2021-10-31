@@ -32,8 +32,8 @@ tasks:
     cd pam-tacplus
     sudo make install
     sudo ldconfig
-    sudo install -o root test/bionic/pam.conf /etc/pam.d/test
-    sudo install -o root test/bionic/tac_plus.conf /etc/tacacs+/tac_plus.conf
+    sudo install -o root tests/fixtures/pam.conf /etc/pam.d/test
+    sudo install -o root tests/fixtures/shrubbery/tac_plus.conf /etc/tacacs+/tac_plus.conf
     sudo service tacacs_plus restart && sleep 3
     # not really necessary, users statically defined in pam_tac.conf
     #sudo useradd -m testuser1

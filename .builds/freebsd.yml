@@ -29,8 +29,8 @@ tasks:
     cd pam-tacplus
     sudo make install
     sudo ldconfig
-    sudo install -o root test/freebsd/pam.conf /etc/pam.d/test
-    sudo install -o root test/freebsd/tac_plus.conf /usr/local/etc/tac_plus.conf
+    sudo install -o root tests/fixtures/pam.conf /etc/pam.d/test
+    sudo install -o root tests/fixtures/probono/tac_plus.conf /usr/local/etc/tac_plus.conf
     echo 'tac_plus_enable="YES"' | sudo tee -a /etc/rc.conf.local
     sudo service tac_plus start && sleep 3
     # not really necessary, users statically defined in pam_tac.conf
