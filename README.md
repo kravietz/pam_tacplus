@@ -68,18 +68,18 @@ in its configuration.
 
 ### Basic installation:
 The module is available on most Linux distibutions:
-```
+```shell
 $ sudo apt install libpam-tacplus
 ```
 To compile from source, the code uses GNU `autotools` and `gnulib`:
 
-```
+```shell
 $ sudo apt install libpam-tacplus autoconf build-essential libtool automake libpam-dev libssl-dev gnulib
 $ git clone https://git.sr.ht/~kravietz/pam-tacplus
 $ cd pam-tacplus
 $ gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
                   fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
-                  explicit_bzero xalloc
+                  explicit_bzero xalloc getopt-gnu
 $ autoreconf -f -v -i
 $ ./configure
 $ make
@@ -87,20 +87,23 @@ $ sudo make install
 ```
 
 You can use `./configure --libdir=/lib` option to ensure `pam_tacplus.so`
-is installed into `/lib/security` along with rather than in `/usr/local`. In such case you need to adjust the below
+is installed into `/lib/security` along with rather than in `/usr/local`. In such case you need to adjust the
 lines in `/etc/pam.d` file accordingly.
+
+#### Outdated gnulib
 
 If you get errors like the one below during `./configure`, you most likely have an outdated `gnulib`
 (notably, FreeBSD uses 2014 version):
-```
+```shell
 error: GL_GENERATE_ALLOCA_H does not appear in AM_CONDITIONAL
 ```
 This is fixed by installing the latest `gnulib`:
-```
+```shell
 $ git clone https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
 $ $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
                   fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
                   explicit_bzero xalloc
+$ autoreconf -f -v -i
 $ ./configure
 ...                  
 ```
