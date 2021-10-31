@@ -60,4 +60,7 @@ int main() {
     tac_free_attrib(arep.attr);
 
     tac_free_attrib(send_attr);
+    if (arep.msg != NULL)
+        free(arep.msg);
+    freeaddrinfo(tac_server);
 }

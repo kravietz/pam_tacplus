@@ -52,4 +52,7 @@ int main() {
     memset(&arep, 0, sizeof(arep));
     ret = tac_authen_read(tac_fd, &arep);
     is_int(ret, TAC_PLUS_AUTHEN_STATUS_PASS, "tac_authen_read CHAP");
+    if (arep.msg != NULL)
+        free(arep.msg);
+    freeaddrinfo(tac_server);
 }

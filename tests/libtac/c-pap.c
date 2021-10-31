@@ -52,6 +52,9 @@ int main() {
     ret = tac_authen_read(tac_fd, &arep);
     is_int(ret, TAC_PLUS_AUTHEN_STATUS_PASS, "tac_authen_read PAP");
 
+    if (arep.msg != NULL)
+        free(arep.msg);
+
     // with incorrect login credentials
     tac_fd = tac_connect_single(tac_server, tac_secret, NULL, 60);
     is_bool(tac_fd > 0, true, "tac_connect_single");
@@ -64,6 +67,9 @@ int main() {
     memset(&arep, 0, sizeof(arep));
     ret = tac_authen_read(tac_fd, &arep);
     is_int(ret, TAC_PLUS_AUTHEN_STATUS_FAIL, "tac_authen_read PAP bad password");
+
+    if (arep.msg != NULL)
+        free(arep.msg);
 
     // with incorrect TACACS+ key
     tac_secret = "badkey";
@@ -79,4 +85,7 @@ int main() {
     ret = tac_authen_read(tac_fd, &arep);
     is_int(ret, LIBTAC_STATUS_PROTOCOL_ERR, "tac_authen_read PAP bad key");
 
+    if (arep.msg != NULL)
+        free(arep.msg);
+    freeaddrinfo(tac_server);
 }

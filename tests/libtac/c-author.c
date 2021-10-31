@@ -57,6 +57,8 @@ int main() {
 
     tac_free_attrib(arep.attr);
     tac_free_attrib(send_attr);
+    if (arep.msg != NULL)
+        free(arep.msg);
 
     // try unauthorized service
     memset(&arep, 0, sizeof(arep));
@@ -76,6 +78,8 @@ int main() {
     is_int(ret, TAC_PLUS_AUTHOR_STATUS_FAIL, "tac_author_read");
     is_int(arep.status, TAC_PLUS_AUTHOR_STATUS_FAIL, "tac_author_read unauth");
     tac_free_attrib(arep.attr);
+    if (arep.msg != NULL)
+        free(arep.msg);
 
     memset(&arep, 0, sizeof(arep));
     arep.attr = gl_list_create_empty(GL_ARRAY_LIST, NULL, NULL, NULL, false);
@@ -90,7 +94,10 @@ int main() {
     is_int(ret, 0, "tac_author_send");
     tac_author_read(tac_fd, &arep);
     is_int(arep.status, LIBTAC_STATUS_PROTOCOL_ERR, "tac_author_read badkey");
-    tac_free_attrib(arep.attr);
 
+    if (arep.msg != NULL)
+        free(arep.msg);
     tac_free_attrib(send_attr);
+    tac_free_attrib(arep.attr);
+    freeaddrinfo(tac_server);
 }
