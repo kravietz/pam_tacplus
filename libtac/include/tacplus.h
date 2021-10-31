@@ -24,7 +24,8 @@
 
 /* All tacacs+ packets have the same header format */
 struct tac_plus_pak_hdr {
-    unsigned char version;
+
+    uint8_t version;
 
 #define TAC_PLUS_MAJOR_VER_MASK 0xf0
 #define TAC_PLUS_MAJOR_VER      0xc0
@@ -35,45 +36,46 @@ struct tac_plus_pak_hdr {
 #define TAC_PLUS_MINOR_VER_1 0x01
 #define TAC_PLUS_VER_1  (TAC_PLUS_MAJOR_VER | TAC_PLUS_MINOR_VER_1)
 
-    unsigned char type;
+    uint8_t type;
 
 #define TAC_PLUS_AUTHEN 0x01
 #define TAC_PLUS_AUTHOR	0x02
 #define TAC_PLUS_ACCT   0x03
 
-    unsigned char seq_no;        /* packet sequence number */
-    unsigned char encryption;    /* packet is encrypted or cleartext */
+    uint8_t seq_no;       /* packet sequence number */
+    uint8_t encryption;   /* packet is encrypted or cleartext */
 
 #define TAC_PLUS_ENCRYPTED_FLAG      0x00    /* packet is encrypted */
 #define TAC_PLUS_UNENCRYPTED_FLAG    0x01    /* packet is unencrypted */
 #define TAC_PLUS_SINGLE_CONNECT_FLAG 0x04    /* multiplexing supported */
 
-    int session_id;    /* session identifier */
-    int datalength;    /* length of encrypted data following this
-                          header datalength bytes of encrypted data */
+    uint32_t session_id;   /* session identifier */
+    uint32_t datalength;   /* length of encrypted data following this
+                              header datalength bytes of encrypted data */
 };
 
 #define TAC_PLUS_HDR_SIZE 12
 
 typedef struct tac_plus_pak_hdr HDR;
 
-/* Authentication packet NAS sends to us */ 
+/* Authentication packet NAS sends to us */
 struct authen_start {
-    unsigned char action;
+
+    uint8_t action;
 
 #define TAC_PLUS_AUTHEN_LOGIN    0x01
 #define TAC_PLUS_AUTHEN_CHPASS   0x02
 #define TAC_PLUS_AUTHEN_SENDPASS 0x03 /* deprecated */
 #define TAC_PLUS_AUTHEN_SENDAUTH 0x04
 
-    unsigned char priv_lvl;
+    uint8_t priv_lvl;
 
 #define TAC_PLUS_PRIV_LVL_MIN  0x00
 #define TAC_PLUS_PRIV_LVL_MAX  0x0f
 #define TAC_PLUS_PRIV_LVL_USER 0x01
 #define TAC_PLUS_PRIV_LVL_ROOT 0x0f
 
-    unsigned char authen_type;
+    uint8_t authen_type;
 
 #define TAC_PLUS_AUTHEN_TYPE_ASCII  0x01
 #define TAC_PLUS_AUTHEN_TYPE_PAP    0x02
@@ -81,7 +83,7 @@ struct authen_start {
 #define TAC_PLUS_AUTHEN_TYPE_ARAP   0x04
 #define TAC_PLUS_AUTHEN_TYPE_MSCHAP 0x05
 
-    unsigned char service;
+    uint8_t service;
 
 #define TAC_PLUS_AUTHEN_SVC_NONE    0x00
 #define TAC_PLUS_AUTHEN_SVC_LOGIN   0x01
@@ -94,19 +96,21 @@ struct authen_start {
 #define TAC_PLUS_AUTHEN_SVC_NASI    0x08
 #define TAC_PLUS_AUTHEN_SVC_FWPROXY 0x09
 
-    unsigned char user_len;
-    unsigned char port_len;
-    unsigned char r_addr_len;
-    unsigned char data_len;
+    uint8_t user_len;
+    uint8_t port_len;
+    uint8_t r_addr_len;
+    uint8_t data_len;
+
 };
 
 #define TAC_AUTHEN_START_FIXED_FIELDS_SIZE 8
 
-/* Authentication continue packet NAS sends to us */ 
+/* Authentication continue packet NAS sends to us */
 struct authen_cont {
-    unsigned short user_msg_len;
-    unsigned short user_data_len;
-    unsigned char flags;
+
+    uint16_t user_msg_len;
+    uint16_t user_data_len;
+    uint8_t  flags;
 
 #define TAC_PLUS_CONTINUE_FLAG_ABORT 0x01
 
@@ -114,9 +118,10 @@ struct authen_cont {
 
 #define TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE 5
 
-/* Authentication reply packet we send to NAS */ 
+/* Authentication reply packet we send to NAS */
 struct authen_reply {
-    unsigned char status;
+
+    uint8_t status;
 
 #define TAC_PLUS_AUTHEN_STATUS_PASS    0x01
 #define TAC_PLUS_AUTHEN_STATUS_FAIL    0x02
@@ -124,15 +129,15 @@ struct authen_reply {
 #define TAC_PLUS_AUTHEN_STATUS_GETUSER 0x04
 #define TAC_PLUS_AUTHEN_STATUS_GETPASS 0x05
 #define TAC_PLUS_AUTHEN_STATUS_RESTART 0x06
-#define TAC_PLUS_AUTHEN_STATUS_ERROR   0x07 
+#define TAC_PLUS_AUTHEN_STATUS_ERROR   0x07
 #define TAC_PLUS_AUTHEN_STATUS_FOLLOW  0x21
 
-    unsigned char flags;
+    uint8_t flags;
 
 #define TAC_PLUS_AUTHEN_FLAG_NOECHO 0x01
 
-    unsigned short msg_len;
-    unsigned short data_len;
+    uint16_t msg_len;
+    uint16_t data_len;
 };
 
 #define TAC_AUTHEN_REPLY_FIXED_FIELDS_SIZE 6
@@ -158,29 +163,32 @@ struct authen_reply {
 #define AUTHEN_METH_RCMD       TAC_PLUS_AUTHEN_METH_RCMD
 
 struct acct {
-    unsigned char flags;
+
+    uint8_t flags;
 
 #define TAC_PLUS_ACCT_FLAG_MORE     0x01
 #define TAC_PLUS_ACCT_FLAG_START    0x02
 #define TAC_PLUS_ACCT_FLAG_STOP     0x04
 #define TAC_PLUS_ACCT_FLAG_WATCHDOG 0x08
-	    
-    unsigned char authen_method;
-    unsigned char priv_lvl;
-    unsigned char authen_type;
-    unsigned char authen_service;
-    unsigned char user_len;
-    unsigned char port_len;
-    unsigned char r_addr_len;
-    unsigned char arg_cnt;    /* the number of cmd args */
+
+    uint8_t authen_method;
+    uint8_t priv_lvl;
+    uint8_t authen_type;
+    uint8_t authen_service;
+    uint8_t user_len;
+    uint8_t port_len;
+    uint8_t r_addr_len;
+    uint8_t arg_cnt;    /* the number of cmd args */
+
 };
 
 #define TAC_ACCT_REQ_FIXED_FIELDS_SIZE 9
 
 struct acct_reply {
-    unsigned short msg_len;
-    unsigned short data_len;
-    unsigned char status;
+
+    uint16_t msg_len;
+    uint16_t data_len;
+    uint8_t  status;
 
 #define TAC_PLUS_ACCT_STATUS_SUCCESS 0x1
 #define TAC_PLUS_ACCT_STATUS_ERROR   0x2
@@ -192,25 +200,28 @@ struct acct_reply {
 
 /* An authorization request packet */
 struct author {
-    unsigned char authen_method;
-    unsigned char priv_lvl;
-    unsigned char authen_type;
-    unsigned char service;
 
-    unsigned char user_len;
-    unsigned char port_len;
-    unsigned char r_addr_len;
-    unsigned char arg_cnt;    /* the number of args */
+    uint8_t authen_method;
+    uint8_t priv_lvl;
+    uint8_t authen_type;
+    uint8_t service;
+
+    uint8_t user_len;
+    uint8_t port_len;
+    uint8_t r_addr_len;
+    uint8_t arg_cnt;    /* the number of args */
+
 };
 
 #define TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE 8
 
 /* An authorization reply packet */
 struct author_reply {
-    unsigned char status;
-    uint8_t arg_cnt;
-    unsigned short msg_len;
-    unsigned short data_len;
+
+    uint8_t  status;
+    uint8_t  arg_cnt;
+    uint16_t msg_len;
+    uint16_t data_len;
 
 #define TAC_PLUS_AUTHOR_STATUS_PASS_ADD  0x01
 #define TAC_PLUS_AUTHOR_STATUS_PASS_REPL 0x02
