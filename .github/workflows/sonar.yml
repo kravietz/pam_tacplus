@@ -1,0 +1,85 @@
+name: Sonar
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  build:
+    name: Sonar
+    runs-on: ubuntu-latest
+    env:
+      SONAR_SCANNER_VERSION: 4.4.0.2170
+      SONAR_SERVER_URL: "https://sonarcloud.io"
+      BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Update APT repo
+        run: sudo apt update
+      - name: Get Package
+        uses: mstksg/get-package@v1
+        with:
+          apt-get: libpam-dev
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Restore Sonar cache
+        uses: actions/cache@v2.1.6
+        id: cache-sonar2
+        with:
+          path: $HOME/.sonar
+          key: ${{ runner.os }}-sonar-${{ env.SONAR_SCANNER_VERSION }}
+
+      - name: Download sonar-scanner if not cached
+        if: steps.cache-sonar.outputs.cache-hit != 'true'
+        env:
+          SONAR_SCANNER_DOWNLOAD_URL: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${{ env.SONAR_SCANNER_VERSION }}-linux.zip
+          BUILD_WRAPPER_DOWNLOAD_URL: ${{ env.SONAR_SERVER_URL }}/static/cpp/build-wrapper-linux-x86.zip
+        run: |
+          mkdir -p $HOME/.sonar
+          curl -sSLo $HOME/.sonar/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }} 
+          unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+          echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
+          curl -sSLo $HOME/.sonar/build-wrapper-linux-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
+          unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
+          echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
+
+      - name: Update APT repo
+        run: sudo apt update
+      - name: Install build dependencies
+        uses: mstksg/get-package@v1
+        with:
+          apt-get: libpam-dev
+
+      - name: Restore Gnulib cache
+        id: cache-gnulib
+        uses: actions/cache@v2.1.6
+        with:
+          path: gnulib
+          key: ${{ runner.os }}-gnulib
+
+      - name: Download Gnulib if not cached
+        if: steps.cache-gnulib.outputs.cache-hit != 'true'
+        run: git clone https://git.savannah.gnu.org/git/gnulib.git
+
+      - name: Run configure
+        run: |
+          ./gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
+          autoreconf -f -v -i && ./configure
+
+      - name: Run build-wrapper
+        run: |
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make clean all
+
+      - name: Run sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"

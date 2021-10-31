@@ -18,12 +18,11 @@
  * See `CHANGES' file for revision history.
  */
 
-#include "libtac.h"
-#if defined(HAVE_OPENSSL_MD5_H) && defined(HAVE_LIBCRYPTO)
-# include <openssl/md5.h>
-#else
-# include "md5.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
+
+#include "libtac.h"
 
 /* this function sends a continue packet do TACACS+ server, asking
  * for validation of given password
@@ -35,13 +34,14 @@
  *         LIBTAC_STATUS_WRITE_TIMEOUT  (pending impl)
  *         LIBTAC_STATUS_ASSEMBLY_ERR
  */
-int tac_cont_send_seq(int fd, const char *pass, int seq) {
-	HDR *th; /* TACACS+ packet header */
+int tac_cont_send_seq(int fd, const char *pass, int seq)
+{
+	HDR *th;			   /* TACACS+ packet header */
 	struct authen_cont tb; /* continue body */
 	int pass_len, bodylength, w;
 	int pkt_len = 0;
 	int ret = 0;
-	u_char *pkt = NULL;
+	unsigned char *pkt = NULL;
 
 	th = _tac_req_header(TAC_PLUS_AUTHEN, 1);
 
@@ -49,8 +49,7 @@ int tac_cont_send_seq(int fd, const char *pass, int seq) {
 	th->version = TAC_PLUS_VER_0;
 	th->seq_no = seq; /* 1 = request, 2 = reply, 3 = continue, 4 = reply */
 	th->encryption =
-			tac_encryption ?
-					TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
+		tac_encryption ? TAC_PLUS_ENCRYPTED_FLAG : TAC_PLUS_UNENCRYPTED_FLAG;
 
 	/* get size of submitted data */
 	pass_len = strlen(pass);
@@ -66,38 +65,41 @@ int tac_cont_send_seq(int fd, const char *pass, int seq) {
 
 	/* we can now write the header */
 	w = write(fd, th, TAC_PLUS_HDR_SIZE);
-	if (w < 0 || w < TAC_PLUS_HDR_SIZE) {
+	if (w < 0 || w < TAC_PLUS_HDR_SIZE)
+	{
 		TACSYSLOG(
-				LOG_ERR, "%s: short write on header, wrote %d of %d: %m", __FUNCTION__, w, TAC_PLUS_HDR_SIZE);
+			LOG_ERR, "%s: short write on header, wrote %d of %d: %m", __FUNCTION__, w, TAC_PLUS_HDR_SIZE);
 		free(pkt);
 		free(th);
 		return LIBTAC_STATUS_WRITE_ERR;
 	}
 
 	/* build the packet */
-	pkt = (u_char *) xcalloc(1, bodylength);
+	pkt = (unsigned char *)xcalloc(1, bodylength);
 
-	bcopy(&tb, pkt + pkt_len, TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE); /* packet body beginning */
+	memcpy(pkt + pkt_len, &tb, TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE); /* packet body beginning */
 	pkt_len += TAC_AUTHEN_CONT_FIXED_FIELDS_SIZE;
-	bcopy(pass, pkt + pkt_len, pass_len); /* password */
+	memcpy(pkt + pkt_len, pass, pass_len); /* password */
 	pkt_len += pass_len;
 
 	/* pkt_len == bodylength ? */
-	if (pkt_len != bodylength) {
+	if (pkt_len != bodylength)
+	{
 		TACSYSLOG(
-				LOG_ERR, "%s: bodylength %d != pkt_len %d", __FUNCTION__, bodylength, pkt_len);
+			LOG_ERR, "%s: bodylength %d != pkt_len %d", __FUNCTION__, bodylength, pkt_len);
 		free(pkt);
 		free(th);
 		return LIBTAC_STATUS_ASSEMBLY_ERR;
 	}
 
 	/* encrypt the body */
-	_tac_crypt(pkt, th);
+    _tac_obfuscate(pkt, th);
 
 	w = write(fd, pkt, pkt_len);
-	if (w < 0 || w < pkt_len) {
+	if (w < 0 || w < pkt_len)
+	{
 		TACSYSLOG(
-				LOG_ERR, "%s: short write on body, wrote %d of %d: %m", __FUNCTION__, w, pkt_len);
+			LOG_ERR, "%s: short write on body, wrote %d of %d: %m", __FUNCTION__, w, pkt_len);
 		ret = LIBTAC_STATUS_WRITE_ERR;
 	}
 

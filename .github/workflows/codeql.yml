@@ -1,0 +1,54 @@
+name: CodeQL
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+jobs:
+  analyze:
+    name: CodeQL
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Override automatic language detection by changing the below list
+        # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
+        language: [ 'cpp' ]
+        # Learn more...
+        # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Update APT repo
+        run: sudo apt update
+      - name: Install build dependencies
+        uses: mstksg/get-package@v1
+        with:
+          apt-get: libpam-dev
+      - name: Cache Gnulib
+        id: cache-gnulib
+        uses: actions/cache@v2.1.6
+        with:
+          path: gnulib
+          key: ${{ runner.os }}-gnulib
+      - name: Gnulib
+        if: steps.cache-gnulib.outputs.cache-hit != 'true'
+        run: git clone https://git.savannah.gnu.org/git/gnulib.git
+      - name: Run configure
+        run: |
+          ./gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
+          autoreconf -f -v -i
+          ./configure
+          make
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1

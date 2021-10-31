@@ -1,0 +1,14 @@
+# These are supported funding model platforms
+
+github: [kravietz]
+patreon: # Replace with a single Patreon username
+open_collective: # Replace with a single Open Collective username
+ko_fi: devsecops
+tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
+community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
+liberapay: devsecops
+issuehunt: # Replace with a single IssueHunt username
+otechie: # Replace with a single Otechie username
+custom:
+  - "https://etherscan.io/address/0xC47d33d62F75Caf30D3bA8892C67d5f9Fe6c3c79"
+  - "https://www.blockchain.com/btc/address/36YhAxvhqoxpdpFpcGXYSJZ4sQPB8yLzt6"

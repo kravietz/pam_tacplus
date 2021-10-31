@@ -1,0 +1,42 @@
+digraph pam_tacacs {
+    rankdir="TB";
+    graph [style="dotted" labeljust="l" splines="ortho"];
+    node [shape=record];
+
+    subgraph cluster_tacacs {
+        label="TACACS+ server";
+        tacacs_server [label="TACACS+ server"];
+        auth_database [label="Auth database"];
+    }
+
+    subgraph cluster_tacacs_layer {
+        label="TACACS+ layer";
+        tacacs_authenticate [label="Authentication"];
+        tacacs_authorize [label="Authorization"];
+        tacacs_account [label="Account"];
+    }
+
+    subgraph cluster_pam_layer {
+        label="PAM layer";
+        pam_authenticate [label="Authenticate"];
+        pam_acct_mgmt [label="Account management"];
+        pam_session [label="Session management"];
+    }
+
+    client;
+
+    client -> pam_authenticate;
+    client -> pam_acct_mgmt;
+    client -> pam_session;
+
+    pam_authenticate -> tacacs_authenticate;
+    pam_acct_mgmt -> tacacs_authorize;
+    pam_session -> tacacs_account;
+
+    tacacs_authenticate -> tacacs_server;
+    tacacs_authorize -> tacacs_server;
+    tacacs_account -> tacacs_server;
+
+    tacacs_server -> auth_database;
+
+}

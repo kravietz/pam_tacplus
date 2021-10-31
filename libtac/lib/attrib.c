@@ -19,81 +19,108 @@
  *
  * See `CHANGES' file for revision history.
  */
+#ifdef HAVE_CONFIG_H
+
+#include "config.h"
+
+#endif
+
+#include <stdio.h>
+#include <string.h>
+
 
 #include "libtac.h"
-#include "xalloc.h"
 
-void tac_add_attrib(struct tac_attrib **attr, char *name, char *value) {
-    tac_add_attrib_pair(attr, name, '=', value);
+static int _tac_attrib_checks(char *name, char separator, char *value, size_t total_len, int truncate) {
+    if (separator != '=' && separator != '*') {
+        separator = '=';
+        TACSYSLOG(LOG_WARNING,
+                  "%s: Separator '%c' not allowed, replaced with '='",
+                  __FUNCTION__, separator);
+    }
+
+    // https://datatracker.ietf.org/doc/html/rfc8907#section-6.1
+    total_len = strlen(name) + sizeof(separator) + strlen(value);
+    if (total_len > TAC_PLUS_ATTRIB_MAX_LEN) {
+
+        if (truncate) {
+            TACSYSLOG(LOG_WARNING,
+                      "%s: attribute `%s' exceeds max. %d characters, truncating",
+                      __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN - 1);
+        } else {
+            TACSYSLOG(LOG_WARNING,
+                      "%s: attribute `%s' exceeds max. %d characters, ignoring",
+                      __FUNCTION__, name, TAC_PLUS_ATTRIB_MAX_LEN - 1);
+            return LIBTAC_STATUS_ATTRIB_TOO_LONG;
+        }
+    }
+
+    return 0;
 }
 
-void tac_add_attrib_pair(struct tac_attrib **attr, char *name, char sep, char *value) {
-    struct tac_attrib *a;
-    u_char l1 = (u_char) strlen(name);
-    u_char l2;
-    int total_len;
+static int _tac_add_attrib_pair(gl_list_t attr, char *name, char separator, char *value, int truncate) {
+    size_t total_len;
+    int check;
+    char *buf = NULL;
+    total_len = strlen(name) + sizeof(separator) + strlen(value);
+    check = _tac_attrib_checks(name, separator, value, total_len, truncate);
+    if (check != 0)
+        return check;
+    if (total_len > TAC_PLUS_ATTRIB_MAX_LEN)
+        total_len = TAC_PLUS_ATTRIB_MAX_LEN;
 
-    if (value == NULL) {
-        l2 = 0;
-    } else {
-        l2 = (u_char) strlen(value);
-    }
-    total_len = l1 + l2 + 1; /* "name" + "=" + "value" */
+    buf = xcalloc(1, total_len + 1);
 
-    if (total_len > 255) {
-        TACSYSLOG(LOG_WARNING,\
-            "%s: attribute `%s' total length exceeds 255 characters, skipping",\
-            __FUNCTION__, name);
-        return;
-    }
-
-    /* initialize the list if application passed us a null pointer */
-    if(*attr == NULL) {
-        *attr = (struct tac_attrib *) xcalloc(1, sizeof(struct tac_attrib));
-        a = *attr;
-    } else {
-        /* find the last allocated block */
-        a = *attr;
-        while(a->next != NULL)
-            a = a->next; /* a holds last allocated block */
-
-        a->next = (struct tac_attrib *) xcalloc(1, sizeof(struct tac_attrib));
-        a = a->next; /* set current block pointer to the new one */
+    check = snprintf(buf, total_len + 1, "%s%c%s", name, separator, value);
+    if (check < (int) total_len) {
+        TACSYSLOG(LOG_ERR,
+                  "%s: short snprintf write: wanted %lu bytes, wrote %d",
+                  __FUNCTION__, total_len, check);
     }
 
-    if ( sep != '=' && sep != '*' ) {
-        sep = '=';
+    if (gl_list_size(attr) + 1 >= TAC_PLUS_ATTRIB_MAX_CNT) { /* take new attrib into account */
+        TACSYSLOG(LOG_WARNING,
+                  "%s: Maximum number of attributes exceeded, skipping",
+                  __FUNCTION__);
+        return LIBTAC_STATUS_ATTRIB_TOO_MANY;
     }
 
-    /* fill the block */
-    a->attr_len=total_len;
-    a->attr = (char *) xcalloc(1, total_len+1);
-    bcopy(name, a->attr, l1);    /* paste name */
-    *(a->attr+l1)=sep;           /* insert seperator "[=*]" */
-    if (value != NULL) {
-        bcopy(value, (a->attr+l1+1), l2); /* paste value */
-    }
-    *(a->attr+total_len) = '\0';      /* add 0 for safety */
-    a->next = NULL; /* make sure it's null */
+    gl_list_add_last(attr, buf);
+
+    return 0;
 }
 
-void tac_free_attrib(struct tac_attrib **attr) {
-    struct tac_attrib *a;
-    struct tac_attrib *b;
+int tac_add_attrib(gl_list_t attr, char *name, char *value) {
+    return tac_add_attrib_pair(attr, name, '=', value);
+}
 
-    if(*attr == NULL)
-            return;
+int tac_add_attrib_pair(gl_list_t attr, char *name, char sep, char *value) {
+    return _tac_add_attrib_pair(attr, name, sep, value, 0);
+}
 
-	// 'a' is initialized in the loop below
-	b = *attr;
+int tac_add_attrib_truncate(gl_list_t attr, char *name, char *value) {
+    return tac_add_attrib_pair_truncate(attr, name, '=', value);
+}
 
-    /* find last allocated block */
-    do {
-        a = b;
-        b = a->next;
-        free(a->attr);
-        free(a);
-    } while (b != NULL);
+int tac_add_attrib_pair_truncate(gl_list_t attr, char *name, char sep, char *value) {
+    return _tac_add_attrib_pair(attr, name, sep, value, true);
+}
 
-    *attr = NULL;
+#include <assert.h>
+
+void tac_free_attrib(gl_list_t attr) {
+    void *element;
+
+    // iterator will crash on empty list
+    if (gl_list_size(attr) > 0) {
+        gl_list_iterator_t attributes_iterator = gl_list_iterator(attr);
+
+        while (gl_list_iterator_next(&attributes_iterator, (const void **) &element, NULL)) {
+            // free attribute string on the list
+            free(element);
+        }
+        gl_list_iterator_free(&attributes_iterator);
+    }
+
+    gl_list_free(attr);
 }

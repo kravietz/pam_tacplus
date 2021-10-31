@@ -1,0 +1,15 @@
+---
+path_classifiers:
+  test:
+    - test
+extraction:
+  cpp:
+     prepare:
+        packages: 
+          - libpam-dev
+     configure:
+        command:
+          - git clone -q --depth 1 https://git.savannah.gnu.org/git/gnulib.git $HOME/gnulib
+          - $HOME/gnulib/gnulib-tool --makefile-name=Makefile.gnulib --libtool --import  fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc
+          - autoreconf -f -v -i
+          - ./configure

@@ -17,11 +17,19 @@
  *
  * See `CHANGES' file for revision history.
  */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+
+#endif
+
 #include <poll.h>
 #include <sys/ioctl.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "libtac.h"
 
@@ -30,21 +38,24 @@
 #include <sys/filio.h>
 #endif
 
-static int delta_msecs(struct timeval *newer, struct timeval *older) {
-	long deltasecs, deltausecs;
-	struct timeval now;
+static time_t delta_msecs(struct timeval *newer, struct timeval *older) {
+    long deltasecs, deltausecs;
+    struct timeval now;
 
-	if (newer == NULL) {
-		gettimeofday(&now, NULL);
-		newer = &now;
-	}
+    if (newer == NULL) {
+        gettimeofday(&now, NULL);
+        newer = &now;
+    }
 
 	deltasecs = newer->tv_sec - older->tv_sec;
 
-	if (newer->tv_usec < older->tv_usec) {
+	if (newer->tv_usec < older->tv_usec)
+	{
 		deltasecs--;
 		deltausecs = (1000000 + newer->tv_usec) - older->tv_usec;
-	} else {
+	}
+	else
+	{
 		deltausecs = newer->tv_usec - older->tv_usec;
 	}
 	return (deltasecs * 1000) + (deltausecs / 1000);
@@ -67,50 +78,58 @@ static int delta_msecs(struct timeval *newer, struct timeval *older) {
  *    n - errno
  */
 
-int tac_read_wait(int fd, int timeout, int size, int *time_left) {
-	int retval = 0;
-	int remaining;
-	struct pollfd fds[1];
+int tac_read_wait(int fd, int timeout, int size, time_t *time_left) {
+    int retval = 0;
+    time_t remaining;
+    struct pollfd fds[1];
 
-	struct timeval start;
+    struct timeval start;
 
-	gettimeofday(&start, NULL);
+    gettimeofday(&start, NULL);
 
-	/* setup for read timeout.
-	 *   will use poll() as it provides greatest compatibility
-	 *   vs setsockopt(SO_RCVTIMEO) which isn't supported on Solaris
-	 */
+    /* setup for read timeout.
+     *   will use poll() as it provides greatest compatibility
+     *   vs setsockopt(SO_RCVTIMEO) which isn't supported on Solaris
+     */
 
 	remaining = timeout; /* in msecs */
 
 	fds[0].fd = fd;
 	fds[0].events = POLLIN;
 
-	while (remaining > 0) {
+	while (remaining > 0)
+	{
 		int rc;
 		int avail = 0;
-		rc = poll(fds, 1, remaining);
-		remaining -= delta_msecs(NULL, &start);
-		if (time_left != NULL) {
+        rc = poll(fds, 1, (int) remaining);
+        remaining -= delta_msecs(NULL, &start);
+		if (time_left != NULL)
+		{
 			*time_left = remaining > 0 ? remaining : 0;
 		}
 
 		/* why did poll return */
-		if (rc == 0) { /* Receive timeout */
+		if (rc == 0)
+		{ /* Receive timeout */
 			retval = -1;
 			break;
 		}
 
-		if (rc > 0) { /* there is data available */
+		if (rc > 0)
+		{					/* there is data available */
 			if (size > 0 && /* check for enuf available? */
-			ioctl(fd, FIONREAD, (char*) &avail) == 0 && avail < size) {
+				ioctl(fd, FIONREAD, (char *)&avail) == 0 && avail < size)
+			{
 				continue; /* not enuf yet, wait for more */
-			} else {
+			}
+			else
+			{
 				break;
 			}
 		}
 
-		if (rc < 0 && errno == EINTR) { /* interrupt */
+		if (rc < 0 && errno == EINTR)
+		{ /* interrupt */
 			continue;
 		}
 

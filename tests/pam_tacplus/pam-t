@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# in make check the script is being called from tests/
+. ./libtap.sh
+
+if [ "$(uname)" = "Linux" ]; then
+    file=pam_tacplus/bionic.expect
+elif [ "$(uname)" = "FreeBSD" ]; then
+    file=pam_tacplus/freebsd.expect
+else
+  skip_all "Unsupported system"
+fi
+
+if [ -n "$file" ]; then
+  plan_lazy
+  ok expect expect $file
+fi

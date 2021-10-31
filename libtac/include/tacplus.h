@@ -24,6 +24,7 @@
 
 /* All tacacs+ packets have the same header format */
 struct tac_plus_pak_hdr {
+  
     uint8_t version;
 
 #define TAC_PLUS_MAJOR_VER_MASK 0xf0
@@ -48,7 +49,7 @@ struct tac_plus_pak_hdr {
 #define TAC_PLUS_UNENCRYPTED_FLAG    0x01    /* packet is unencrypted */
 #define TAC_PLUS_SINGLE_CONNECT_FLAG 0x04    /* multiplexing supported */
 
-    uint32_t session_id;   /* session identifier FIXME: Is this needed? */
+    uint32_t session_id;   /* session identifier */
     uint32_t datalength;   /* length of encrypted data following this
                               header datalength bytes of encrypted data */
 };
@@ -59,6 +60,7 @@ typedef struct tac_plus_pak_hdr HDR;
 
 /* Authentication packet NAS sends to us */ 
 struct authen_start {
+
     uint8_t action;
 
 #define TAC_PLUS_AUTHEN_LOGIN    0x01
@@ -98,12 +100,14 @@ struct authen_start {
     uint8_t port_len;
     uint8_t r_addr_len;
     uint8_t data_len;
+
 };
 
 #define TAC_AUTHEN_START_FIXED_FIELDS_SIZE 8
 
 /* Authentication continue packet NAS sends to us */ 
 struct authen_cont {
+
     uint16_t user_msg_len;
     uint16_t user_data_len;
     uint8_t  flags;
@@ -116,6 +120,7 @@ struct authen_cont {
 
 /* Authentication reply packet we send to NAS */ 
 struct authen_reply {
+
     uint8_t status;
 
 #define TAC_PLUS_AUTHEN_STATUS_PASS    0x01
@@ -158,6 +163,7 @@ struct authen_reply {
 #define AUTHEN_METH_RCMD       TAC_PLUS_AUTHEN_METH_RCMD
 
 struct acct {
+  
     uint8_t flags;
 
 #define TAC_PLUS_ACCT_FLAG_MORE     0x01
@@ -173,11 +179,13 @@ struct acct {
     uint8_t port_len;
     uint8_t r_addr_len;
     uint8_t arg_cnt;    /* the number of cmd args */
+
 };
 
 #define TAC_ACCT_REQ_FIXED_FIELDS_SIZE 9
 
 struct acct_reply {
+
     uint16_t msg_len;
     uint16_t data_len;
     uint8_t  status;
@@ -192,6 +200,7 @@ struct acct_reply {
 
 /* An authorization request packet */
 struct author {
+
     uint8_t authen_method;
     uint8_t priv_lvl;
     uint8_t authen_type;
@@ -201,12 +210,14 @@ struct author {
     uint8_t port_len;
     uint8_t r_addr_len;
     uint8_t arg_cnt;    /* the number of args */
+
 };
 
 #define TAC_AUTHOR_REQ_FIXED_FIELDS_SIZE 8
 
 /* An authorization reply packet */
 struct author_reply {
+
     uint8_t  status;
     uint8_t  arg_cnt;
     uint16_t msg_len;
