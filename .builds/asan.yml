@@ -3,16 +3,16 @@
 # @formatter:off
 # The ASAN build uses FreeBSD which comes with recent CLang which has better support
 # for running shared libraries with ASAN
-image: freebsd/latest
+image: ubuntu/focal
 packages:
   - autoconf
+  - build-essential
   - libtool
   - automake
-  - tacacs
-  - expect
-  - pamtester
-  # for scan-build
-  - llvm
+  - libpam-dev
+  - libssl-dev
+  - clang
+  - clang-tools
 sources:
   - https://git.sr.ht/~kravietz/pam-tacplus
 tasks:
@@ -26,16 +26,19 @@ tasks:
       export LDFLAGS=-shared-libasan
       ./configure --enable-asan
       make clean all
+  - tacplus: |
+      git clone https://github.com/facebook/tac_plus.git $HOME/tac_plus
+      pushd $HOME/tac_plus
+      ./configure
+      sudo make install
+      popd
   - setup: |
       cd pam-tacplus
       sudo make install
       sudo ldconfig
       sudo install -o root tests/fixtures/pam.conf /etc/pam.d/test
-      sudo install -o root tests/fixtures/probono/tac_plus.conf /usr/local/etc/tac_plus.conf
-      echo 'tac_plus_enable="YES"' | sudo tee -a /etc/rc.conf.local
-      sudo service tac_plus start && sleep 3
-      # not really necessary, users statically defined in pam_tac.conf
-      #echo testuser1::::::::/bin/sh:testpass123 | sudo adduser -w yes -f -
+      sudo install -o root tests/fixtures/shrubbery/tac_plus.conf /usr/local/etc/tac_plus.conf
+      sudo /usr/local/sbin/tac_plus -C /usr/local/etc/tac_plus.conf
   - check: |
       cd pam-tacplus
       export ASAN_OPTIONS=fast_unwind_on_malloc=0
