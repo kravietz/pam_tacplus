@@ -22,6 +22,24 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([config])
 AC_USE_SYSTEM_EXTENSIONS
 
+AC_CHECK_PROG([GNULIB], [gnulib-tool], [gnulib-tool], [
+Gnulib is required to compile this program. On Ubuntu Focal you can run "apt install gnulib", but
+most other systems will ship a very old version so you fetch it from GNU repository:
+
+git clone https://git.savannah.gnu.org/git/gnulib.git \$HOME/gnulib
+export PATH=\$PATH:\$HOME/gnulib
+
+])
+
+AC_CHECK_FILE([lib/malloc.c], [], [AC_MSG_ERROR([
+Gnulib files not imported. Run:
+
+$ac_cv_prog_GNULIB --makefile-name=Makefile.gnulib --libtool --import \
+fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+explicit_bzero xalloc getopt-gnu
+
+])])
+
 dnl --------------------------------------------------------------------
 dnl Checks for programs.
 AC_PROG_CC
