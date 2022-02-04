@@ -27,6 +27,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <poll.h>
 
 #ifdef _AIX
 #include <sys/socket.h>
@@ -93,8 +94,7 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     int retval = LIBTAC_STATUS_CONN_ERR; /* default retval */
     int fd = -1;
     int flags, rc;
-    fd_set readfds, writefds;
-    struct timeval tv;
+    struct pollfd pfd;
     socklen_t len;
     struct sockaddr_storage addr;
     char *ip;
@@ -165,18 +165,11 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
         goto bomb;
     }
 
-    /* set fds for select */
-    FD_ZERO(&readfds);
-    FD_ZERO(&writefds);
-    FD_SET(fd, &readfds);
-    FD_SET(fd, &writefds);
 
-    /* set timeout seconds */
-    tv.tv_sec = timeout;
-    tv.tv_usec = 0;
-
-    /* check if socket is ready for read and write */
-    rc = select(fd + 1, &readfds, &writefds, NULL, &tv);
+    /* set fds for poll */
+    pfd.fd = fd;
+    pfd.events = POLLIN | POLLOUT;
+    rc = poll(&pfd, 1, timeout * 1000);
 
     /* timeout */
     if (rc == 0)
@@ -190,6 +183,14 @@ int tac_connect_single(const struct addrinfo *server, const char *key, struct ad
     {
         TACSYSLOG(LOG_ERR,
                   "%s: connection failed with %s: %m", __FUNCTION__, ip);
+        goto bomb;
+    }
+
+    /* unexpected revent */
+    if ((pfd.revents & (POLLIN | POLLOUT)) == 0)
+    {
+        TACSYSLOG(LOG_ERR,
+                  "%s: poll failed with zero revents %s: %m", __FUNCTION__, ip);
         goto bomb;
     }
 
