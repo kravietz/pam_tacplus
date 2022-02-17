@@ -58,7 +58,7 @@ void digest_chap(unsigned char *digest, unsigned char id,
     check = getrandom(challenge, challenge_len, 0);
     if (check < (ssize_t) challenge_len) {
         TACSYSLOG(LOG_ERR,
-                  "%s: getrandom failed, produced %ld bytes, expected %ld",
+                  "%s: getrandom failed, produced %zd bytes, expected %zu",
                   __FUNCTION__, check, challenge_len);
 #ifdef HAVE_ABORT
         abort();

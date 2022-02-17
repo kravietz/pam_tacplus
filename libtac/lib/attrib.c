@@ -74,7 +74,7 @@ static int _tac_add_attrib_pair(gl_list_t attr, char *name, char separator, char
     check = snprintf(buf, total_len + 1, "%s%c%s", name, separator, value);
     if (check < (int) total_len) {
         TACSYSLOG(LOG_ERR,
-                  "%s: short snprintf write: wanted %lu bytes, wrote %d",
+                  "%s: short snprintf write: wanted %zu bytes, wrote %d",
                   __FUNCTION__, total_len, check);
     }
 
