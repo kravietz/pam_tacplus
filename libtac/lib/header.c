@@ -78,7 +78,7 @@ uint32_t _get_session_id(void)
   if (ret < (ssize_t) sizeof(tmp))
   {
     TACSYSLOG(LOG_ERR,
-              "%s: getrandom failed, produced %ld bytes, expected %ld",
+              "%s: getrandom failed, produced %zd bytes, expected %zu",
               __FUNCTION__, ret, sizeof(tmp));
 #ifdef HAVE_ABORT
     abort();
