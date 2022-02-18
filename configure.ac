@@ -31,14 +31,17 @@ export PATH=\$PATH:\$HOME/gnulib
 
 ])
 
-AC_CHECK_FILE([lib/malloc.c], [], [AC_MSG_ERROR([
+if ! test -f "lib/malloc.c"; then
+AC_MSG_ERROR([
+lib/malloc.c not found!
 Gnulib files not imported. Run:
 
 $ac_cv_prog_GNULIB --makefile-name=Makefile.gnulib --libtool --import \
 fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
 explicit_bzero xalloc getopt-gnu
 
-])])
+])
+fi
 
 dnl --------------------------------------------------------------------
 dnl Checks for programs.
