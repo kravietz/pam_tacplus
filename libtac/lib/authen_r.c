@@ -139,7 +139,6 @@ int tac_authen_read_timeout(int fd, struct areply *re, unsigned long timeout)
 		memset(msg, 0, (tb->msg_len + 1));
 		memcpy(msg, (char *)tb + sizeof(struct authen_reply), tb->msg_len);
 		re->msg = msg;
-		free(msg);
 	}
 
 	/* server authenticated username and password successfully */
