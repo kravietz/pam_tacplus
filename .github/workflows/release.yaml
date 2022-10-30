@@ -74,8 +74,3 @@ jobs:
           asset_path: ${{ steps.version.outputs.version }}.tar.gz.sig
           asset_name: ${{ steps.version.outputs.version }}.tar.gz.sig
           asset_content_type: application/octet-stream
-
-      - name: Build and Deploy Collection
-        uses: 0x022b/galaxy-role-import-action@1.0.0
-        with:
-          galaxy_api_key: "${{ secrets.ANSIBLE_GALAXY_TOKEN }}"
