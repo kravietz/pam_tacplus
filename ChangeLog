@@ -16,6 +16,9 @@
 ** Calling process PID is now used as the `task_id` attribute in TACACS+ accounting session. This replaces 
    an overengineered cryptographically random tasks identifiers.
 
+1.6.2
+* SigStore signed releases
+
 1.6.1
 * Fixed security issue (CVE-2020-27743) which could result in packet encryption operate uninitialized in case of RAND_bytes() failure
 
