@@ -10,9 +10,8 @@
 and requires a significant effort to keep up with modern environments. Any amount helps!
 * https://liberapay.com/devsecops
 * https://ko-fi.com/devsecops
-* `bitcoin:36YhAxvhqoxpdpFpcGXYSJZ4sQPB8yLzt6`
-* `ethereum:0xC47d33d62F75Caf30D3bA8892C67d5f9Fe6c3c79`
-
+* `bitcoin:3DsSkFWsWu6ZWNGN74yqCKpvG1cazGsmu5`
+* `ethereum:0x81281a913472b6edf01098446203FE23173BFbEf`
 
 # TACACS+ client toolkit
 
