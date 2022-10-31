@@ -1,20 +1,22 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
-# Sample debian/rules that uses debhelper.
-# This file was originally written by Joey Hess and Craig Small.
-# As a special exception, when this file is copied by dh-make into a
-# dh-make output file, you may use that output file without restriction.
-# This special exception was added by Craig Small in version 0.37 of dh-make.
+
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
-SHELL := sh -e
+
+# see FEATURE AREAS in dpkg-buildflags(1)
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh  $@ --with autoreconf
+	dh  $@
 
 override_dh_clean:
 	rm -f config.status config.log
+	rm -f m4/* lib/*.c lib/*.h lib/Makefile.gnulib
 	dh_clean
+
+override_dh_update_autotools_config:
+	gnulib-tool --makefile-name=Makefile.gnulib --libtool --import fcntl crypto/md5 array-list list xlist getrandom realloc-posix explicit_bzero xalloc getopt-gnu
 
 override_dh_auto_configure:
 	dh_auto_configure -- --enable-pamdir=/lib/$(DEB_HOST_MULTIARCH)/security --docdir=/usr/share/doc/libpam-tacplus
@@ -24,10 +26,5 @@ override_dh_install:
 	cp debian/tacplus debian/libpam-tacplus/usr/share/pam-configs/
 	dh_install
 
+# check-local target requires a running tac_plus server
 override_dh_auto_test:
-	mkdir -p /etc/pam.d
-	sudo cp test/test /etc/pam.d/test
-	sudo mkdir -p /etc/tacacs+/
-	sudo cp test/tac_plus.conf /etc/tacacs+
-	dh_auto_test
-	sudo rm -rf /etc/pam.d/test /etc/tacacs+/tac_plus.conf
