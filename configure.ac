@@ -31,9 +31,9 @@ export PATH=\$PATH:\$HOME/gnulib
 
 ])
 
-if ! test -f "lib/malloc.c"; then
+if ! test -f "lib/malloca.c"; then
 AC_MSG_ERROR([
-lib/malloc.c not found!
+lib/malloca.c not found!
 Gnulib files not imported. Run:
 
 $ac_cv_prog_GNULIB --makefile-name=Makefile.gnulib --libtool --import \
