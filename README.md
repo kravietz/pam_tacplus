@@ -74,7 +74,7 @@ To compile from source, the code uses GNU `autotools` and `gnulib`:
 
 ```shell
 $ sudo apt install libpam-tacplus autoconf build-essential libtool automake libpam-dev libssl-dev gnulib
-$ git clone https://git.sr.ht/~kravietz/pam-tacplus
+$ git clone https://github.com/kravietz/pam_tacplus.git
 $ cd pam-tacplus
 $ gnulib-tool --makefile-name=Makefile.gnulib --libtool --import \
                   fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
