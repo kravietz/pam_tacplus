@@ -65,7 +65,8 @@ endif
 
 MAINTAINERCLEANFILES = Makefile.in config.h.in configure aclocal.m4 \
                        config/config.guess  config/config.sub  config/depcomp \
-                       config/install-sh config/ltmain.sh config/missing
+                       config/install-sh config/ltmain.sh config/missing \
+                       m4/* lib/*.c lib/*.h lib/Makefile.gnulib
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libtac.pc
