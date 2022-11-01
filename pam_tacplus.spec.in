@@ -12,7 +12,7 @@ Release: 1%{?dist}
 Summary: PAM Tacacs+ module
 Group: System
 License: GPL
-URL: http://tacplus.sourceforge.net/
+URL: https://github.com/kravietz/pam_tacplus/
 
 # Packager Information
 Packager: NRB
@@ -21,10 +21,10 @@ Packager: NRB
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # Source Information
-Source0: https://github.com/jeroennijhof/pam_tacplus/archive/@VERSION@.tar.gz
+Source0: https://github.com/kravietz/pam_tacplus/archive/@VERSION@.tar.gz
 
 # Dependency Information
-BuildRequires: gcc binutils pam-devel
+BuildRequires: gcc binutils pam-devel gnulib-devel
 Requires: pam
 
 %description
@@ -42,7 +42,10 @@ Development files for pam_tacplus.
 %setup -q -a 0
 
 %build
-autoreconf -i
+gnulib-tool  --makefile-name=Makefile.gnulib --libtool --import \
+	fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
+	explicit_bzero xalloc getopt-gnu
+autoreconf -fi
 ./configure
 make
 
@@ -81,10 +84,31 @@ chmod 755 $RPM_BUILD_ROOT/usr/local/include/libtac
 %doc /usr/local/share/doc/*
 
 %changelog
-* Thu Feb  2 2012 - Jeroen <jeroen@jeroennijhof.nl>
-- Path changed for pam_tacplus.so
-- Not using static library path anymore
+* Mon Oct 31 2022 - Pawel Krawczyk <p+debian@krvtz.net>
 
-* Mon Mar 17 2010 - beNDon <benoit.donneaux@gmail.com>
-- Autotools aware
-- spec file added for RPM building
+- libtac: Refactored the complex and overengineered TACACS+ session
+  id generation, replacing it with getrandom(2).
+- libtac: gnulib now provides implementation of missing functions.
+- libtac: Removed legacy MD5 code and replaced it with gnulib.
+- libtac: Legacy data structures such as attribute lists were replaced
+  with gnulib structures.
+- libtac: CHAP implementation used a fixed challenge in contradiction
+  with the RFC 1994 requirement. This was replaced with a pseudo-random
+  challenge generated using getrandom(2).
+- libtac: ABI version set to 5:0:0. From now on, this is the only way to
+  version the library. The legacy static variables tac_ver_ were removed
+  as confusing.
+- pam_tacplus: Calling process PID is now used as the task_id attribute
+  in TACACS+ accounting session. This replaces an overengineered
+  cryptographically random tasks identifiers.
+- libtac: Fix CVE-2016-20014. Closes: #1009966
+
+* Tue Oct 27 2022 - Pawel Krawczyk <p+debian@krvtz.net>
+
+- Fix CVE-2020-27743.
+- Allow selection of source addresses.
+- Support for DSCP marking packets.
+- Make most network requests timeout aware.
+- Fix Debian build scripts.
+- OpenSSL licensing clarifications.
+- Use more neutral terminology.
