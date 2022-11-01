@@ -1,19 +1,23 @@
 libpam-tacplus (1.7.0-1) unstable; urgency=medium
 
-  * libtac: Refactored the complex and overengineered TACACS+ session id generation,
-    replacing it with getrandom(2).
+  * libtac: Refactored the complex and overengineered TACACS+ session
+    id generation, replacing it with getrandom(2).
   * libtac: gnulib now provides implementation of missing functions.
   * libtac: Removed legacy MD5 code and replaced it with gnulib.
-  * libtac: Legacy data structures such as attribute lists were replaced with gnulib structures.
-  * libtac: CHAP implementation used a fixed challenge in contradiction with the RFC 1994
-    requirement. This was replaced with a pseudo-random challenge generated using getrandom(2).
-  * libtac: ABI version set to 5:0:0. From now on, this is the only way to version the library.
-    The legacy static variables tac_ver_ were removed as confusing.
-  * pam_tacplus: Calling process PID is now used as the task_id attribute in TACACS+
-    accounting session. This replaces an overengineered cryptographically random tasks identifiers.
+  * libtac: Legacy data structures such as attribute lists were replaced
+    with gnulib structures.
+  * libtac: CHAP implementation used a fixed challenge in contradiction
+    with the RFC 1994 requirement. This was replaced with a pseudo-random
+    challenge generated using getrandom(2).
+  * libtac: ABI version set to 5:0:0. From now on, this is the only way to
+    version the library. The legacy static variables tac_ver_ were removed
+    as confusing.
+  * pam_tacplus: Calling process PID is now used as the task_id attribute
+    in TACACS+ accounting session. This replaces an overengineered cryptographically
+    random tasks identifiers.
   * libtac: Fix CVE-2016-20014. Closes: #1009966
 
- -- Pawel Krawczyk <pawel.krawczyk@hush.com>  Sat, 31 Oct 2022 22:44:00 +0100
+ -- Pawel Krawczyk Pawel Krawczyk <p+debian@krvtz.net>  Mon, 31 Oct 2022 22:44:00 +0100
 
 libpam-tacplus (1.6.2-1) unstable; urgency=medium
 
