@@ -29,7 +29,7 @@ libpam-tacplus (1.6.2-1) unstable; urgency=medium
   * OpenSSL licensing clarifications.
   * Use more neutral terminology.
 
- -- Pawel Krawczyk <pawel.krawczyk@hush.com>  Tue, 27 Oct 08:39:57 2020 +0000
+ -- Pawel Krawczyk <pawel.krawczyk@hush.com>  Tue, 27 Oct 2022 08:39:57 +0000
 
 libpam-tacplus (1.4.1-1) unstable; urgency=low
 
