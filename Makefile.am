@@ -16,6 +16,7 @@ bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
 tacc_LDADD = libtac.la $(LTLIBINTL) $(LIB_CRYPTO)  $(LIB_GETRANDOM)
 tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@ -I $(top_srcdir)/lib
+dist_man_MANS = tacc.1
 #endif
 
 lib_LTLIBRARIES = libtac.la
@@ -58,7 +59,7 @@ pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_sr
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 
-EXTRA_DIST = pam_tacplus.spec libtac.pc.in m4/gnulib-cache.m4 $(TESTS)
+EXTRA_DIST = debian/ pam_tacplus.spec libtac.pc.in m4/gnulib-cache.m4 $(TESTS)
 if DOC
 dist_doc_DATA = sample.pam README.md AUTHORS ChangeLog
 endif
@@ -66,7 +67,7 @@ endif
 MAINTAINERCLEANFILES = Makefile.in config.h.in configure aclocal.m4 \
                        config/config.guess  config/config.sub  config/depcomp \
                        config/install-sh config/ltmain.sh config/missing \
-                       m4/* lib/*.c lib/*.h lib/Makefile.gnulib
+                       m4/* lib/*.c lib/*.h lib/sys/ lib/Makefile.gnulib
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libtac.pc
