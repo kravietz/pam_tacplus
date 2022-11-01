@@ -17,7 +17,7 @@ libpam-tacplus (1.7.0-1) unstable; urgency=medium
     cryptographically random tasks identifiers.
   * libtac: Fix CVE-2016-20014. Closes: #1009966
 
- -- Pawel Krawczyk Pawel Krawczyk <p+debian@krvtz.net>  Mon, 31 Oct 2022 22:44:00 +0100
+ -- Pawel Krawczyk <p+debian@krvtz.net>  Mon, 31 Oct 2022 22:44:00 +0100
 
 libpam-tacplus (1.6.2-1) unstable; urgency=medium
 
