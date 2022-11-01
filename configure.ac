@@ -32,9 +32,9 @@ export PATH=\$PATH:\$HOME/gnulib
 ])
 
 if ! test -f "lib/malloca.c"; then
-AC_MSG_ERROR([
-lib/malloca.c not found!
-Gnulib files not imported. Run:
+ls -l lib/
+AC_MSG_WARN([
+lib/malloca.c not found, you likely haven't run gnulib-tool:
 
 $ac_cv_prog_GNULIB --makefile-name=Makefile.gnulib --libtool --import \
 fcntl crypto/md5 array-list list xlist getrandom realloc-posix \
