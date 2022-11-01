@@ -3,8 +3,8 @@ Section: admin
 Priority: extra
 Maintainer: Pawel Krawczyk <p+debian@krvtz.net>
 Build-Depends: debhelper (>= 9), libpam-dev, dh-autoreconf, autoconf-archive, gnulib, libtool
-Standards-Version: 3.9.5
-Homepage: https://github.com/jeroennijhof/pam_tacplus
+Standards-Version: 4.5.1
+Homepage: https://github.com/kravietz/pam_tacplus
 
 Package: libpam-tacplus
 Architecture: any
@@ -14,14 +14,14 @@ Description: PAM module for using TACACS+ as an authentication service
  accounting (session management) performed using TACACS+ protocol designed by
  Cisco.
 
-Package: libtac3
+Package: libtac5
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: TACACS+ protocol library 
  This library implemenents the fundamentls of the TACACS+ protocol and supports
  authentication, authorization (account management) and accounting (session management).
 
-Package: libtac2-bin
+Package: libtac5-bin
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: TACACS+ client program

@@ -13,8 +13,8 @@ libpam-tacplus (1.7.0-1) unstable; urgency=medium
     version the library. The legacy static variables tac_ver_ were removed
     as confusing.
   * pam_tacplus: Calling process PID is now used as the task_id attribute
-    in TACACS+ accounting session. This replaces an overengineered cryptographically
-    random tasks identifiers.
+    in TACACS+ accounting session. This replaces an overengineered
+    cryptographically random tasks identifiers.
   * libtac: Fix CVE-2016-20014. Closes: #1009966
 
  -- Pawel Krawczyk Pawel Krawczyk <p+debian@krvtz.net>  Mon, 31 Oct 2022 22:44:00 +0100
