@@ -10,7 +10,6 @@ config/install-sh
 config/ltmain.sh
 config/missing
 config/ar-lib
-configure
 config/*.m4
 .deps/
 .libs/
@@ -36,14 +35,6 @@ libtac.pc
 .vscode/
 tacc
 .dirstamp
-lib/.gitignore
-m4/.gitignore
-m4/
-.idea/
-lib/*.h
-lib/*.c
-lib/Makefile.gnulib
-lib/sys/
 *.tar.gz
 *.crt
 *.sig
