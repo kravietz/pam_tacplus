@@ -1,0 +1,7 @@
+Bug-Submit: https://github.com/kravietz/pam_tacplus/issues
+Changelog: https://github.com/kravietz/pam_tacplus/blob/main/ChangeLog
+CPE: cpe:2.3:a:pam_tacplus_project:pam_tacplus:*:*:*:*:*:*:*:*
+Documentation: https://github.com/kravietz/pam_tacplus/blob/main/README.md
+Donation: https://github.com/kravietz/pam_tacplus/blob/main/.github/FUNDING.yml
+Repository: https://github.com/kravietz/pam_tacplus/
+Security-Contact: https://github.com/kravietz/pam_tacplus/blob/main/SECURITY.md
