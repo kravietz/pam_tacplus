@@ -5,6 +5,7 @@ Maintainer: Pawel Krawczyk <p+debian@krvtz.net>
 Build-Depends: debhelper (>= 9), libpam-dev, autoconf-archive, gnulib, libtool
 Standards-Version: 4.6.1.0
 Homepage: https://github.com/kravietz/pam_tacplus
+Rules-Requires-Root: no
 
 Package: libpam-tacplus
 Architecture: any
@@ -17,7 +18,7 @@ Description: PAM module for using TACACS+ as an authentication service
 Package: libtac5
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: TACACS+ protocol library 
+Description: TACACS+ protocol library
  This library implemenents the fundamentls of the TACACS+ protocol and supports
  authentication, authorization (account management) and accounting (session management).
 
@@ -31,6 +32,6 @@ Package: libtac-dev
 Section: libdevel
 Architecture: any
 Depends: ${misc:Depends}, libtac5 (= ${binary:Version}), libc6-dev|libc-dev
-Description: Development files for TACACS+ protocol library 
+Description: Development files for TACACS+ protocol library
  Contains C header files and development files for libtac, a TACACS+ protocol
  implementation.
