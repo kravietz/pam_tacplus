@@ -3,7 +3,7 @@ Section: admin
 Priority: optional
 Maintainer: Pawel Krawczyk <p+debian@krvtz.net>
 Build-Depends: debhelper (>= 9), libpam-dev, autoconf-archive, gnulib, libtool
-Standards-Version: 4.5.1
+Standards-Version: 4.6.1.0
 Homepage: https://github.com/kravietz/pam_tacplus
 
 Package: libpam-tacplus
