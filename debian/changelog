@@ -2,7 +2,7 @@ libpam-tacplus (1.7.0-2) unstable; urgency=medium
 
   * Improve Debian packaging - implement Lintian changes.
 
- -- Pawel Krawczyk <p+debian@krvtz.net>  Mon, 06 Nov 2022 06:41:00 +0100
+ -- Pawel Krawczyk <p+debian@krvtz.net>  Sun, 06 Nov 2022 06:41:00 +0100
 
 libpam-tacplus (1.7.0-1) unstable; urgency=medium
 
