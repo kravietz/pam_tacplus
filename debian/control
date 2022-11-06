@@ -11,16 +11,17 @@ Package: libpam-tacplus
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libpam-runtime, libtac5
 Description: PAM module for using TACACS+ as an authentication service
- This PAM module support authentication, authorization (account management) and
- accounting (session management) performed using TACACS+ protocol designed by
- Cisco.
+ This PAM module support authentication, authorization (account management)
+ and accounting (session management) performed using TACACS+ protocol designedi
+ by Cisco.
 
 Package: libtac5
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: TACACS+ protocol library
  This library implemenents the fundamentls of the TACACS+ protocol and supports
- authentication, authorization (account management) and accounting (session management).
+ authentication, authorization (account management) and accounting (session
+ management).
 
 Package: libtac5-bin
 Architecture: any
