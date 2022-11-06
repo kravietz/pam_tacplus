@@ -1,3 +1,4 @@
-version=3
-
-https://github.com/kravietz/pam_tacplus/tags .*/v?(\d[\d\.]+)\.tar\.gz
+version=4
+opts=filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/pam_tacplus-$1\.tar\.gz/,\
+pgpsigurlmangle=s/archive\/(\d\S+)\.tar\.gz/releases\/download\/$1\/$1\.tar\.gz\.asc/ \
+  https://github.com/kravietz/pam_tacplus/releases .*/v\d[\d\.]+()\.tar\.gz
