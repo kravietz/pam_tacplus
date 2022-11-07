@@ -15,7 +15,6 @@ bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
 tacc_LDADD = libtac.la $(LTLIBINTL) $(LIB_CRYPTO)  $(LIB_GETRANDOM)
 tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@ -I $(top_srcdir)/lib
-dist_man_MANS = tacc.1
 man1_MANS = tacc.1
 
 lib_LTLIBRARIES = libtac.la
