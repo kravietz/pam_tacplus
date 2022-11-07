@@ -58,10 +58,8 @@ pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_sr
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 
-EXTRA_DIST = debian/ pam_tacplus.spec libtac.pc.in m4/gnulib-cache.m4 $(TESTS)
-if DOC
+EXTRA_DIST = pam_tacplus.spec libtac.pc.in m4/gnulib-cache.m4 $(TESTS)
 dist_doc_DATA = sample.pam README.md AUTHORS ChangeLog
-endif
 
 MAINTAINERCLEANFILES = Makefile.in config.h.in configure aclocal.m4 \
                        config/config.guess  config/config.sub  config/depcomp \
