@@ -57,7 +57,9 @@ extern "C"
 #include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_GETRANDOM
 #include <sys/random.h>
+#endif
 #include "gl_array_list.h"
 #include "gl_list.h"
 #include "gl_xlist.h"
