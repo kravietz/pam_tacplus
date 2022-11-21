@@ -14,7 +14,7 @@ AM_CFLAGS = -Wall -Wextra -Werror
 bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
 tacc_LDADD = libtac.la $(LTLIBINTL) $(LIB_CRYPTO)  $(LIB_GETRANDOM)
-tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@ -I $(top_srcdir)/lib
+tacc_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include @rt_debug_defines@ -I $(top_srcdir)/lib -I $(top_builddir)/lib
 man1_MANS = tacc.1
 
 lib_LTLIBRARIES = libtac.la
@@ -44,7 +44,7 @@ libtac_la_SOURCES = \
     libtac/lib/xstrncpy.c \
     $(libtac_include_HEADERS)
 
-libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib @rt_debug_defines@
+libtac_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib -I $(top_builddir)/lib @rt_debug_defines@
 libtac_la_LIBADD = lib/libgnu.la $(LTLIBINTL) $(LIB_CRYPTO) $(LIB_GETRANDOM)
 
 moduledir = @pamdir@
@@ -53,7 +53,7 @@ pam_tacplus_la_SOURCES = pam_tacplus.h \
     pam_tacplus.c \
     support.h \
     support.c
-pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+pam_tacplus_la_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib -I $(top_builddir)/lib
 pam_tacplus_la_LDFLAGS = -module -avoid-version
 pam_tacplus_la_LIBADD = libtac.la
 
@@ -73,15 +73,15 @@ check_PROGRAMS = tests/libtac/c-pap tests/libtac/c-chap tests/libtac/c-login tes
 bin_PROGRAMS += tests/runtests
 
 tests_libtac_c_pap_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la
-tests_libtac_c_pap_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+tests_libtac_c_pap_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib -I $(top_builddir)/lib
 tests_libtac_c_chap_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la
-tests_libtac_c_chap_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+tests_libtac_c_chap_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib -I $(top_builddir)/lib
 tests_libtac_c_login_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la
-tests_libtac_c_login_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+tests_libtac_c_login_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib -I $(top_builddir)/lib
 tests_libtac_c_author_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la
-tests_libtac_c_author_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+tests_libtac_c_author_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib -I $(top_builddir)/lib
 tests_libtac_c_acct_LDADD = $(top_srcdir)/tests/tap/libtap.a $(top_srcdir)/libtac.la
-tests_libtac_c_acct_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib
+tests_libtac_c_acct_CFLAGS = $(AM_CFLAGS) -I $(top_srcdir)/libtac/include -I $(top_srcdir)/lib -I $(top_builddir)/lib
 
 noinst_LIBRARIES = tests/tap/libtap.a
 tests_tap_libtap_a_SOURCES = tests/tap/basic.c tests/tap/basic.h tests/tap/macros.h
