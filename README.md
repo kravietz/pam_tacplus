@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/kravietz/pam_tacplus.svg?branch=master)](https://travis-ci.org/kravietz/pam_tacplus)
 [![GitHub forks](https://img.shields.io/github/forks/kravietz/pam_tacplus.svg)](https://github.com/kravietz/pam_tacplus/network)
-[![GitHub license](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://raw.githubusercontent.com/jeroennijhof/pam_tacplus/master/COPYING)
+[![GitHub](https://img.shields.io/github/license/kravietz/pam_tacplus)](https://github.com/kravietz/pam_tacplus/blob/main/LICENSE)
 [![LGTM alerts](https://img.shields.io/lgtm/alerts/g/jeroennijhof/pam_tacplus.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/jeroennijhof/pam_tacplus/alerts/)
 [![Coverity](https://scan.coverity.com/projects/19343/badge.svg)](https://scan.coverity.com/projects/kravietz-pam_tacplus)
 [![Sonarcloud](https://sonarcloud.io/api/project_badges/measure?project=kravietz_pam_tacplus&metric=alert_status)](https://sonarcloud.io/dashboard?id=kravietz_pam_tacplus)
