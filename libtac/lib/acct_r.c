@@ -140,7 +140,6 @@ int tac_acct_read_timeout(int fd, struct areply *re, unsigned long timeout)
         memcpy(msg, (unsigned char *)tb + TAC_ACCT_REPLY_FIXED_FIELDS_SIZE, tb->msg_len);
         msg[(int)tb->msg_len] = '\0';
         re->msg = msg;
-        free(msg);
     }
 
     /* server logged our request successfully */
