@@ -16,7 +16,7 @@ See the included file: LICENSE for copyright information.
 ])
 AC_INIT([pam_tacplus],[1.7.0],[https://github.com/kravietz/pam_tacplus/issues/],[pam_tacplus],[https://github.com/kravietz/pam_tacplus/])
 AC_CONFIG_AUX_DIR(config)
-AM_INIT_AUTOMAKE([foreign -Wall -Werror])
+AM_INIT_AUTOMAKE([foreign -Wall])
 AC_CONFIG_SRCDIR([pam_tacplus.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([config])

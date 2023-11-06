@@ -9,7 +9,11 @@
 ACLOCAL_AMFLAGS = -I config -I m4
 SUBDIRS = lib
 AUTOMAKE_OPTIONS = subdir-objects
-AM_CFLAGS = -Wall -Wextra -Werror
+AM_CFLAGS = -Wall -Wextra
+
+if ENABLE_WERROR
+AM_CFLAGS += -Werror
+endif
 
 bin_PROGRAMS = tacc
 tacc_SOURCES = tacc.c
