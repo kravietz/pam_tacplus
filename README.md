@@ -6,13 +6,6 @@
 [![Sonarcloud](https://sonarcloud.io/api/project_badges/measure?project=kravietz_pam_tacplus&metric=alert_status)](https://sonarcloud.io/dashboard?id=kravietz_pam_tacplus)
 [![builds.sr.ht status](https://builds.sr.ht/~kravietz/pam-tacplus.svg)](https://builds.sr.ht/~kravietz/pam-tacplus?)
 
-**Funding:** Please consider sponsoring this project as the code base has been live since late 90's
-and requires a significant effort to keep up with modern environments. Any amount helps!
-* https://liberapay.com/devsecops
-* https://ko-fi.com/devsecops
-* `bitcoin:3DsSkFWsWu6ZWNGN74yqCKpvG1cazGsmu5`
-* `ethereum:0x81281a913472b6edf01098446203FE23173BFbEf`
-
 # TACACS+ client toolkit
 
 This repository contains three modules that are typically used to perform requests to a TACACS+ server:
