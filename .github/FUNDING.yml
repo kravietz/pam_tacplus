@@ -1,15 +1,5 @@
 # These are supported funding model platforms
 
 github: [kravietz]
-patreon: # Replace with a single Patreon username
-open_collective: # Replace with a single Open Collective username
 ko_fi: devsecops
-tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
-community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
 liberapay: devsecops
-issuehunt: # Replace with a single IssueHunt username
-otechie: # Replace with a single Otechie username
-custom:
-  - "https://etherscan.io/address/0x81281a913472b6edf01098446203FE23173BFbEf"   # Coinbase ETH
-  - "https://etherscan.io/address/0xE0fD16684386AF74628bB232B8e6A924871E8039"   # Coinbase DAI
-  - "https://www.blockchain.com/btc/address/3DsSkFWsWu6ZWNGN74yqCKpvG1cazGsmu5" # Coinbase BTC
